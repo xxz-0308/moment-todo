@@ -91,15 +91,17 @@ export function TaskList() {
           overdueTasks: [],
           regularTasks: completed,
         }
-      default:
+      default: {
+        // '全部' (id=default) shows all tasks; other lists filter by list_id
+        const listFiltered = currentView === 'default'
+          ? active
+          : active.filter((t) => t.list_id === currentView)
         return {
           todayTasks: [],
           overdueTasks: [],
-          regularTasks: applyFilterChip(
-            active.filter((t) => t.list_id === currentView),
-            activeFilter
-          ),
+          regularTasks: applyFilterChip(listFiltered, activeFilter),
         }
+      }
     }
   }, [tasks, currentView, activeFilter, today])
 
@@ -136,6 +138,10 @@ export function TaskList() {
       dueDate = today
     } else if (currentView === 'upcoming') {
       dueDate = tomorrow
+    } else if (currentView === 'default') {
+      // 全部: goes to 'default' list, shows in 全部 view
+      listId = 'default'
+      dueDate = quickDueDate
     } else if (!['completed'].includes(currentView)) {
       listId = currentView
       dueDate = quickDueDate

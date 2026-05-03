@@ -69,7 +69,7 @@ function initSchema() {
   const result = db.exec('SELECT COUNT(*) as count FROM lists')
   const count = result.length > 0 ? (result[0].values[0][0] as number) : 0
   if (count === 0) {
-    db.run("INSERT INTO lists (id, name, color, sort_order) VALUES ('default', ?, '#6366f1', 0)", ['收集箱'])
+    db.run("INSERT INTO lists (id, name, color, sort_order) VALUES ('default', ?, '#6366f1', 0)", ['全部'])
     db.run("INSERT INTO lists (id, name, color, sort_order) VALUES ('work', ?, '#f59e0b', 1)", ['工作'])
     db.run("INSERT INTO lists (id, name, color, sort_order) VALUES ('personal', ?, '#10b981', 2)", ['个人'])
   }

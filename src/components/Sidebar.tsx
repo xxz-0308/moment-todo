@@ -49,7 +49,10 @@ export function Sidebar() {
       case 'completed':
         return tasks.filter((t) => t.completed).length
       default:
-        return tasks.filter((t) => !t.completed && t.list_id === viewId).length
+        // '全部' shows all; other lists filter by list_id
+        return viewId === 'default'
+          ? tasks.filter((t) => !t.completed).length
+          : tasks.filter((t) => !t.completed && t.list_id === viewId).length
     }
   }
 
