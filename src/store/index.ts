@@ -58,6 +58,7 @@ interface AppState {
   showQuickAdd: boolean
   searchQuery: string
   toasts: ToastMessage[]
+  restoredTaskId: string | null
 
   undoStack: UndoAction[]
   loading: boolean
@@ -107,6 +108,7 @@ export const useStore = create<AppState>((set, get) => ({
   undoStack: [],
   loading: true,
   searchResults: [],
+  restoredTaskId: null,
 
   toggleTheme: () => {
     const newTheme = get().theme === 'dark' ? 'light' : 'dark'
@@ -317,6 +319,12 @@ export const useStore = create<AppState>((set, get) => ({
 
     set({ undoStack: stack.slice(0, -1) })
     await get().loadData()
+    // Flash the restored task
+    const restoredId = lastAction.task.id
+    set({ restoredTaskId: restoredId })
+    setTimeout(() => {
+      if (get().restoredTaskId === restoredId) set({ restoredTaskId: null })
+    }, 1000)
     get().addToast('已撤销')
   },
 

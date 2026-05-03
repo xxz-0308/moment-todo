@@ -11,6 +11,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { useStore } from '@/store'
+import { DatePicker } from '@/components/DatePicker'
 
 export function DetailPanel() {
   const selectedTask = useStore((s) => s.selectedTask)
@@ -180,49 +181,7 @@ export function DetailPanel() {
             <Calendar size={13} strokeWidth={2} />
             截止日期
           </label>
-          <div className="flex gap-2">
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => saveDueDate(e.target.value)}
-              className={`
-                flex-1 px-3 py-2 rounded-lg bg-surface-tertiary text-[13px] text-text-primary
-                outline-none border transition-colors
-                ${isOverdue ? 'border-danger/50' : 'border-border focus:border-accent'}
-              `}
-              style={theme === 'dark' ? { colorScheme: 'dark' } : { colorScheme: 'light' }}
-            />
-            {dueDate && (
-              <button
-                onClick={() => saveDueDate('')}
-                className="px-3 py-2 rounded-lg text-[12px] text-text-tertiary hover:text-text-primary hover:bg-surface-hover transition-colors"
-              >
-                清除
-              </button>
-            )}
-          </div>
-          {/* Quick date buttons */}
-          <div className="flex gap-2">
-            {[
-              { label: '今天', value: today },
-              { label: '明天', value: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
-              { label: '下周', value: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0] },
-            ].map((quick) => (
-              <button
-                key={quick.label}
-                onClick={() => saveDueDate(quick.value)}
-                className={`
-                  px-2.5 py-1.5 rounded-lg text-[12px] font-medium transition-all
-                  ${dueDate === quick.value
-                    ? 'bg-accent-muted text-accent'
-                    : 'text-text-tertiary hover:text-text-secondary bg-surface-tertiary hover:bg-surface-hover'
-                  }
-                `}
-              >
-                {quick.label}
-              </button>
-            ))}
-          </div>
+          <DatePicker value={dueDate || null} onChange={(v) => saveDueDate(v ?? '')} />
         </div>
 
         {/* List */}

@@ -1,5 +1,5 @@
-import { useRef } from 'react'
-import { motion } from 'framer-motion'
+import { useRef, useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Circle, CheckCircle2, GripVertical, Calendar, Flag } from 'lucide-react'
 import { useStore, type Task } from '@/store'
 import { Reorder } from 'framer-motion'
@@ -7,8 +7,10 @@ import { Reorder } from 'framer-motion'
 interface TaskItemProps {
   task: Task
   isSelected: boolean
-  onSelect: () => void
+  onSelect: (e: React.MouseEvent) => void
   showCompletedState?: boolean
+  flashHighlight?: boolean
+  isMultiSelected?: boolean
 }
 
 const priorityConfig = {
@@ -33,24 +35,51 @@ function formatDueDate(dateStr: string | null): string {
 
 function isOverdue(dateStr: string | null): boolean {
   if (!dateStr) return false
-  const today = new Date().toISOString().split('T')[0]
-  return dateStr < today
+  return dateStr < new Date().toISOString().split('T')[0]
 }
 
-export function TaskItem({ task, isSelected, onSelect, showCompletedState }: TaskItemProps) {
+function isApproaching(dateStr: string | null): boolean {
+  if (!dateStr) return false
+  const today = new Date()
+  const due = new Date(dateStr)
+  const diff = due.getTime() - today.getTime()
+  return diff > 0 && diff <= 2 * 86400000 // within 2 days
+}
+
+export function TaskItem({ task, isSelected, onSelect, showCompletedState, flashHighlight }: TaskItemProps) {
   const toggleComplete = useStore((s) => s.toggleComplete)
+  const [justCompleted, setJustCompleted] = useState(false)
+
+  // Track completion for celebration animation
+  const prevCompleted = useRef(task.completed)
+  useEffect(() => {
+    if (task.completed && !prevCompleted.current) {
+      setJustCompleted(true)
+      const timer = setTimeout(() => setJustCompleted(false), 800)
+      prevCompleted.current = task.completed
+      return () => clearTimeout(timer)
+    }
+    prevCompleted.current = task.completed
+  }, [task.completed])
+
   const priority = task.priority || 'medium'
   const pConfig = priorityConfig[priority]
   const overdue = !task.completed && isOverdue(task.due_date)
+  const approaching = !task.completed && isApproaching(task.due_date)
   const hasDueDate = !!task.due_date
 
-  const content = (
+  return (
     <motion.div
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.2, ease: 'easeOut' }}
+      animate={{
+        opacity: 1,
+        backgroundColor: flashHighlight
+          ? ['rgba(99,102,241,0.25)', 'rgba(99,102,241,0)']
+          : undefined,
+        transition: flashHighlight ? { duration: 0.8, ease: 'easeOut' } : undefined,
+      }}
       className={`
         task-item group flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer
-        border border-transparent
+        border border-transparent relative overflow-hidden
         ${isSelected
           ? 'bg-accent-muted border-accent/20'
           : 'hover:bg-surface-hover hover:border-border-subtle'
@@ -58,11 +87,49 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState }: Tas
         ${task.completed ? 'opacity-50' : ''}
       `}
       onClick={(e) => {
-        e.stopPropagation()
-        onSelect()
+        // Don't stop propagation in multi-select mode so Ctrl+click works
+        if (!e.ctrlKey && !e.metaKey) {
+          e.stopPropagation()
+          onSelect(e)
+        } else {
+          onSelect(e)
+        }
       }}
     >
-      {/* Drag handle or grip */}
+      {/* Completion green flash overlay */}
+      <AnimatePresence>
+        {justCompleted && (
+          <motion.div
+            initial={{ opacity: 0.6 }}
+            animate={{ opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="absolute inset-0 rounded-xl pointer-events-none"
+            style={{ backgroundColor: 'rgba(16, 185, 129, 0.25)' }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Priority left color bar */}
+      {task.priority === 'high' && !task.completed && !showCompletedState && (
+        <div
+          className="absolute left-0 top-1 bottom-1 w-[3px] rounded-r-full"
+          style={{ backgroundColor: pConfig.color }}
+        />
+      )}
+
+      {/* Approaching deadline pulse */}
+      {approaching && (
+        <div
+          className="absolute inset-0 rounded-xl pointer-events-none animate-pulse"
+          style={{
+            boxShadow: 'inset 0 0 0 1px rgba(245, 158, 11, 0.3)',
+            animationDuration: '2s',
+          }}
+        />
+      )}
+
+      {/* Drag grip */}
       <div className="flex-shrink-0 text-text-tertiary opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
         <GripVertical size={15} strokeWidth={1.8} />
       </div>
@@ -84,14 +151,19 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState }: Tas
             <CheckCircle2 size={20} strokeWidth={2} className="text-accent" />
           </motion.span>
         ) : (
-          <Circle
-            size={20}
-            strokeWidth={1.8}
-            className={`
-              transition-colors
-              ${overdue ? 'text-danger' : 'text-text-tertiary hover:text-accent'}
-            `}
-          />
+          <motion.span
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.85 }}
+          >
+            <Circle
+              size={20}
+              strokeWidth={1.8}
+              className={`
+                transition-colors
+                ${overdue ? 'text-danger' : 'text-text-tertiary hover:text-accent'}
+              `}
+            />
+          </motion.span>
         )}
       </button>
 
@@ -113,7 +185,9 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState }: Tas
             flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md flex-shrink-0
             ${overdue
               ? 'bg-danger-muted text-danger'
-              : 'bg-surface-tertiary text-text-tertiary group-hover:text-text-secondary'
+              : approaching
+                ? 'bg-[rgba(245,158,11,0.12)] text-[var(--color-warning)]'
+                : 'bg-surface-tertiary text-text-tertiary group-hover:text-text-secondary'
             }
           `}
         >
@@ -122,26 +196,22 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState }: Tas
         </span>
       )}
 
-      {/* Priority indicator */}
+      {/* Priority flag */}
       {!showCompletedState && (
-        <span
+        <motion.span
           className="flex-shrink-0"
           style={{ color: pConfig.color }}
           title={`优先级: ${pConfig.label}`}
         >
           <Flag size={13} strokeWidth={2.5} fill={task.priority === 'high' ? 'currentColor' : 'none'} />
-        </span>
+        </motion.span>
       )}
     </motion.div>
   )
-
-  // Wrap in Reorder.Item for draggable mode (used by parent Reorder.Group)
-  // When not in reorder mode, just render the item
-  return content
 }
 
 // Wrapper for use inside Reorder.Group
-export function ReorderableTaskItem({ task, isSelected, onSelect, showCompletedState }: TaskItemProps) {
+export function ReorderableTaskItem({ task, isSelected, onSelect, showCompletedState, flashHighlight }: TaskItemProps) {
   const wasDragging = useRef(false)
 
   return (
@@ -154,10 +224,11 @@ export function ReorderableTaskItem({ task, isSelected, onSelect, showCompletedS
       <TaskItem
         task={task}
         isSelected={isSelected}
-        onSelect={() => {
-          if (!wasDragging.current) onSelect()
+        onSelect={(e: React.MouseEvent) => {
+          if (!wasDragging.current) onSelect(e)
         }}
         showCompletedState={showCompletedState}
+        flashHighlight={flashHighlight}
       />
     </Reorder.Item>
   )

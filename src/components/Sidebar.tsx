@@ -45,13 +45,18 @@ export function Sidebar() {
       case 'today':
         return tasks.filter((t) => !t.completed && t.due_date === today).length
       case 'upcoming':
-        return tasks.filter((t) => !t.completed && t.due_date && t.due_date > today).length
+        return tasks.filter((t) => !t.completed && t.due_date && t.due_date >= today).length
       case 'completed':
         return tasks.filter((t) => t.completed).length
       default:
         return tasks.filter((t) => !t.completed && t.list_id === viewId).length
     }
   }
+
+  // Today progress: completed / total for tasks due today
+  const todayTotal = tasks.filter((t) => t.due_date === new Date().toISOString().split('T')[0]).length
+  const todayCompleted = tasks.filter((t) => t.due_date === new Date().toISOString().split('T')[0] && t.completed).length
+  const todayProgress = todayTotal > 0 ? todayCompleted / todayTotal : 0
 
   return (
     <aside className="w-[260px] flex-shrink-0 bg-surface-secondary border-r border-border-subtle flex flex-col overflow-hidden">
@@ -78,14 +83,30 @@ export function Sidebar() {
             >
               <Icon size={17} strokeWidth={isActive ? 2.5 : 1.8} className={isActive ? 'text-accent' : ''} />
               <span className="flex-1 text-left">{view.label}</span>
-              {count > 0 && (
+              {view.id === 'today' && todayTotal > 0 ? (
+                <svg width="22" height="22" viewBox="0 0 22 22" className="flex-shrink-0">
+                  <circle cx="11" cy="11" r="9" fill="none"
+                    stroke="var(--color-border)" strokeWidth="2.5"
+                  />
+                  <motion.circle cx="11" cy="11" r="9" fill="none"
+                    stroke="var(--color-accent)" strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeDasharray={2 * Math.PI * 9}
+                    strokeDashoffset={2 * Math.PI * 9 * (1 - todayProgress)}
+                    transform="rotate(-90 11 11)"
+                    initial={{ strokeDashoffset: 2 * Math.PI * 9 }}
+                    animate={{ strokeDashoffset: 2 * Math.PI * 9 * (1 - todayProgress) }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                  />
+                </svg>
+              ) : count > 0 ? (
                 <span className={`
                   text-[11px] font-medium px-1.5 py-0.5 rounded-md min-w-[20px] text-center
                   ${isActive ? 'bg-accent text-white' : 'bg-surface-tertiary text-text-tertiary'}
                 `}>
                   {count}
                 </span>
-              )}
+              ) : null}
             </motion.button>
           )
         })}
