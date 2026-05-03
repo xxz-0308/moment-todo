@@ -1,0 +1,129 @@
+import { motion } from 'framer-motion'
+import { Calendar, ListChecks, CheckCircle2, Sparkles, Plus } from 'lucide-react'
+import type { ViewType } from '@/store'
+import { useStore } from '@/store'
+
+function getGreeting(): { title: string; subtitle: string } {
+  const hour = new Date().getHours()
+  if (hour < 6) return { title: '夜深了', subtitle: '早点休息，明天再战' }
+  if (hour < 9) return { title: '早上好', subtitle: '新的一天，从整理开始' }
+  if (hour < 12) return { title: '上午好', subtitle: '一日之计在于晨' }
+  if (hour < 14) return { title: '中午好', subtitle: '休息一下，看看待办' }
+  if (hour < 18) return { title: '下午好', subtitle: '高效的一下午' }
+  if (hour < 22) return { title: '晚上好', subtitle: '回顾今天，计划明天' }
+  return { title: '夜深了', subtitle: '早点休息，明天再战' }
+}
+
+const configs: Record<string, { icon: typeof Calendar; title: string; subtitle: string }> = {
+  today: {
+    icon: Calendar,
+    title: '今天没有任务',
+    subtitle: '按下 Ctrl + N 添加一个吧',
+  },
+  upcoming: {
+    icon: Calendar,
+    title: '没有计划的任务',
+    subtitle: '给任务加上截止日期，它会出现在这里',
+  },
+  completed: {
+    icon: CheckCircle2,
+    title: '还没有完成的任务',
+    subtitle: '完成一个任务，它会出现在这里',
+  },
+}
+
+interface EmptyStateProps {
+  view: ViewType
+}
+
+export function EmptyState({ view }: EmptyStateProps) {
+  const toggleQuickAdd = useStore((s) => s.toggleQuickAdd)
+  const greeting = getGreeting()
+  const config = configs[view]
+
+  // For list views, show a more generic empty state
+  if (!config) {
+    const isCompletedView = view === 'completed'
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col items-center justify-center py-20 px-8 text-center"
+      >
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 25, delay: 0.1 }}
+          className="w-16 h-16 rounded-2xl bg-surface-secondary border border-border-subtle flex items-center justify-center mb-5"
+        >
+          {isCompletedView ? (
+            <CheckCircle2 size={28} strokeWidth={1.5} className="text-text-tertiary" />
+          ) : (
+            <ListChecks size={28} strokeWidth={1.5} className="text-text-tertiary" />
+          )}
+        </motion.div>
+        <h3 className="text-[15px] font-medium text-text-secondary mb-1.5">
+          {isCompletedView ? '还没有完成的任务' : '这个列表是空的'}
+        </h3>
+        <p className="text-[13px] text-text-tertiary mb-6">
+          {isCompletedView ? '完成一个任务，它会出现在这里' : '按下 Ctrl + N 添加第一个任务'}
+        </p>
+        {!isCompletedView && (
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={toggleQuickAdd}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-accent text-white text-[13px] font-medium hover:bg-accent-hover transition-colors"
+          >
+            <Plus size={16} strokeWidth={2} />
+            <span>添加任务</span>
+          </motion.button>
+        )}
+      </motion.div>
+    )
+  }
+
+  const Icon = config.icon
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center justify-center py-20 px-8 text-center"
+    >
+      {/* Greeting */}
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 25, delay: 0.1 }}
+        className="w-16 h-16 rounded-2xl bg-accent-muted flex items-center justify-center mb-5"
+      >
+        <Sparkles size={28} strokeWidth={1.5} className="text-accent" />
+      </motion.div>
+
+      <motion.h2
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="text-[18px] font-semibold text-text-primary mb-1.5"
+      >
+        {greeting.title}
+      </motion.h2>
+
+      <motion.p
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+        className="text-[13px] text-text-tertiary mb-8"
+      >
+        {greeting.subtitle}
+      </motion.p>
+
+      {/* View-specific empty message */}
+      <div className="flex flex-col items-center">
+        <Icon size={36} strokeWidth={1.2} className="text-text-tertiary/40 mb-4" />
+        <p className="text-[13px] text-text-secondary">{config.subtitle}</p>
+      </div>
+    </motion.div>
+  )
+}
