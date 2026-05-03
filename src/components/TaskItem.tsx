@@ -156,10 +156,10 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
             togglePin(task.id)
           }}
           className={`
-            flex-shrink-0 transition-all
+            flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-md transition-all
             ${task.pinned
-              ? 'text-accent opacity-100'
-              : 'text-text-tertiary opacity-0 group-hover:opacity-100'
+              ? 'text-accent opacity-100 hover:bg-accent-muted'
+              : 'text-text-tertiary opacity-0 group-hover:opacity-100 hover:text-accent hover:bg-accent-muted'
             }
           `}
         >
