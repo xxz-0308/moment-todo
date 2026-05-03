@@ -194,7 +194,7 @@ export const useStore = create<AppState>((set, get) => ({
     const task = get().tasks.find((t) => t.id === id)
     if (!task) return
     const newPinned = task.pinned ? 0 : 1
-    await db.updateTask(id, { pinned: newPinned } as any)
+    await db.updateTask(id, { pinned: newPinned })
     set((s) => ({
       tasks: s.tasks.map((t) => (t.id === id ? { ...t, pinned: newPinned } : t)),
     }))
