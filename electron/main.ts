@@ -77,7 +77,12 @@ function initSchema() {
   // Migrations
   db.run("UPDATE lists SET name = '全部' WHERE id = 'default' AND name = '收集箱'")
   // Add pinned column if missing
-  try { db.run("ALTER TABLE tasks ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0") } catch { /* column already exists */ }
+  // Add pinned column if missing (for pre-existing databases)
+  const cols = db.exec("PRAGMA table_info(tasks)")
+  const hasPinned = cols.length > 0 && cols[0].values.some((row: unknown[]) => row[1] === 'pinned')
+  if (!hasPinned) {
+    db.exec("ALTER TABLE tasks ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0")
+  }
   saveDatabase()
 }
 

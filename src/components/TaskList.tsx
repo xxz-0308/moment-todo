@@ -29,8 +29,8 @@ function autoSort(tasks: Task[]): Task[] {
   const priorityOrder = { high: 0, medium: 1, low: 2 }
   return [...tasks].sort((a, b) => {
     // Pinned always first
-    if (a.pinned && !b.pinned) return -1
-    if (!a.pinned && b.pinned) return 1
+    if (!!a.pinned && !b.pinned) return -1
+    if (!a.pinned && !!b.pinned) return 1
     const pDiff = priorityOrder[a.priority] - priorityOrder[b.priority]
     if (pDiff !== 0) return pDiff
     if (a.due_date && !b.due_date) return -1

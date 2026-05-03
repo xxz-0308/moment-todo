@@ -161,7 +161,7 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
             }
           `}
         >
-          <Pin size={13} strokeWidth={2.5} fill={task.pinned ? 'currentColor' : 'none'} />
+          <Pin size={13} strokeWidth={2.5} fill={!!task.pinned ? 'currentColor' : 'none'} />
         </button>
       )}
 

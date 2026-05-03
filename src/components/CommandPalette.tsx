@@ -37,7 +37,7 @@ export function CommandPalette() {
       case '@low': filtered = filtered.filter((t) => t.priority === 'low'); break
       case '@today': filtered = filtered.filter((t) => t.due_date === today); break
       case '@overdue': filtered = filtered.filter((t) => t.due_date && t.due_date < today); break
-      case '@pinned': filtered = filtered.filter((t) => t.pinned); break
+      case '@pinned': filtered = filtered.filter((t) => !!t.pinned); break
     }
   }
 
