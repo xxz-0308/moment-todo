@@ -43,7 +43,7 @@ export function Sidebar() {
     const today = new Date().toISOString().split('T')[0]
     switch (viewId) {
       case 'today':
-        return tasks.filter((t) => !t.completed && t.due_date === today).length
+        return tasks.filter((t) => !t.completed && t.due_date && t.due_date <= today).length
       case 'upcoming':
         return tasks.filter((t) => !t.completed && t.due_date && t.due_date >= today).length
       case 'completed':
@@ -53,9 +53,10 @@ export function Sidebar() {
     }
   }
 
-  // Today progress: completed / total for tasks due today
-  const todayTotal = tasks.filter((t) => t.due_date === new Date().toISOString().split('T')[0]).length
-  const todayCompleted = tasks.filter((t) => t.due_date === new Date().toISOString().split('T')[0] && t.completed).length
+  // Today progress: completed / total for today + overdue
+  const activeDue = tasks.filter((t) => !t.completed && t.due_date && t.due_date <= new Date().toISOString().split('T')[0])
+  const todayTotal = activeDue.length + tasks.filter((t) => t.completed && t.due_date && t.due_date <= new Date().toISOString().split('T')[0]).length
+  const todayCompleted = tasks.filter((t) => t.completed && t.due_date && t.due_date <= new Date().toISOString().split('T')[0]).length
   const todayProgress = todayTotal > 0 ? todayCompleted / todayTotal : 0
 
   return (

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
 import { motion, AnimatePresence, Reorder } from 'framer-motion'
-import { Plus, ArrowUpDown, Calendar, X, Filter, Trash2, Flag, ListChecks } from 'lucide-react'
+import { Plus, ArrowUpDown, Calendar, X, Filter, Trash2, Flag } from 'lucide-react'
 import { useStore, type Task } from '@/store'
 import { TaskItem, ReorderableTaskItem } from './TaskItem'
 import { EmptyState } from './EmptyState'
@@ -15,6 +15,25 @@ function quickDates(): { label: string; value: string | null }[] {
     { label: '下周', value: nextWeek },
     { label: '无日期', value: null },
   ]
+}
+
+function applyFilterChip(tasks: Task[], filter: string | null): Task[] {
+  if (filter === 'high') return tasks.filter((t) => t.priority === 'high')
+  if (filter === 'due') return tasks.filter((t) => !!t.due_date)
+  if (filter === 'notes') return tasks.filter((t) => !!t.notes)
+  return tasks
+}
+
+function autoSort(tasks: Task[]): Task[] {
+  const priorityOrder = { high: 0, medium: 1, low: 2 }
+  return [...tasks].sort((a, b) => {
+    const pDiff = priorityOrder[a.priority] - priorityOrder[b.priority]
+    if (pDiff !== 0) return pDiff
+    if (a.due_date && !b.due_date) return -1
+    if (!a.due_date && b.due_date) return 1
+    if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date)
+    return a.sort_order - b.sort_order
+  })
 }
 
 export function TaskList() {
@@ -39,49 +58,75 @@ export function TaskList() {
   const updateTask = useStore((s) => s.updateTask)
   const removeTask = useStore((s) => s.removeTask)
 
-  const getFilteredTasks = useCallback((): Task[] => {
-    const today = new Date().toISOString().split('T')[0]
+  // ── Filtering logic ──────────────────────────────────
+
+  const today = new Date().toISOString().split('T')[0]
+
+  const getFilteredTasks = useCallback((): { todayTasks: Task[]; overdueTasks: Task[]; regularTasks: Task[] } => {
     const active = tasks.filter((t) => !t.completed)
     const completed = tasks.filter((t) => t.completed)
 
     switch (currentView) {
-      case 'today':
-        return active.filter((t) => t.due_date === today)
+      case 'today': {
+        const todayActive = active.filter((t) => t.due_date === today)
+        const overdue = active.filter((t) => t.due_date && t.due_date < today)
+        return {
+          todayTasks: applyFilterChip(todayActive, activeFilter),
+          overdueTasks: applyFilterChip(overdue, activeFilter),
+          regularTasks: [],
+        }
+      }
       case 'upcoming':
-        return active.filter((t) => t.due_date && t.due_date >= today)
+        return {
+          todayTasks: [],
+          overdueTasks: [],
+          regularTasks: applyFilterChip(
+            active.filter((t) => t.due_date && t.due_date >= today),
+            activeFilter
+          ),
+        }
       case 'completed':
-        return completed
+        return {
+          todayTasks: [],
+          overdueTasks: [],
+          regularTasks: completed,
+        }
       default:
-        return active.filter((t) => t.list_id === currentView)
+        return {
+          todayTasks: [],
+          overdueTasks: [],
+          regularTasks: applyFilterChip(
+            active.filter((t) => t.list_id === currentView),
+            activeFilter
+          ),
+        }
     }
-  }, [tasks, currentView])
+  }, [tasks, currentView, activeFilter, today])
 
-  let filtered = getFilteredTasks()
+  const { todayTasks, overdueTasks, regularTasks } = getFilteredTasks()
 
-  // Apply quick filter chip
-  if (activeFilter === 'high') {
-    filtered = filtered.filter((t) => t.priority === 'high')
-  } else if (activeFilter === 'due') {
-    filtered = filtered.filter((t) => !!t.due_date)
-  } else if (activeFilter === 'notes') {
-    filtered = filtered.filter((t) => !!t.notes)
-  }
+  // ── Sorting ──────────────────────────────────────────
 
-  const sortedTasks = sortManual
-    ? filtered
-    : [...filtered].sort((a, b) => {
-        const priorityOrder = { high: 0, medium: 1, low: 2 }
-        const pDiff = priorityOrder[a.priority] - priorityOrder[b.priority]
-        if (pDiff !== 0) return pDiff
-        if (a.due_date && !b.due_date) return -1
-        if (!a.due_date && b.due_date) return 1
+  const sortedToday = sortManual
+    ? todayTasks
+    : autoSort(todayTasks)
+
+  const sortedOverdue = sortManual
+    ? overdueTasks
+    : [...overdueTasks].sort((a, b) => {
+        // Most overdue first
         if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date)
-        return a.sort_order - b.sort_order
+        return 0
       })
+
+  const sortedRegular = sortManual
+    ? regularTasks
+    : autoSort(regularTasks)
+
+  // ── Task CRUD ────────────────────────────────────────
 
   const handleAddTask = async () => {
     if (!newTitle.trim()) return
-    const today = new Date().toISOString().split('T')[0]
     const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
 
     let listId = 'default'
@@ -93,7 +138,7 @@ export function TaskList() {
       dueDate = tomorrow
     } else if (!['completed'].includes(currentView)) {
       listId = currentView
-      dueDate = quickDueDate // from mini date picker
+      dueDate = quickDueDate
     }
 
     await addTask(newTitle.trim(), 'medium', dueDate, listId)
@@ -121,7 +166,10 @@ export function TaskList() {
   }
 
   const isCompletedView = currentView === 'completed'
+  const isTodayView = currentView === 'today'
   const isListView = !['today', 'upcoming', 'completed'].includes(currentView)
+
+  // ── Multi-select ─────────────────────────────────────
 
   const handleTaskClick = (taskId: string, e: React.MouseEvent) => {
     if (e.ctrlKey || e.metaKey) {
@@ -134,32 +182,61 @@ export function TaskList() {
       })
       return
     }
-    // Normal click
     selectTask(selectedTaskId === taskId ? null : taskId)
   }
 
   const clearMultiSelect = () => setMultiSelectIds(new Set())
 
   const batchDelete = async () => {
-    for (const id of multiSelectIds) {
-      await removeTask(id)
-    }
+    for (const id of multiSelectIds) await removeTask(id)
     clearMultiSelect()
   }
 
   const batchSetPriority = async (priority: string) => {
-    for (const id of multiSelectIds) {
-      await updateTask(id, { priority } as any)
-    }
+    for (const id of multiSelectIds) await updateTask(id, { priority } as any)
     clearMultiSelect()
   }
 
-  const batchMoveToList = async (listId: string) => {
-    for (const id of multiSelectIds) {
-      await updateTask(id, { list_id: listId } as any)
-    }
-    clearMultiSelect()
+  // ── Render helpers ───────────────────────────────────
+
+  const renderTaskItem = (task: Task) => (
+    <TaskItem
+      key={task.id}
+      task={task}
+      isSelected={selectedTaskId === task.id}
+      onSelect={(e: React.MouseEvent) => handleTaskClick(task.id, e)}
+      isMultiSelected={multiSelectIds.has(task.id)}
+      showCompletedState={isCompletedView}
+      flashHighlight={restoredTaskId === task.id}
+    />
+  )
+
+  const renderReorderableItem = (task: Task) => (
+    <ReorderableTaskItem
+      key={task.id}
+      task={task}
+      isSelected={selectedTaskId === task.id}
+      onSelect={(e: React.MouseEvent) => handleTaskClick(task.id, e)}
+      isMultiSelected={multiSelectIds.has(task.id)}
+      showCompletedState={isCompletedView}
+      flashHighlight={restoredTaskId === task.id}
+    />
+  )
+
+  const renderTaskSection = (taskList: Task[]) => {
+    if (taskList.length === 0) return null
+    return sortManual ? (
+      <Reorder.Group axis="y" values={taskList} onReorder={handleReorder} className="space-y-1">
+        {taskList.map(renderReorderableItem)}
+      </Reorder.Group>
+    ) : (
+      <div className="space-y-1">
+        {taskList.map(renderTaskItem)}
+      </div>
+    )
   }
+
+  const allTasks = [...sortedToday, ...sortedOverdue, ...sortedRegular]
 
   return (
     <div className="flex-1 flex flex-col min-w-0">
@@ -197,8 +274,6 @@ export function TaskList() {
               placeholder="添加任务，回车创建..."
               className="flex-1 bg-transparent text-[14px] text-text-primary placeholder-text-tertiary outline-none"
             />
-
-            {/* Date quick-pick for list views */}
             {isListView && (
               <div className="relative flex-shrink-0" ref={dateRef}>
                 <button
@@ -221,7 +296,6 @@ export function TaskList() {
                     <X size={10} strokeWidth={2.5} />
                   </button>
                 )}
-
                 <AnimatePresence>
                   {showDatePicker && (
                     <motion.div
@@ -335,41 +409,29 @@ export function TaskList() {
       <div
         className="flex-1 overflow-y-auto px-4 pb-4"
         onClick={() => selectTask(null)}>
-        {sortedTasks.length === 0 ? (
+
+        {allTasks.length === 0 ? (
           <EmptyState view={currentView} />
-        ) : sortManual ? (
-          <Reorder.Group
-            axis="y"
-            values={sortedTasks}
-            onReorder={handleReorder}
-            className="space-y-1"
-          >
-            {sortedTasks.map((task) => (
-              <ReorderableTaskItem
-                key={task.id}
-                task={task}
-                isSelected={selectedTaskId === task.id}
-                onSelect={(e: React.MouseEvent) => handleTaskClick(task.id, e)}
-                isMultiSelected={multiSelectIds.has(task.id)}
-                showCompletedState={isCompletedView}
-                flashHighlight={restoredTaskId === task.id}
-              />
-            ))}
-          </Reorder.Group>
-        ) : (
-          <div className="space-y-1">
-            {sortedTasks.map((task) => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                isSelected={selectedTaskId === task.id}
-                onSelect={(e: React.MouseEvent) => handleTaskClick(task.id, e)}
-                isMultiSelected={multiSelectIds.has(task.id)}
-                showCompletedState={isCompletedView}
-                flashHighlight={restoredTaskId === task.id}
-              />
-            ))}
+        ) : isTodayView ? (
+          /* ── Today view: two sections ── */
+          <div>
+            {sortedToday.length > 0 && renderTaskSection(sortedToday)}
+            {sortedOverdue.length > 0 && (
+              <>
+                <div className="flex items-center gap-2 my-3 px-1">
+                  <div className="flex-1 h-px bg-border-subtle" />
+                  <span className="text-[11px] font-semibold text-text-tertiary uppercase tracking-wider">
+                    逾期 · {sortedOverdue.length}
+                  </span>
+                  <div className="flex-1 h-px bg-border-subtle" />
+                </div>
+                {renderTaskSection(sortedOverdue)}
+              </>
+            )}
           </div>
+        ) : (
+          /* ── Regular single-section ── */
+          renderTaskSection(sortedRegular)
         )}
       </div>
     </div>
