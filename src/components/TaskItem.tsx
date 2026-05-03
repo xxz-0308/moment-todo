@@ -72,6 +72,8 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
 
   return (
     <motion.div
+      layout
+      transition={{ layout: { type: 'spring', stiffness: 500, damping: 35 } }}
       animate={{
         opacity: 1,
         backgroundColor: flashHighlight
