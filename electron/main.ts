@@ -73,6 +73,8 @@ function initSchema() {
     db.run("INSERT INTO lists (id, name, color, sort_order) VALUES ('work', ?, '#f59e0b', 1)", ['工作'])
     db.run("INSERT INTO lists (id, name, color, sort_order) VALUES ('personal', ?, '#10b981', 2)", ['个人'])
   }
+  // Migrate old name
+  db.run("UPDATE lists SET name = '全部' WHERE id = 'default' AND name = '收集箱'")
   saveDatabase()
 }
 
