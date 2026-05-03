@@ -210,8 +210,7 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
       )}
 
       {/* Hover delete */}
-      {!showCompletedState && (
-        <button
+      <button
           onClick={(e) => {
             e.stopPropagation()
             removeTask(task.id)
@@ -220,7 +219,6 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
         >
           <Trash2 size={13} strokeWidth={1.8} />
         </button>
-      )}
     </motion.div>
   )
 }
