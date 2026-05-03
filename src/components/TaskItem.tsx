@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Circle, CheckCircle2, GripVertical, Calendar, Flag } from 'lucide-react'
+import { Circle, CheckCircle2, GripVertical, Calendar, Flag, Trash2 } from 'lucide-react'
 import { useStore, type Task } from '@/store'
 import { Reorder } from 'framer-motion'
 
@@ -46,8 +46,9 @@ function isApproaching(dateStr: string | null): boolean {
   return diff > 0 && diff <= 2 * 86400000 // within 2 days
 }
 
-export function TaskItem({ task, isSelected, onSelect, showCompletedState, flashHighlight }: TaskItemProps) {
+export function TaskItem({ task, isSelected, onSelect, showCompletedState, flashHighlight, isMultiSelected }: TaskItemProps) {
   const toggleComplete = useStore((s) => s.toggleComplete)
+  const removeTask = useStore((s) => s.removeTask)
   const [justCompleted, setJustCompleted] = useState(false)
 
   // Track completion for celebration animation
@@ -85,6 +86,7 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
           : 'hover:bg-surface-hover hover:border-border-subtle'
         }
         ${task.completed ? 'opacity-50' : ''}
+        ${isMultiSelected ? 'ring-1 ring-accent bg-accent-muted' : ''}
       `}
       onClick={(e) => {
         // Don't stop propagation in multi-select mode so Ctrl+click works
@@ -205,6 +207,19 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
         >
           <Flag size={13} strokeWidth={2.5} fill={task.priority === 'high' ? 'currentColor' : 'none'} />
         </motion.span>
+      )}
+
+      {/* Hover delete */}
+      {!showCompletedState && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            removeTask(task.id)
+          }}
+          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-md text-text-tertiary hover:text-danger hover:bg-danger-muted opacity-0 group-hover:opacity-100 transition-all"
+        >
+          <Trash2 size={13} strokeWidth={1.8} />
+        </button>
       )}
     </motion.div>
   )
