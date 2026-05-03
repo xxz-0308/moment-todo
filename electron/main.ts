@@ -14,8 +14,7 @@ let reminderInterval: ReturnType<typeof setInterval> | null = null
 const notifiedTasks = new Set<string>()
 
 const DB_PATH = path.join(app.getPath('userData'), 'moment.db')
-const ASSETS_DIR = path.join(__dirname, '../assets')
-const TRAY_ICON_PATH = path.join(ASSETS_DIR, 'tray-icon.png')
+const TRAY_ICON_PATH = path.join(app.getPath('userData'), 'tray-icon.png')
 
 // ── Database ──────────────────────────────────────────────
 
@@ -209,10 +208,7 @@ function generateTrayIconPNG(): Buffer {
 }
 
 function ensureTrayIcon(): string {
-  if (!fs.existsSync(ASSETS_DIR)) {
-    fs.mkdirSync(ASSETS_DIR, { recursive: true })
-  }
-  // Always regenerate to fix any broken icons
+  // Always regenerate to fix any broken icons; store in userData for write access
   fs.writeFileSync(TRAY_ICON_PATH, generateTrayIconPNG())
   return TRAY_ICON_PATH
 }
