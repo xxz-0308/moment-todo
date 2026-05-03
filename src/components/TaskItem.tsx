@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Circle, CheckCircle2, GripVertical, Calendar, Flag, Trash2 } from 'lucide-react'
+import { Circle, CheckCircle2, GripVertical, Calendar, Flag, Trash2, Pin } from 'lucide-react'
 import { useStore, type Task } from '@/store'
 import { Reorder } from 'framer-motion'
 
@@ -48,6 +48,7 @@ function isApproaching(dateStr: string | null): boolean {
 
 export function TaskItem({ task, isSelected, onSelect, showCompletedState, flashHighlight, isMultiSelected }: TaskItemProps) {
   const toggleComplete = useStore((s) => s.toggleComplete)
+  const togglePin = useStore((s) => s.togglePin)
   const removeTask = useStore((s) => s.removeTask)
   const [justCompleted, setJustCompleted] = useState(false)
 
@@ -77,6 +78,15 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
           ? ['rgba(99,102,241,0.25)', 'rgba(99,102,241,0)']
           : undefined,
         transition: flashHighlight ? { duration: 0.8, ease: 'easeOut' } : undefined,
+      }}
+      draggable
+      ref={(el) => {
+        if (el) {
+          el.ondragstart = (e: DragEvent) => {
+            e.dataTransfer!.setData('text/plain', task.id)
+            e.dataTransfer!.effectAllowed = 'move'
+          }
+        }
       }}
       className={`
         task-item group flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer
@@ -135,6 +145,25 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
       <div className="flex-shrink-0 text-text-tertiary opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
         <GripVertical size={15} strokeWidth={1.8} />
       </div>
+
+      {/* Pin toggle */}
+      {!showCompletedState && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            togglePin(task.id)
+          }}
+          className={`
+            flex-shrink-0 transition-all
+            ${task.pinned
+              ? 'text-accent opacity-100'
+              : 'text-text-tertiary opacity-0 group-hover:opacity-100'
+            }
+          `}
+        >
+          <Pin size={13} strokeWidth={2.5} fill={task.pinned ? 'currentColor' : 'none'} />
+        </button>
+      )}
 
       {/* Complete circle */}
       <button

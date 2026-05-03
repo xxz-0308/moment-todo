@@ -18,10 +18,28 @@ export function CommandPalette() {
     inputRef.current?.focus()
   }, [])
 
+  // Parse prefix filters (@high, @today, etc.) from query
+  const prefixFilters = query.match(/@(high|medium|low|today|overdue|pinned)/g) || []
+  const searchText = query.replace(/@\w+/g, '').trim()
+
   useEffect(() => {
-    search(query)
+    search(searchText)
     setSelectedIndex(0)
-  }, [query, search])
+  }, [query, search]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Apply prefix filters client-side
+  let filtered = searchResults
+  const today = new Date().toISOString().split('T')[0]
+  for (const pf of prefixFilters) {
+    switch (pf) {
+      case '@high': filtered = filtered.filter((t) => t.priority === 'high'); break
+      case '@medium': filtered = filtered.filter((t) => t.priority === 'medium'); break
+      case '@low': filtered = filtered.filter((t) => t.priority === 'low'); break
+      case '@today': filtered = filtered.filter((t) => t.due_date === today); break
+      case '@overdue': filtered = filtered.filter((t) => t.due_date && t.due_date < today); break
+      case '@pinned': filtered = filtered.filter((t) => t.pinned); break
+    }
+  }
 
   const handleSelect = (taskId: string) => {
     selectTask(taskId)
@@ -35,7 +53,7 @@ export function CommandPalette() {
     }
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setSelectedIndex((i) => Math.min(i + 1, searchResults.length - 1))
+      setSelectedIndex((i) => Math.min(i + 1, filtered.length - 1))
     }
     if (e.key === 'ArrowUp') {
       e.preventDefault()
@@ -88,12 +106,12 @@ export function CommandPalette() {
 
         {/* Results */}
         <div className="max-h-[280px] overflow-y-auto p-2">
-          {query && searchResults.length === 0 ? (
+          {query && filtered.length === 0 ? (
             <div className="px-4 py-6 text-center text-[13px] text-text-tertiary">
               未找到匹配的任务
             </div>
-          ) : searchResults.length > 0 ? (
-            searchResults.map((task, index) => (
+          ) : filtered.length > 0 ? (
+            filtered.map((task, index) => (
               <motion.button
                 key={task.id}
                 initial={{ opacity: 0, x: -8 }}

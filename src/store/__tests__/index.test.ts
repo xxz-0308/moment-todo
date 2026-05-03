@@ -29,6 +29,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     due_date: overrides.due_date ?? null,
     list_id: overrides.list_id || 'default',
     notes: overrides.notes ?? '',
+    pinned: overrides.pinned ?? 0,
     sort_order: overrides.sort_order ?? 0,
     created_at: overrides.created_at || new Date().toISOString(),
     updated_at: overrides.updated_at || new Date().toISOString(),

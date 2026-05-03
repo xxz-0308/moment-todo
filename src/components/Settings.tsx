@@ -11,7 +11,7 @@ import {
 import { useStore } from '@/store'
 import { exportJSON, backupDatabase } from '@/db'
 
-export function Settings() {
+export default function Settings() {
   const toggleSettings = useStore((s) => s.toggleSettings)
   const theme = useStore((s) => s.theme)
   const setTheme = useStore((s) => s.setTheme)

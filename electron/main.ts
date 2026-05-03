@@ -45,6 +45,7 @@ function initSchema() {
       due_date TEXT,
       list_id TEXT,
       notes TEXT DEFAULT '',
+      pinned INTEGER NOT NULL DEFAULT 0,
       sort_order REAL NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -73,8 +74,10 @@ function initSchema() {
     db.run("INSERT INTO lists (id, name, color, sort_order) VALUES ('work', ?, '#f59e0b', 1)", ['工作'])
     db.run("INSERT INTO lists (id, name, color, sort_order) VALUES ('personal', ?, '#10b981', 2)", ['个人'])
   }
-  // Migrate old name
+  // Migrations
   db.run("UPDATE lists SET name = '全部' WHERE id = 'default' AND name = '收集箱'")
+  // Add pinned column if missing
+  try { db.run("ALTER TABLE tasks ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0") } catch { /* column already exists */ }
   saveDatabase()
 }
 

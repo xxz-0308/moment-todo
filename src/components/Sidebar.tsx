@@ -39,6 +39,18 @@ export function Sidebar() {
     }
   }
 
+  const [dragOverList, setDragOverList] = useState<string | null>(null)
+  const updateTask = useStore((s) => s.updateTask)
+
+  const handleDrop = async (e: React.DragEvent, listId: string) => {
+    e.preventDefault()
+    setDragOverList(null)
+    const taskId = e.dataTransfer.getData('text/plain')
+    if (taskId) {
+      await updateTask(taskId, { list_id: listId } as any)
+    }
+  }
+
   const getTaskCount = (viewId: string) => {
     const today = new Date().toISOString().split('T')[0]
     switch (viewId) {
@@ -143,13 +155,17 @@ export function Sidebar() {
                 >
                   <button
                     onClick={() => setCurrentView(list.id)}
+                    onDragOver={(e) => { e.preventDefault(); setDragOverList(list.id) }}
+                    onDragLeave={() => setDragOverList(null)}
+                    onDrop={(e) => handleDrop(e, list.id)}
                     className={`
                       w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium
                       transition-colors
-                      ${isActive
+                      ${isActive || dragOverList === list.id
                         ? 'text-text-primary bg-accent-muted'
                         : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
                       }
+                      ${dragOverList === list.id ? 'ring-1 ring-accent' : ''}
                     `}
                   >
                     <Hash size={16} strokeWidth={1.8} style={{ color: list.color || '#6366f1' }} />

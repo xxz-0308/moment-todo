@@ -15,7 +15,7 @@ interface StatsData {
 
 const COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4']
 
-export function Stats() {
+export default function Stats() {
   const toggleStats = useStore((s) => s.toggleStats)
   const [stats, setStats] = useState<StatsData | null>(null)
 

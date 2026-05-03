@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import * as db from '@/db'
+import { playCompleteSound, playDeleteSound } from '@/hooks/useSound'
 
 // Types
 export interface Task {
@@ -10,6 +11,7 @@ export interface Task {
   due_date: string | null
   list_id: string
   notes: string
+  pinned: number
   sort_order: number
   created_at: string
   updated_at: string
@@ -70,6 +72,7 @@ interface AppState {
   addTask: (title: string, priority?: string, dueDate?: string | null, listId?: string) => Promise<Task>
   updateTask: (id: string, updates: Partial<Task>) => Promise<void>
   toggleComplete: (id: string) => Promise<void>
+  togglePin: (id: string) => Promise<void>
   removeTask: (id: string) => Promise<void>
   reorderTask: (taskId: string, newOrder: number, listId: string) => Promise<void>
   reorderTasks: (items: { id: string; sort_order: number; list_id: string }[]) => Promise<void>
@@ -187,6 +190,16 @@ export const useStore = create<AppState>((set, get) => ({
     set({ selectedTask: refreshed })
   },
 
+  togglePin: async (id) => {
+    const task = get().tasks.find((t) => t.id === id)
+    if (!task) return
+    const newPinned = task.pinned ? 0 : 1
+    await db.updateTask(id, { pinned: newPinned } as any)
+    set((s) => ({
+      tasks: s.tasks.map((t) => (t.id === id ? { ...t, pinned: newPinned } : t)),
+    }))
+  },
+
   toggleComplete: async (id) => {
     const task = get().tasks.find((t) => t.id === id)
     if (!task) return
@@ -196,6 +209,7 @@ export const useStore = create<AppState>((set, get) => ({
       await db.updateTask(id, { completed: newCompleted })
 
       if (newCompleted) {
+        playCompleteSound()
         get().pushUndo({ type: 'complete', task: { ...task }, timestamp: Date.now() })
         get().addToast(`已完成: ${task.title}`, {
           label: '撤销',
@@ -226,6 +240,7 @@ export const useStore = create<AppState>((set, get) => ({
 
     try {
       await db.deleteTask(id)
+      playDeleteSound()
       set((s) => ({
         tasks: s.tasks.filter((t) => t.id !== id),
         selectedTaskId: null,

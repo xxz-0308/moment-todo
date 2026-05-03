@@ -1,7 +1,9 @@
+import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, ListChecks, CheckCircle2, Sparkles, Plus } from 'lucide-react'
+import { Calendar, ListChecks, CheckCircle2, Sparkles, Plus, Trophy } from 'lucide-react'
 import type { ViewType } from '@/store'
 import { useStore } from '@/store'
+import { playCelebrationSound } from '@/hooks/useSound'
 
 function getGreeting(): { title: string; subtitle: string } {
   const hour = new Date().getHours()
@@ -38,10 +40,67 @@ interface EmptyStateProps {
 
 export function EmptyState({ view }: EmptyStateProps) {
   const toggleQuickAdd = useStore((s) => s.toggleQuickAdd)
+  const tasks = useStore((s) => s.tasks)
   const greeting = getGreeting()
   const config = configs[view]
 
-  // For list views, show a more generic empty state
+  // Celebration auto-play for "today all done"
+  const hasPlayedCelebration = useRef(false)
+  const isAllDone = view === 'today' &&
+    tasks.filter((t) => !t.completed && t.due_date && t.due_date <= new Date().toISOString().split('T')[0]).length === 0 &&
+    tasks.some((t) => t.completed && t.due_date && t.due_date <= new Date().toISOString().split('T')[0])
+
+  useEffect(() => {
+    if (isAllDone && !hasPlayedCelebration.current) {
+      hasPlayedCelebration.current = true
+      playCelebrationSound()
+      const timer = setTimeout(() => { hasPlayedCelebration.current = false }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [isAllDone])
+
+  // Show celebration for "today all done"
+  if (isAllDone) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col items-center justify-center py-20 px-8 text-center"
+      >
+        <motion.div
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.1 }}
+          className="w-20 h-20 rounded-full bg-accent-muted flex items-center justify-center mb-5"
+        >
+          <motion.div
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <Trophy size={40} strokeWidth={1.5} className="text-accent" />
+          </motion.div>
+        </motion.div>
+        <motion.h2
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="text-[18px] font-semibold text-text-primary mb-2"
+        >
+          今天的事情都搞定了！
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="text-[13px] text-text-tertiary"
+        >
+          干得漂亮 🎉
+        </motion.p>
+      </motion.div>
+    )
+  }
+
+  // For list views, show a generic empty state
   if (!config) {
     const isCompletedView = view === 'completed'
     return (
@@ -91,7 +150,6 @@ export function EmptyState({ view }: EmptyStateProps) {
       animate={{ opacity: 1, y: 0 }}
       className="flex flex-col items-center justify-center py-20 px-8 text-center"
     >
-      {/* Greeting */}
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
@@ -119,7 +177,6 @@ export function EmptyState({ view }: EmptyStateProps) {
         {greeting.subtitle}
       </motion.p>
 
-      {/* View-specific empty message */}
       <div className="flex flex-col items-center">
         <Icon size={36} strokeWidth={1.2} className="text-text-tertiary/40 mb-4" />
         <p className="text-[13px] text-text-secondary">{config.subtitle}</p>

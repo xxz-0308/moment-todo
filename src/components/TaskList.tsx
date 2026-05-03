@@ -4,6 +4,7 @@ import { Plus, ArrowUpDown, Calendar, X, Filter, Trash2, Flag } from 'lucide-rea
 import { useStore, type Task } from '@/store'
 import { TaskItem, ReorderableTaskItem } from './TaskItem'
 import { EmptyState } from './EmptyState'
+import { parseDateHint } from '@/hooks/parseDate'
 
 function quickDates(): { label: string; value: string | null }[] {
   const today = new Date().toISOString().split('T')[0]
@@ -27,6 +28,9 @@ function applyFilterChip(tasks: Task[], filter: string | null): Task[] {
 function autoSort(tasks: Task[]): Task[] {
   const priorityOrder = { high: 0, medium: 1, low: 2 }
   return [...tasks].sort((a, b) => {
+    // Pinned always first
+    if (a.pinned && !b.pinned) return -1
+    if (!a.pinned && b.pinned) return 1
     const pDiff = priorityOrder[a.priority] - priorityOrder[b.priority]
     if (pDiff !== 0) return pDiff
     if (a.due_date && !b.due_date) return -1
@@ -131,23 +135,25 @@ export function TaskList() {
     if (!newTitle.trim()) return
     const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
 
+    // Parse natural language date from title (e.g. "整理报表 明天")
+    const parsed = parseDateHint(newTitle)
+
     let listId = 'default'
-    let dueDate: string | null = null
+    let dueDate: string | null = parsed.dueDate
 
     if (currentView === 'today') {
-      dueDate = today
+      dueDate = dueDate || today
     } else if (currentView === 'upcoming') {
-      dueDate = tomorrow
+      dueDate = dueDate || tomorrow
     } else if (currentView === 'default') {
-      // 全部: goes to 'default' list, shows in 全部 view
       listId = 'default'
-      dueDate = quickDueDate
+      dueDate = dueDate || quickDueDate
     } else if (!['completed'].includes(currentView)) {
       listId = currentView
-      dueDate = quickDueDate
+      dueDate = dueDate || quickDueDate
     }
 
-    await addTask(newTitle.trim(), 'medium', dueDate, listId)
+    await addTask(parsed.title, 'medium', dueDate, listId)
     setNewTitle('')
     setQuickDueDate(null)
     inputRef.current?.focus()

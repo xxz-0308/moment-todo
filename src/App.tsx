@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, lazy, Suspense } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useStore } from '@/store'
 import { useKeyboard } from '@/hooks/useKeyboard'
@@ -8,9 +8,19 @@ import { TaskList } from '@/components/TaskList'
 import { DetailPanel } from '@/components/DetailPanel'
 import { CommandPalette } from '@/components/CommandPalette'
 import { QuickAdd } from '@/components/QuickAdd'
-import { Settings } from '@/components/Settings'
-import { Stats } from '@/components/Stats'
 import { ToastContainer } from '@/components/Toast'
+import { ShortcutHints } from '@/components/ShortcutHints'
+
+const Settings = lazy(() => import('@/components/Settings'))
+const Stats = lazy(() => import('@/components/Stats'))
+
+function LazyFallback() {
+  return (
+    <div className="fixed inset-0 z-40 bg-surface flex items-center justify-center">
+      <div className="w-6 h-6 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+    </div>
+  )
+}
 
 export default function App() {
   const loadData = useStore((s) => s.loadData)
@@ -28,12 +38,10 @@ export default function App() {
     loadData()
   }, [loadData])
 
-  // Apply theme class
   useEffect(() => {
     document.documentElement.classList.toggle('light', theme === 'light')
   }, [theme])
 
-  // Load theme from system preference on first visit
   useEffect(() => {
     const stored = localStorage.getItem('moment-theme')
     if (stored === 'light' || stored === 'dark') {
@@ -41,7 +49,6 @@ export default function App() {
     }
   }, [])
 
-  // Persist theme
   const persistTheme = useCallback(() => {
     localStorage.setItem('moment-theme', useStore.getState().theme)
   }, [])
@@ -74,11 +81,20 @@ export default function App() {
       <AnimatePresence>
         {showCommandPalette && <CommandPalette />}
         {showQuickAdd && <QuickAdd />}
-        {showSettings && <Settings />}
-        {showStats && <Stats />}
+        {showSettings && (
+          <Suspense fallback={<LazyFallback />}>
+            <Settings />
+          </Suspense>
+        )}
+        {showStats && (
+          <Suspense fallback={<LazyFallback />}>
+            <Stats />
+          </Suspense>
+        )}
       </AnimatePresence>
 
       <ToastContainer />
+      <ShortcutHints />
     </div>
   )
 }
