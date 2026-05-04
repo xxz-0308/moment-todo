@@ -73,7 +73,11 @@ export function CommandPalette() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.15 }}
       className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]"
-      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+      style={{
+        background: 'rgba(0,0,0,0.45)',
+        backdropFilter: 'blur(4px)',
+        WebkitBackdropFilter: 'blur(4px)',
+      }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           clearSearch()
@@ -86,10 +90,17 @@ export function CommandPalette() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -20, scale: 0.96 }}
         transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-        className="w-[480px] bg-surface-secondary border border-border rounded-2xl shadow-2xl overflow-hidden"
+        className="w-[480px] rounded-2xl overflow-hidden"
+        style={{
+          background: 'rgba(28,28,48,0.9)',
+          backdropFilter: 'blur(32px)',
+          WebkitBackdropFilter: 'blur(32px)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          boxShadow: '0 16px 64px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(255,255,255,0.05) inset',
+        }}
       >
         {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border-subtle">
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[rgba(255,255,255,0.06)]">
           <Search size={18} strokeWidth={2} className="text-text-tertiary flex-shrink-0" />
           <input
             ref={inputRef}
@@ -119,13 +130,16 @@ export function CommandPalette() {
                 transition={{ delay: index * 0.03 }}
                 onClick={() => handleSelect(task.id)}
                 className={`
-                  w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors
+                  w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all group/item relative
                   ${index === selectedIndex
-                    ? 'bg-accent-muted'
-                    : 'hover:bg-surface-hover'
+                    ? 'bg-[rgba(99,102,241,0.1)] border border-[rgba(99,102,241,0.2)] shadow-[0_0_12px_rgba(99,102,241,0.06)]'
+                    : 'hover:bg-[rgba(255,255,255,0.03)] border border-transparent'
                   }
                 `}
               >
+                {index === selectedIndex && (
+                  <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-accent" style={{ boxShadow: '0 0 6px rgba(99,102,241,0.4)' }} />
+                )}
                 <Hash size={16} strokeWidth={1.5} className="text-text-tertiary flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className={`text-[13px] truncate ${task.completed ? 'line-through text-text-tertiary' : 'text-text-primary'}`}>
@@ -148,7 +162,7 @@ export function CommandPalette() {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-4 px-4 py-2.5 border-t border-border-subtle text-[11px] text-text-tertiary">
+        <div className="flex items-center gap-4 px-4 py-2.5 border-t border-[rgba(255,255,255,0.05)] text-[11px] text-text-tertiary">
           <span className="flex items-center gap-1">
             <kbd className="px-1.5 py-0.5 rounded bg-surface-tertiary text-[10px] font-medium border border-border-subtle">↑↓</kbd>
             导航
