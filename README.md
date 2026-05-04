@@ -1,48 +1,38 @@
 # Moment
 
-A beautiful, design-forward todo app for Windows. Built with attention to every pixel and micro-interaction.
+自己用的 Windows 待办软件，练手项目。
 
-## Features
+写这个东西主要是觉得市面上的 todo app 要么太重要么太丑，干脆自己搞一个。AI 写的代码，我负责提需求和挑毛病。
 
-- **Smart Views** — Today (with overdue tracking), Upcoming, All tasks, custom lists
-- **Rich Animations** — Framer Motion-powered spring animations, completion celebrations, smooth transitions
-- **Keyboard-First** — Ctrl+N quick add, Ctrl+K search, Ctrl+Z undo, Space to complete, and more
-- **Dark & Light Themes** — Organic rounded design with indigo accent, manual or system-following
-- **Natural Language Dates** — Type "明天", "下周一", or "周末" to auto-set due dates
-- **Task Pinning** — Pin important tasks to always stay on top
-- **Multi-Select** — Ctrl+click to batch delete or set priority
-- **Cross-List Drag** — Drag tasks between lists in the sidebar
-- **Search Filters** — `@high`, `@today`, `@overdue`, `@pinned` prefix filters
-- **Statistics** — Weekly completion trends and category distribution charts
-- **System Tray** — Minimizes to tray, overdue reminders via Windows notifications
-- **Auto-Backup** — Automatic database backups on close
+## 能干什么
 
-## Install
+- 添加、完成、删除待办，支持优先级和截止日期
+- 今天 / 计划日程 / 全部 / 自定义列表，不同视图切换着看
+- 手动拖拽排序，或者自动按优先级+日期排
+- 任务置顶，重要的事放最上面
+- Ctrl+N 快速添加，Ctrl+K 搜任务，Ctrl+Z 撤销
+- 按住 Ctrl 弹出快捷键提示
+- 输入"明天"、"下周一"这种日期会自动识别
+- 深色/浅色切换
+- 关掉窗口会缩到托盘，不会退出
+- 统计面板看看这周干了啥
 
-Download `Moment-1.0.0-setup.exe` from [Releases](https://github.com/your-username/moment/releases) and run the installer.
+## 下载
 
-## Dev
+装个 [Moment-1.0.0-setup.exe](https://github.com/xxz-0308/moment-todo/releases) 就行了，Windows 的安装包。
+
+## 开发
 
 ```bash
 npm install
-npm run dev      # Start dev mode (Vite + Electron)
-npm run build    # Production build
-npm run package  # Create Windows installer
-npm test         # Run 23 unit tests
+npm run dev       # 本地跑
+npm run build     # 构建
+npm run package   # 打包安装包
+npm test          # 跑测试
 ```
 
-## Tech Stack
+用了 Electron + React + Tailwind + Framer Motion + sql.js，数据都存在本地 SQLite 里。
 
-| Layer | Tech |
-|-------|------|
-| Framework | Electron + React 19 + TypeScript |
-| State | Zustand (with undo stack) |
-| Database | sql.js (WASM SQLite) |
-| Styling | Tailwind CSS + CSS custom properties |
-| Animation | Framer Motion |
-| Charts | Recharts |
-| Icons | Lucide React |
+## 免责
 
-## License
-
-MIT
+这玩意是我自己练手的，可能有 bug，别放重要数据。
