@@ -75,7 +75,7 @@ export function Sidebar() {
   const todayProgress = todayTotal > 0 ? todayCompleted / todayTotal : 0
 
   return (
-    <aside className="w-[260px] flex-shrink-0 bg-surface-secondary border-r border-border-subtle flex flex-col overflow-hidden">
+    <aside className="w-[260px] flex-shrink-0 flex flex-col overflow-hidden border-r border-[rgba(255,255,255,0.04)]" style={{ background: 'rgba(22,22,38,0.7)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '4px 0 32px rgba(0,0,0,0.4)' }}>
       {/* Preset views */}
       <nav className="p-3 space-y-0.5">
         {presetViews.map((view) => {
@@ -88,19 +88,22 @@ export function Sidebar() {
               key={view.id}
               onClick={() => setCurrentView(view.id)}
               className={`
-                w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium
-                transition-colors relative group
+                w-full flex items-center gap-3 pl-2.5 pr-3 py-2 rounded-lg text-[13px] font-medium
+                transition-all duration-150 relative overflow-hidden
                 ${isActive
-                  ? 'text-text-primary bg-accent-muted'
-                  : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
+                  ? 'text-text-primary bg-[rgba(99,102,241,0.1)] border border-[rgba(99,102,241,0.2)]'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-[rgba(255,255,255,0.03)] border border-transparent'
                 }
               `}
               whileTap={{ scale: 0.98 }}
             >
+              {isActive && (
+                <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-accent" style={{ boxShadow: '0 0 6px rgba(99,102,241,0.4)' }} />
+              )}
               <Icon size={17} strokeWidth={isActive ? 2.5 : 1.8} className={isActive ? 'text-accent' : ''} />
               <span className="flex-1 text-left">{view.label}</span>
               {view.id === 'today' && todayTotal > 0 ? (
-                <svg width="22" height="22" viewBox="0 0 22 22" className="flex-shrink-0">
+                <svg width="22" height="22" viewBox="0 0 22 22" className="flex-shrink-0" style={{ filter: 'drop-shadow(0 0 3px rgba(99,102,241,0.3))' }}>
                   <circle cx="11" cy="11" r="9" fill="none"
                     stroke="var(--color-border)" strokeWidth="2.5"
                   />
@@ -129,12 +132,12 @@ export function Sidebar() {
       </nav>
 
       {/* Divider */}
-      <div className="mx-4 h-px bg-border-subtle" />
+      <div className="mx-4 h-px bg-[rgba(255,255,255,0.04)]" />
 
       {/* Custom lists */}
       <div className="flex-1 overflow-y-auto p-3">
         <div className="flex items-center justify-between px-3 mb-1">
-          <span className="text-[11px] font-semibold text-text-tertiary uppercase tracking-wider">
+          <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.25)' }}>
             列表
           </span>
         </div>
@@ -159,15 +162,18 @@ export function Sidebar() {
                     onDragLeave={() => setDragOverList(null)}
                     onDrop={(e) => handleDrop(e, list.id)}
                     className={`
-                      w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium
-                      transition-colors
+                      w-full flex items-center gap-3 pl-2.5 pr-3 py-2 rounded-lg text-[13px] font-medium
+                      transition-all duration-150 relative overflow-hidden
                       ${isActive || dragOverList === list.id
-                        ? 'text-text-primary bg-accent-muted'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
+                        ? 'text-text-primary bg-[rgba(99,102,241,0.1)] border border-[rgba(99,102,241,0.2)]'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-[rgba(255,255,255,0.03)] border border-transparent'
                       }
-                      ${dragOverList === list.id ? 'ring-1 ring-accent' : ''}
+                      ${dragOverList === list.id ? 'ring-1 ring-accent scale-[1.02]' : ''}
                     `}
                   >
+                    {isActive && (
+                      <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-accent" style={{ boxShadow: '0 0 6px rgba(99,102,241,0.4)' }} />
+                    )}
                     <Hash size={16} strokeWidth={1.8} style={{ color: list.color || '#6366f1' }} />
                     <span className="flex-1 text-left truncate">{list.name}</span>
                     {count > 0 && (
@@ -244,7 +250,7 @@ export function Sidebar() {
       </div>
 
       {/* Bottom actions */}
-      <div className="p-3 border-t border-border-subtle space-y-0.5">
+      <div className="p-3 border-t border-[rgba(255,255,255,0.04)] space-y-0.5">
         <button
           onClick={toggleStats}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"
