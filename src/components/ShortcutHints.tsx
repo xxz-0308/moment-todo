@@ -37,11 +37,19 @@ export function ShortcutHints() {
       }
     }
 
+    // Cancel the 500ms timer on any mouse click — if the user clicks while
+    // holding Ctrl (multi-select), the hints panel should never appear.
+    const onMouseDown = () => {
+      clearTimeout(timer)
+    }
+
     window.addEventListener('keydown', down)
     window.addEventListener('keyup', up)
+    window.addEventListener('mousedown', onMouseDown)
     return () => {
       window.removeEventListener('keydown', down)
       window.removeEventListener('keyup', up)
+      window.removeEventListener('mousedown', onMouseDown)
       clearTimeout(timer)
     }
   }, [])
@@ -52,21 +60,16 @@ export function ShortcutHints() {
     }
   }, [showCommandPalette, showQuickAdd])
 
-  // Dismiss on any mouse click (e.g. Ctrl+Click multi-select) or non-Ctrl key press
+  // Dismiss on non-Ctrl key press while visible
   useEffect(() => {
     if (!visible) return
 
-    const onMouseDown = () => setVisible(false)
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Control') setVisible(false)
     }
 
-    window.addEventListener('mousedown', onMouseDown)
     window.addEventListener('keydown', onKeyDown)
-    return () => {
-      window.removeEventListener('mousedown', onMouseDown)
-      window.removeEventListener('keydown', onKeyDown)
-    }
+    return () => window.removeEventListener('keydown', onKeyDown)
   }, [visible])
 
   return (
