@@ -1,7 +1,6 @@
-import { app, BrowserWindow, Tray, Menu, ipcMain, Notification, shell, nativeImage } from 'electron'
+import { app, BrowserWindow, Tray, Menu, ipcMain, Notification, shell } from 'electron'
 import path from 'path'
 import fs from 'fs'
-import zlib from 'zlib'
 import initSqlJs, { type Database, type SqlJsStatic } from 'sql.js'
 
 const isDev = process.env.NODE_ENV === 'development'
@@ -14,7 +13,6 @@ let reminderInterval: ReturnType<typeof setInterval> | null = null
 const notifiedTasks = new Set<string>()
 
 const DB_PATH = path.join(app.getPath('userData'), 'moment.db')
-const TRAY_ICON_PATH = path.join(app.getPath('userData'), 'tray-icon.png')
 
 // ── Database ──────────────────────────────────────────────
 
@@ -114,104 +112,6 @@ function execMod(sql: string, params?: unknown[]): { changes: number; lastInsert
   return { changes: 0, lastInsertRowid: 0 }
 }
 
-// ── Tray icon generation ──────────────────────────────────
-
-// Table-based CRC-32 (standard PNG polynomial, reflected)
-function crc32(buf: Buffer): number {
-  const table = new Uint32Array(256)
-  for (let n = 0; n < 256; n++) {
-    let c = n
-    for (let k = 0; k < 8; k++) {
-      c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1)
-    }
-    table[n] = c
-  }
-  let crc = 0xffffffff
-  for (let i = 0; i < buf.length; i++) {
-    crc = table[(crc ^ buf[i]) & 0xff] ^ (crc >>> 8)
-  }
-  return (crc ^ 0xffffffff) >>> 0
-}
-
-function createPNGChunk(type: string, data: Buffer): Buffer {
-  const typeAndData = Buffer.concat([Buffer.from(type, 'ascii'), data])
-  const length = Buffer.alloc(4)
-  length.writeUInt32BE(data.length, 0)
-  const crcBuf = Buffer.alloc(4)
-  crcBuf.writeUInt32BE(crc32(typeAndData), 0)
-  return Buffer.concat([length, typeAndData, crcBuf])
-}
-
-function roundedRectDist(x: number, y: number, left: number, top: number, right: number, bottom: number, r: number): number {
-  // Signed distance to rounded rectangle: negative = inside, positive = outside
-  let dx = 0, dy = 0
-  if (x < left + r) dx = left + r - x
-  else if (x > right - r) dx = x - (right - r)
-  if (y < top + r) dy = top + r - y
-  else if (y > bottom - r) dy = y - (bottom - r)
-
-  if (dx > 0 && dy > 0) return Math.sqrt(dx * dx + dy * dy) - r  // corner
-  if (dx > 0) return dx - r
-  if (dy > 0) return dy - r
-  return Math.max(dx, dy) - r  // inside or on flat edge
-}
-
-function generateTrayIconPNG(): Buffer {
-  const size = 32
-  const rawData = Buffer.alloc(size * size * 4)
-  const m = 2  // margin
-  const r = 7  // corner radius
-
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      const idx = (y * size + x) * 4
-      const d = roundedRectDist(x + 0.5, y + 0.5, m, m, size - m, size - m, r)
-
-      if (d <= 0.5) {
-        let alpha = 255
-        if (d > -0.5) alpha = Math.round(255 * (0.5 - d)) // anti-alias edge
-        rawData[idx] = 99
-        rawData[idx + 1] = 102
-        rawData[idx + 2] = 241
-        rawData[idx + 3] = Math.max(0, Math.min(255, alpha))
-      }
-    }
-  }
-
-  // Build scanlines: each row = [filter_byte(0)] + [R,G,B,A,...]
-  const scanlines: Buffer[] = []
-  for (let y = 0; y < size; y++) {
-    const line = Buffer.alloc(1 + size * 4)
-    line[0] = 0 // no filter
-    rawData.copy(line, 1, y * size * 4, (y + 1) * size * 4)
-    scanlines.push(line)
-  }
-
-  const compressed = zlib.deflateSync(Buffer.concat(scanlines))
-
-  const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])
-  const ihdrData = Buffer.alloc(13)
-  ihdrData.writeUInt32BE(size, 0)
-  ihdrData.writeUInt32BE(size, 4)
-  ihdrData[8] = 8   // bit depth
-  ihdrData[9] = 6   // RGBA
-  ihdrData[10] = 0
-  ihdrData[11] = 0
-  ihdrData[12] = 0
-
-  return Buffer.concat([
-    signature,
-    createPNGChunk('IHDR', ihdrData),
-    createPNGChunk('IDAT', compressed),
-    createPNGChunk('IEND', Buffer.alloc(0)),
-  ])
-}
-
-function ensureTrayIcon(): string {
-  // Always regenerate to fix any broken icons; store in userData for write access
-  fs.writeFileSync(TRAY_ICON_PATH, generateTrayIconPNG())
-  return TRAY_ICON_PATH
-}
 
 // ── Reminder system ───────────────────────────────────────
 
@@ -314,7 +214,9 @@ function createWindow() {
 // ── Tray ──────────────────────────────────────────────────
 
 function createTray() {
-  const iconPath = ensureTrayIcon()
+  const iconPath = isDev
+    ? path.join(__dirname, '../../public/icon-32.png')
+    : path.join(process.resourcesPath, 'public', 'icon-32.png')
   tray = new Tray(iconPath)
 
   const contextMenu = Menu.buildFromTemplate([
