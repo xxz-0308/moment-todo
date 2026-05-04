@@ -66,7 +66,7 @@ export default function Stats() {
       </div>
 
       <div
-        className="flex-1 overflow-y-auto max-w-[640px] w-full mx-auto px-6 py-8 space-y-8"
+        className="flex-1 overflow-y-auto max-w-[640px] w-full mx-auto px-6 py-8 space-y-8 [&::-webkit-scrollbar]:hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Summary cards */}
@@ -159,6 +159,8 @@ export default function Stats() {
                       outerRadius={70}
                       innerRadius={40}
                       strokeWidth={0}
+                      activeIndex={-1}
+                      activeShape={{}}
                     >
                       {stats.byList.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -166,12 +168,13 @@ export default function Stats() {
                     </Pie>
                     <Tooltip
                       contentStyle={{
-                        background: 'var(--color-surface-tertiary)',
-                        border: '1px solid var(--color-border)',
+                        background: '#242424',
+                        border: '1px solid #2e2e2e',
                         borderRadius: '10px',
                         fontSize: '12px',
-                        color: 'var(--color-text-primary)',
                       }}
+                      labelStyle={{ color: '#f0f0f0' }}
+                      itemStyle={{ color: '#a0a0a0' }}
                     />
                   </RPieChart>
                 </ResponsiveContainer>

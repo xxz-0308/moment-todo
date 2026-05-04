@@ -53,7 +53,7 @@ export default function Settings() {
       </div>
 
       <div
-        className="flex-1 overflow-y-auto max-w-[560px] w-full mx-auto px-6 py-8 space-y-8"
+        className="flex-1 overflow-y-auto max-w-[560px] w-full mx-auto px-6 py-8 space-y-8 [&::-webkit-scrollbar]:hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Theme */}
