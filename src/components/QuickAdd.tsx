@@ -38,7 +38,11 @@ export function QuickAdd() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.15 }}
       className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]"
-      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+      style={{
+        background: 'rgba(0,0,0,0.45)',
+        backdropFilter: 'blur(4px)',
+        WebkitBackdropFilter: 'blur(4px)',
+      }}
       onClick={(e) => {
         if (e.target === e.currentTarget) toggleQuickAdd()
       }}
@@ -48,10 +52,17 @@ export function QuickAdd() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -20, scale: 0.96 }}
         transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-        className="w-[420px] bg-surface-secondary border border-border rounded-2xl shadow-2xl overflow-hidden"
+        className="w-[420px] rounded-2xl overflow-hidden"
+        style={{
+          background: 'rgba(28,28,48,0.9)',
+          backdropFilter: 'blur(32px)',
+          WebkitBackdropFilter: 'blur(32px)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          boxShadow: '0 16px 64px rgba(0,0,0,0.6)',
+        }}
       >
         {/* Title input */}
-        <div className="flex items-center gap-3 px-4 py-4">
+        <div className="flex items-center gap-3 px-4 py-4 border-b border-[rgba(255,255,255,0.05)]">
           <Plus size={18} strokeWidth={2} className="text-accent flex-shrink-0" />
           <input
             ref={inputRef}
@@ -152,7 +163,7 @@ export function QuickAdd() {
         </AnimatePresence>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-4 py-3 border-t border-border-subtle">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-[rgba(255,255,255,0.05)]">
           <button
             onClick={() => setShowMore(!showMore)}
             className={`
