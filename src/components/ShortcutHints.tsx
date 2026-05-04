@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useStore } from '@/store'
 
 const shortcuts = [
   { keys: 'Ctrl + N', desc: '快速添加任务' },
@@ -16,6 +17,8 @@ const shortcuts = [
 export function ShortcutHints() {
   const [visible, setVisible] = useState(false)
   const [ctrlHeld, setCtrlHeld] = useState(false)
+  const showCommandPalette = useStore((s) => s.showCommandPalette)
+  const showQuickAdd = useStore((s) => s.showQuickAdd)
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>
@@ -43,6 +46,12 @@ export function ShortcutHints() {
     }
   }, [])
 
+  useEffect(() => {
+    if (showCommandPalette || showQuickAdd) {
+      setVisible(false)
+    }
+  }, [showCommandPalette, showQuickAdd])
+
   return (
     <AnimatePresence>
       {visible && (
@@ -51,7 +60,7 @@ export function ShortcutHints() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[70] flex items-center justify-center"
+          className="fixed inset-0 z-[45] flex items-center justify-center"
           style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
         >
           <motion.div

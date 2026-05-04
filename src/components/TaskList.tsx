@@ -426,7 +426,14 @@ export function TaskList() {
         onClick={() => selectTask(null)}>
 
         {allTasks.length === 0 ? (
-          <EmptyState view={currentView} />
+          <>
+            <EmptyState view={currentView} />
+            {sortManual && (
+              <p className="text-center text-[12px] text-text-tertiary mt-3">
+                当前为手动排序模式，点击「自动排序」切换回默认排列
+              </p>
+            )}
+          </>
         ) : isTodayView ? (
           /* ── Today view: two sections ── */
           <div>
