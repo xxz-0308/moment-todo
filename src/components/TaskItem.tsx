@@ -156,7 +156,15 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
       )}
 
       {/* Drag grip */}
-      <div className="flex-shrink-0 text-text-tertiary opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+      <div
+        className={`
+          flex-shrink-0 transition-opacity cursor-grab active:cursor-grabbing
+          ${disableNativeDrag
+            ? 'text-text-tertiary opacity-25 group-hover:opacity-100'
+            : 'text-text-tertiary opacity-0 group-hover:opacity-100'
+          }
+        `}
+      >
         <GripVertical size={15} strokeWidth={1.8} />
       </div>
 
