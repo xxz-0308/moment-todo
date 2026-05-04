@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Minus, Square, X, SquareStack, Plus } from 'lucide-react'
 import { useStore } from '@/store'
 import { parseDateHint } from '@/hooks/parseDate'
+import { playQuickAddSound } from '@/hooks/useSound'
 
 export function TitleBar() {
   const [isMaximized, setIsMaximized] = useState(false)
@@ -27,6 +28,7 @@ export function TitleBar() {
     }
     const parsed = parseDateHint(captureText)
     await addTask(parsed.title, 'medium', parsed.dueDate)
+    playQuickAddSound()
     setCaptureText('')
     setShowQuickCapture(false)
   }

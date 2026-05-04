@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Calendar, Flag, Hash } from 'lucide-react'
 import { useStore } from '@/store'
+import { playQuickAddSound } from '@/hooks/useSound'
 
 export function QuickAdd() {
   const toggleQuickAdd = useStore((s) => s.toggleQuickAdd)
@@ -26,6 +27,7 @@ export function QuickAdd() {
     if (!title.trim()) return
     const list = showMore ? listId : (['today', 'upcoming', 'completed'].includes(currentView) ? 'default' : currentView)
     await addTask(title.trim(), priority, dueDate || null, list)
+    playQuickAddSound()
     toggleQuickAdd()
   }
 

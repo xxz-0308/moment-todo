@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Circle, CheckCircle2, GripVertical, Calendar, Flag, Trash2, Pin } from 'lucide-react'
 import { useStore, type Task } from '@/store'
 import { Reorder } from 'framer-motion'
+import { playPinSound, playDragPickupSound, playDragDropSound } from '@/hooks/useSound'
 
 interface TaskItemProps {
   task: Task
@@ -177,6 +178,7 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
           onClick={(e) => {
             e.stopPropagation()
             togglePin(task.id)
+            playPinSound()
           }}
           whileTap={{ scale: 0.85 }}
           className={`
@@ -296,8 +298,14 @@ export function ReorderableTaskItem({ task, isSelected, onSelect, showCompletedS
     <Reorder.Item
       value={task}
       id={task.id}
-      onDragStart={() => { wasDragging.current = true }}
-      onDragEnd={() => { setTimeout(() => { wasDragging.current = false }, 100) }}
+      onDragStart={() => {
+        wasDragging.current = true
+        playDragPickupSound()
+      }}
+      onDragEnd={() => {
+        setTimeout(() => { wasDragging.current = false }, 100)
+        playDragDropSound()
+      }}
       whileDrag={{
         scale: 1.03,
         boxShadow: '0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.15)',

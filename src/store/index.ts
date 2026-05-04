@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import * as db from '@/db'
-import { playCompleteSound, playDeleteSound } from '@/hooks/useSound'
+import { playCompleteSound, playDeleteSound, playUndoSound } from '@/hooks/useSound'
 
 // Types
 export interface Task {
@@ -334,6 +334,7 @@ export const useStore = create<AppState>((set, get) => ({
 
     set({ undoStack: stack.slice(0, -1) })
     await get().loadData()
+    playUndoSound()
     // Flash the restored task
     const restoredId = lastAction.task.id
     set({ restoredTaskId: restoredId })
