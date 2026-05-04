@@ -201,12 +201,25 @@ function createWindow() {
     mainWindow?.webContents.send('window:maximize-change', false)
   })
 
+  mainWindow.on('show', () => {
+    if (!db) loadDatabase()
+  })
+
   mainWindow.on('close', (e) => {
     saveDatabase()
     backupDatabase()
+    // Close sql.js to free WASM memory while hidden in tray
+    if (db) {
+      db.close()
+      db = null
+    }
     if (mainWindow && !mainWindow.isDestroyed()) {
       e.preventDefault()
       mainWindow.hide()
+      // Suggest V8 GC after hiding
+      try {
+        mainWindow.webContents.executeJavaScript('if (window.gc) window.gc()')
+      } catch {}
     }
   })
 }
