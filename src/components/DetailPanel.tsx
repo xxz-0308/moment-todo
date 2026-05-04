@@ -89,7 +89,7 @@ export function DetailPanel() {
       initial={{ x: '100%', opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: '100%', opacity: 0 }}
-      transition={{ type: 'spring', stiffness: 170, damping: 26 }}
+      transition={{ type: 'spring', stiffness: 350, damping: 32 }}
       className="w-[320px] flex-shrink-0 flex flex-col overflow-hidden"
       style={{
         background: 'var(--glass-bg)',

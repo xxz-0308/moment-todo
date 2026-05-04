@@ -253,7 +253,7 @@ export function TaskList() {
   return (
     <motion.div
       layout
-      transition={{ layout: { type: 'spring', stiffness: 170, damping: 26 } }}
+      transition={{ layout: { type: 'spring', stiffness: 350, damping: 32, delay: 0.05 } }}
       className="flex-1 flex flex-col min-w-0 bg-surface-gradient">
       {/* Header */}
       <div className="px-6 pt-5 pb-3 flex items-center justify-between">
