@@ -7,12 +7,12 @@ files:
   - dist/**/*
   - dist-electron/**/*
   - assets/**/*
+afterPack: scripts/set-exe-icon.cjs
 win:
   target:
     - nsis
   artifactName: ${productName}-${version}-setup.${ext}
   signAndEditExecutable: false
-  afterPack: scripts/set-exe-icon.mjs
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
