@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#0a0a15"/>
+    </radialGradient>
+    <linearGradient id="body" x1="10%" y1="90%" x2="90%" y2="10%">
+      <stop offset="0%" stop-color="#3730a3"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <linearGradient id="hl" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.3)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect x="1" y="1" width="30" height="30" rx="6" ry="6" fill="url(#bg)"/>
+  <!-- Diamond -->
+  <g transform="rotate(45 16 16)">
+    <rect x="7.5" y="7.5" width="17" height="17" rx="1.5" ry="1.5" fill="url(#body)"/>
+    <path d="M7.5 7.5 L13 7.5 L13 13 Z" fill="url(#hl)"/>
+    <!-- Checkmark — bolder for small sizes -->
+    <polyline points="12,16.5 15,19.5 20,13"
+              fill="none" stroke="white" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+  </g>
+</svg>

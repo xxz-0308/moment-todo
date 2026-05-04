@@ -1,26 +1,32 @@
-// Rasterize icon.svg to PNGs at multiple sizes, then build ICO
+// Rasterize icon SVGs to PNGs at multiple sizes, then build ICO
+// Uses icon.svg for large sizes, icon-small.svg (simplified/bolder) for small sizes
 import sharp from 'sharp'
 import fs from 'fs'
 
-const svg = fs.readFileSync('public/icon.svg')
+const svgLarge = fs.readFileSync('public/icon.svg')
+const svgSmall = fs.readFileSync('public/icon-small.svg')
 
-// Generate PNGs at needed sizes
-const sizes = [16, 32, 48, 256, 512]
+// Generate PNGs: small sizes use the simplified SVG for readability at tray/taskbar
+const pngConfigs = [
+  { size: 512, svg: svgLarge, out: 'public/icon.png' },
+  { size: 32,  svg: svgSmall, out: 'public/icon-32.png' },
+]
 
-for (const size of sizes) {
+for (const { size, svg, out } of pngConfigs) {
   const png = await sharp(svg).resize(size, size).png().toBuffer()
-  if (size === 512) {
-    fs.writeFileSync('public/icon.png', png)
-  } else if (size === 32) {
-    fs.writeFileSync('public/icon-32.png', png)
-  }
-  console.log(`  ${size}x${size} PNG generated (${png.length} bytes)`)
+  fs.writeFileSync(out, png)
+  console.log(`  ${out} (${size}x${size}, ${png.length} bytes)`)
 }
 
-// Build multi-resolution ICO from the generated PNGs
-// ICO format: header(6) + directory(16*count) + image data
+// Build ICO: small sizes from small SVG, larger from full SVG
+const icoSizes = [
+  { size: 16, svg: svgSmall },
+  { size: 32, svg: svgSmall },
+  { size: 48, svg: svgSmall },
+  { size: 256, svg: svgLarge },
+]
 const images = []
-for (const size of [16, 32, 48, 256]) {
+for (const { size, svg } of icoSizes) {
   images.push(await sharp(svg).resize(size, size).png().toBuffer())
 }
 
