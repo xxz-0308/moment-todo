@@ -115,10 +115,10 @@ export function DetailPanel() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-5 space-y-5">
         {/* Complete toggle + title */}
-        <div className="flex items-start gap-3">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => toggleComplete(selectedTask.id)}
-            className="mt-1.5 flex-shrink-0"
+            className="flex-shrink-0"
           >
             {selectedTask.completed ? (
               <motion.span
