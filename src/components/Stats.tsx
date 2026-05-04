@@ -4,6 +4,7 @@ import { X, TrendingUp, PieChart, CheckCircle2, AlertTriangle, ListTodo, Calenda
 import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart as RPieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import { useStore } from '@/store'
 import { getStats } from '@/db'
+import { DatePicker } from '@/components/DatePicker'
 
 interface StatsData {
   total: number
@@ -128,20 +129,10 @@ export default function Stats() {
           自定义
         </button>
         {timeRange === 'custom' && (
-          <div className="flex items-center gap-1.5 ml-1">
-            <input
-              type="date"
-              value={customFrom}
-              onChange={(e) => setCustomFrom(e.target.value)}
-              className="px-2 py-1 rounded-md bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] text-[12px] text-text-primary outline-none focus:border-accent"
-            />
-            <span className="text-text-tertiary text-[12px]">—</span>
-            <input
-              type="date"
-              value={customTo}
-              onChange={(e) => setCustomTo(e.target.value)}
-              className="px-2 py-1 rounded-md bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] text-[12px] text-text-primary outline-none focus:border-accent"
-            />
+          <div className="flex items-center gap-2 ml-1">
+            <DatePicker value={customFrom || null} onChange={(v) => setCustomFrom(v ?? '')} />
+            <span className="text-text-tertiary text-[13px]">—</span>
+            <DatePicker value={customTo || null} onChange={(v) => setCustomTo(v ?? '')} />
           </div>
         )}
       </div>
