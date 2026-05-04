@@ -423,7 +423,8 @@ async function init() {
   setupIPC()
   createWindow()
   createTray()
-  startReminders()
+  // Reminders disabled — not useful for this use case
+  // startReminders()
 }
 
 app.whenReady().then(init)
