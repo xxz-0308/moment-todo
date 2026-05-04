@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Tray, Menu, ipcMain, Notification, shell } from 'electron'
+import { app, BrowserWindow, Tray, Menu, ipcMain, Notification, shell, nativeImage } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import initSqlJs, { type Database, type SqlJsStatic } from 'sql.js'
@@ -167,6 +167,10 @@ function stopReminders() {
 // ── Window ────────────────────────────────────────────────
 
 function createWindow() {
+  const iconPath = isDev
+    ? path.join(__dirname, '../../public/icon.png')
+    : path.join(process.resourcesPath, 'public', 'icon.png')
+
   mainWindow = new BrowserWindow({
     width: 960,
     height: 660,
@@ -176,6 +180,7 @@ function createWindow() {
     titleBarStyle: 'hidden',
     backgroundColor: '#0f0f0f',
     show: false,
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -226,11 +231,26 @@ function createWindow() {
 
 // ── Tray ──────────────────────────────────────────────────
 
+function getTrayIconPath(): string {
+  // Resolve icon-32.png. In dev, it's in the project public/ dir.
+  // In production, it's in the app's resources/public/ (extraResources).
+  const candidates = [
+    path.join(__dirname, '../../public/icon-32.png'),
+    path.join(process.resourcesPath, 'public', 'icon-32.png'),
+    path.join(app.getAppPath(), 'public', 'icon-32.png'),
+  ]
+  for (const p of candidates) {
+    if (fs.existsSync(p)) return p
+  }
+  // Fallback: generate a simple 32x32 indigo diamond as base64 data URL
+  console.warn('Tray icon not found, using fallback')
+  return ''
+}
+
 function createTray() {
-  const iconPath = isDev
-    ? path.join(__dirname, '../../public/icon-32.png')
-    : path.join(process.resourcesPath, 'public', 'icon-32.png')
-  tray = new Tray(iconPath)
+  const iconPath = getTrayIconPath()
+  const icon = iconPath ? nativeImage.createFromPath(iconPath) : nativeImage.createEmpty()
+  tray = new Tray(icon)
 
   const contextMenu = Menu.buildFromTemplate([
     {
