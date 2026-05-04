@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { X, TrendingUp, PieChart, CheckCircle2, AlertTriangle, ListTodo } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart as RPieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart as RPieChart, Pie, Cell, ResponsiveContainer, Sector } from 'recharts'
 import { useStore } from '@/store'
 import { getStats } from '@/db'
 
@@ -18,6 +18,7 @@ const COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4'
 export default function Stats() {
   const toggleStats = useStore((s) => s.toggleStats)
   const [stats, setStats] = useState<StatsData | null>(null)
+  const [hoveredPie, setHoveredPie] = useState<number | undefined>(undefined)
 
   useEffect(() => {
     getStats().then(setStats)
@@ -159,11 +160,31 @@ export default function Stats() {
                       outerRadius={70}
                       innerRadius={40}
                       strokeWidth={0}
-                      activeIndex={-1}
-                      activeShape={{}}
+                      activeIndex={hoveredPie}
+                      onMouseEnter={(_: any, index: number) => setHoveredPie(index)}
+                      onMouseLeave={() => setHoveredPie(undefined)}
+                      activeShape={(props: any) => (
+                        <Sector
+                          {...props}
+                          outerRadius={props.outerRadius + 8}
+                          innerRadius={Math.max(5, props.innerRadius - 8)}
+                          startAngle={props.startAngle - 0.04}
+                          endAngle={props.endAngle + 0.04}
+                          fill={props.fill}
+                          stroke="transparent"
+                          strokeWidth={0}
+                          style={{
+                            filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.35))',
+                          }}
+                        />
+                      )}
                     >
                       {stats.byList.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                          fillOpacity={hoveredPie === undefined || hoveredPie === index ? 1 : 0.45}
+                        />
                       ))}
                     </Pie>
                     <Tooltip
