@@ -70,15 +70,19 @@ function diamondDist(x, y, size) {
   return Math.max(Math.abs(dx), Math.abs(dy)) - half + cornerR
 }
 
-// Check mark (centered in diamond, visually adjusted)
+// Check mark (centered in diamond)
 function inCheck(x, y, size) {
-  const w = size * 0.12 // stroke width
-  const cx = size / 2, cy = size * 0.52
-  const s = size * 0.28
-  // Three points of the check mark
-  const mx = cx - s * 0.2, my = cy + s * 0.05
-  const sx = cx - s * 0.65, sy = cy + s * 0.25
-  const ex = cx + s * 0.6, ey = cy - s * 0.45
+  // Thinner stroke for smaller sizes so segments don't blend
+  const w = size < 64 ? 1.2 : size * 0.08
+  const cx = size / 2
+  const s = size * 0.22
+  // Three points forming a distinct V-shaped check:
+  // Start: bottom-left of center
+  // Bend: center, slightly right
+  // End: top-right of center
+  const sx = cx - s * 0.6, sy = cx + s * 0.25   // start: lower-left
+  const mx = cx + s * 0.05, my = cx + s * 0.05   // bend: near center
+  const ex = cx + s * 0.7, ey = cx - s * 0.55    // end: upper-right
 
   const d1 = distToSegment(x, y, sx, sy, mx, my)
   const d2 = distToSegment(x, y, mx, my, ex, ey)
