@@ -163,34 +163,17 @@ export default function Stats() {
                       activeIndex={activePieIndex}
                       onMouseEnter={(_: any, index: number) => setActivePieIndex(index)}
                       onMouseLeave={() => setActivePieIndex(undefined)}
-                      animationDuration={300}
-                      animationEasing="ease-out"
-                      activeShape={(props: any) => {
-                        const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value, ...rest } = props
-                        // Wider arc + slightly larger radius for floating feel
-                        const spread = 0.03
-                        const midAngle = (startAngle + endAngle) / 2
-                        return (
-                          <Sector
-                            cx={cx}
-                            cy={cy}
-                            innerRadius={innerRadius}
-                            outerRadius={outerRadius + 6}
-                            startAngle={startAngle - spread}
-                            endAngle={endAngle + spread}
-                            fill={fill}
-                            stroke="transparent"
-                            strokeWidth={0}
-                            animationBegin={0}
-                            animationDuration={150}
-                            animationEasing="ease-out"
-                            style={{
-                              filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.35))',
-                            }}
-                            {...rest}
-                          />
-                        )
-                      }}
+                      activeShape={(props: any) => (
+                        <Sector
+                          {...props}
+                          style={{
+                            transform: `scale(1.08)`,
+                            transformOrigin: `${props.cx}px ${props.cy}px`,
+                            transition: 'transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                            filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))',
+                          }}
+                        />
+                      )}
                     >
                       {stats.byList.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
