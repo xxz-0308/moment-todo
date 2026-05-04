@@ -272,7 +272,7 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
 }
 
 // Wrapper for use inside Reorder.Group
-export function ReorderableTaskItem({ task, isSelected, onSelect, showCompletedState, flashHighlight }: TaskItemProps) {
+export function ReorderableTaskItem({ task, isSelected, onSelect, showCompletedState, flashHighlight, isMultiSelected }: TaskItemProps) {
   const wasDragging = useRef(false)
 
   return (
@@ -290,6 +290,7 @@ export function ReorderableTaskItem({ task, isSelected, onSelect, showCompletedS
         }}
         showCompletedState={showCompletedState}
         flashHighlight={flashHighlight}
+        isMultiSelected={isMultiSelected}
       />
     </Reorder.Item>
   )
