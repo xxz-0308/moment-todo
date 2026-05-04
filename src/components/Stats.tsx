@@ -30,7 +30,7 @@ export default function Stats() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-40 bg-surface flex flex-col"
+        className="fixed inset-0 z-40 bg-surface-gradient flex flex-col"
       >
         <div className="w-6 h-6 rounded-full border-2 border-accent border-t-transparent animate-spin" />
       </motion.div>
@@ -52,11 +52,11 @@ export default function Stats() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-40 bg-surface flex flex-col"
+      className="fixed inset-0 z-40 bg-surface-gradient flex flex-col"
       onClick={() => toggleStats()}
     >
       {/* Header — sticky */}
-      <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-border-subtle">
+      <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-[rgba(255,255,255,0.05)]">
         <h2 className="text-[16px] font-semibold text-text-primary">统计</h2>
         <button
           onClick={toggleStats}
@@ -85,8 +85,12 @@ export default function Stats() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="p-4 rounded-xl border border-border-subtle"
-                style={{ backgroundColor: card.bg }}
+                className="p-4 rounded-xl"
+                style={{
+                  backgroundColor: card.bg,
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.2)',
+                }}
               >
                 <Icon size={17} strokeWidth={2} style={{ color: card.color }} />
                 <p className="mt-3 text-[22px] font-bold text-text-primary">{card.value}</p>
@@ -102,7 +106,7 @@ export default function Stats() {
             <TrendingUp size={16} strokeWidth={2} />
             本周完成趋势
           </h3>
-          <div className="p-5 rounded-xl bg-surface-secondary border border-border-subtle">
+          <div className="p-5 rounded-xl border" style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.06)' }}>
             {formattedDays.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={formattedDays}>
@@ -146,7 +150,7 @@ export default function Stats() {
             <PieChart size={16} strokeWidth={2} />
             分类分布
           </h3>
-          <div className="p-5 rounded-xl bg-surface-secondary border border-border-subtle">
+          <div className="p-5 rounded-xl border" style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.06)' }}>
             {stats.byList.length > 0 ? (
               <div className="flex items-center">
                 <ResponsiveContainer width="55%" height={180}>
