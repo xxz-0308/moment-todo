@@ -1,0 +1,87 @@
+<h2>设置 / 统计 / 空状态 / Toast</h2>
+<p class="subtitle">收尾的四个区域，不需要大改结构，主要是材质升级和微交互</p>
+
+<div class="section">
+  <div class="label">设置 & 统计页</div>
+  <div class="split">
+    <div class="mockup">
+      <div class="mockup-header">当前</div>
+      <div class="mockup-body" style="background:#0f0f0f;padding:16px;border-radius:8px;">
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid #222;padding-bottom:10px;margin-bottom:12px;">
+          <span style="color:#f0f0f0;font-size:14px;font-weight:600;">设置</span><span style="color:#6b6b6b;">✕</span>
+        </div>
+        <div style="background:#1a1a1a;border:1px solid #222;border-radius:10px;padding:12px;margin-bottom:8px;">
+          <span style="color:#f0f0f0;font-size:13px;">深色模式</span>
+          <span style="float:right;color:#6b6b6b;font-size:11px;">🌙</span>
+        </div>
+        <div style="background:#1a1a1a;border:1px solid #222;border-radius:10px;padding:12px;">
+          <span style="color:#f0f0f0;font-size:13px;">导出 JSON</span>
+          <span style="float:right;color:#6b6b6b;font-size:11px;">⬇</span>
+        </div>
+      </div>
+    </div>
+    <div class="mockup">
+      <div class="mockup-header">改造后</div>
+      <div class="mockup-body" style="background:linear-gradient(135deg,#0a0a10,#0f0f18,#0a0a15);padding:16px;border-radius:8px;">
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:10px;margin-bottom:12px;">
+          <span style="color:#f0f0f0;font-size:14px;font-weight:600;">设置</span><span style="color:rgba(255,255,255,0.3);">✕</span>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:8px;">
+          <span style="color:#f0f0f0;font-size:13px;">深色模式</span>
+          <span style="float:right;color:#6366f1;font-size:11px;">🌙</span>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <span style="flex:1;text-align:center;padding:8px;border-radius:10px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.25);color:#f0f0f0;font-size:12px;">深色</span>
+            <span style="flex:1;text-align:center;padding:8px;border-radius:10px;background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.4);font-size:12px;">浅色</span>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px;">
+          <span style="color:#f0f0f0;font-size:13px;">导出 JSON</span>
+          <span style="float:right;color:rgba(255,255,255,0.3);font-size:11px;">⬇</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px;">
+  <div class="label">EmptyState 空状态</div>
+  <div style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a0a10,#0f0f18,#0a0a15);padding:24px;border-radius:10px;">
+    <div style="text-align:center;">
+      <div style="width:56px;height:56px;border-radius:16px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 32px rgba(99,102,241,0.08);">
+        <span style="font-size:24px;">✨</span>
+      </div>
+      <div style="color:#f0f0f0;font-size:16px;font-weight:600;margin-bottom:6px;">上午好</div>
+      <div style="color:rgba(255,255,255,0.35);font-size:13px;margin-bottom:20px;">一日之计在于晨</div>
+      <div style="color:rgba(255,255,255,0.25);font-size:12px;">按下 Ctrl + N 添加一个吧</div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+    <div style="background:rgba(28,28,44,0.5);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px;">
+      <h3 style="color:#f0f0f0;font-size:13px;margin-bottom:4px;">今日全部完成</h3>
+      <p style="color:rgba(255,255,255,0.4);font-size:11px;">🏆 奖杯从微小的呼吸光晕变为柔和的脉冲辉光，背景暗角变亮</p>
+    </div>
+    <div style="background:rgba(28,28,44,0.5);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px;">
+      <h3 style="color:#f0f0f0;font-size:13px;margin-bottom:4px;">问候语动态</h3>
+      <p style="color:rgba(255,255,255,0.4);font-size:11px;">保留时间段的问候，icon 换成更精致的玻璃容器 + 微光</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px;">
+  <div class="label">Toast 通知</div>
+  <div style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a0a10,#0f0f18,#0a0a15);padding:24px;border-radius:10px;">
+    <div style="background:rgba(28,28,48,0.85);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:10px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+      <span style="color:#f0f0f0;font-size:12px;">已完成: 完成项目报告</span>
+      <span style="color:#6366f1;font-size:12px;font-weight:500;">撤销</span>
+      <span style="color:rgba(255,255,255,0.25);">✕</span>
+    </div>
+  </div>
+  <p style="color:rgba(255,255,255,0.35);font-size:11px;margin-top:8px;text-align:center;">保持当前弹簧动画参数，容器用 L3 玻璃，底部居中位置不变</p>
+</div>
+
+<div class="section" style="margin-top:20px;">
+  <div class="label">TitleBar 标题栏</div>
+  <div style="background:rgba(28,28,44,0.5);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px;">
+    <p style="color:rgba(255,255,255,0.4);font-size:11px;">当前已经是 frameless + 透明拖拽区。改动最小——背景融入底板渐变，窗口控制按钮 hover 时玻璃光圈</p>
+  </div>
+</div>

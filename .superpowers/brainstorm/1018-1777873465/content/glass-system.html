@@ -1,0 +1,58 @@
+<h2>材质系统：当前 vs Glass 改造</h2>
+<p class="subtitle">建立 4 层玻璃层级，所有组件统一吃这套 token</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">当前：扁平暗色</div>
+    <div class="mockup-body" style="background:#0f0f0f;padding:16px;border-radius:8px;">
+      <div style="background:#1a1a1a;border:1px solid #222;border-radius:12px;padding:14px;margin-bottom:10px;">
+        <div style="color:#f0f0f0;font-size:13px;font-weight:600;margin-bottom:4px;">Sidebar 导航</div>
+        <div style="color:#6b6b6b;font-size:11px;">单色背景 #1a1a1a，无层次</div>
+      </div>
+      <div style="background:#1a1a1a;border:1px solid #222;border-radius:12px;padding:14px;margin-bottom:10px;">
+        <div style="color:#f0f0f0;font-size:13px;font-weight:600;margin-bottom:4px;">TaskItem 任务卡片</div>
+        <div style="color:#6b6b6b;font-size:11px;">和 Sidebar 同色，缺少材质区分</div>
+      </div>
+      <div style="background:#1a1a1a;border:1px solid #222;border-radius:12px;padding:14px;">
+        <div style="color:#f0f0f0;font-size:13px;font-weight:600;margin-bottom:4px;">Modal 弹窗</div>
+        <div style="color:#6b6b6b;font-size:11px;">同样是 #1a1a1a，没有浮层感</div>
+      </div>
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-header">改造后：4 层玻璃材质</div>
+    <div class="mockup-body" style="background:linear-gradient(135deg, #0a0a10 0%, #0f0f18 50%, #0a0a15 100%);padding:16px;border-radius:8px;">
+      <div style="background:rgba(22,22,35,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 4px 24px rgba(0,0,0,0.3);">
+        <div style="color:#f0f0f0;font-size:13px;font-weight:600;margin-bottom:4px;">L1 · 底板 — 主内容区</div>
+        <div style="color:rgba(255,255,255,0.4);font-size:11px;">深渐变底 + 微噪点，沉稳有深度</div>
+      </div>
+      <div style="background:rgba(28,28,44,0.65);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+        <div style="color:#f0f0f0;font-size:13px;font-weight:600;margin-bottom:4px;">L2 · 面板 — Sidebar / DetailPanel</div>
+        <div style="color:rgba(255,255,255,0.4);font-size:11px;">毛玻璃 + 更强模糊，浮在底板之上</div>
+      </div>
+      <div style="background:rgba(35,35,55,0.75);backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 12px 48px rgba(0,0,0,0.5);">
+        <div style="color:#f0f0f0;font-size:13px;font-weight:600;margin-bottom:4px;">L3 · 浮层 — CommandPalette / QuickAdd</div>
+        <div style="color:rgba(255,255,255,0.4);font-size:11px;">最模糊 + 最亮边框，明显悬浮</div>
+      </div>
+      <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:10px;box-shadow:0 0 20px rgba(99,102,241,0.08);">
+        <div style="color:#f0f0f0;font-size:13px;font-weight:600;margin-bottom:4px;">L4 · 强调 — 选中态 / Hover 卡片</div>
+        <div style="color:rgba(255,255,255,0.4);font-size:11px;">Indigo 微光，标记当前焦点</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 24px;">
+  <div class="label">新增 CSS 变量</div>
+  <div style="background:rgba(28,28,44,0.5);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:16px;font-family:monospace;font-size:12px;color:#a0a0c0;line-height:1.8;">
+    --glass-bg: rgba(22,22,35,0.7)<br>
+    --glass-border: rgba(255,255,255,0.06)<br>
+    --glass-blur: blur(20px)<br>
+    --glass-shadow: 0 4px 24px rgba(0,0,0,0.3)<br>
+    --glass-elevated-bg: rgba(35,35,55,0.75)<br>
+    --glass-elevated-blur: blur(32px)<br>
+    --glass-elevated-shadow: 0 12px 48px rgba(0,0,0,0.5)<br>
+    --glow-accent: 0 0 20px rgba(99,102,241,0.15)<br>
+    --noise-texture: url("data:image/svg+xml,...")
+  </div>
+</div>

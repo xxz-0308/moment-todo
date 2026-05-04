@@ -1,0 +1,78 @@
+<h2>TaskList + TaskItem：最核心的日常界面</h2>
+<p class="subtitle">每条任务都是独立玻璃卡片，hover 上浮，完成有流光扫过</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">当前</div>
+    <div class="mockup-body" style="background:#0f0f0f;padding:20px;border-radius:8px;">
+      <div style="color:#f0f0f0;font-size:15px;font-weight:600;margin-bottom:12px;">今天</div>
+      <div style="display:flex;align-items:center;gap:8px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.15);border-radius:10px;padding:8px 12px;margin-bottom:6px;">
+        <span style="width:16px;height:16px;border:2px solid #6b6b6b;border-radius:50%;"></span>
+        <span style="color:#f0f0f0;font-size:13px;flex:1;">完成项目报告</span>
+        <span style="color:#ef4444;font-size:10px;background:rgba(239,68,68,0.1);padding:2px 6px;border-radius:4px;">今天</span>
+        <span style="color:#ef4444;">🚩</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;border-radius:10px;padding:8px 12px;margin-bottom:6px;">
+        <span style="width:16px;height:16px;border:2px solid #6b6b6b;border-radius:50%;"></span>
+        <span style="color:#f0f0f0;font-size:13px;flex:1;">买周末食材</span>
+        <span style="color:#f59e0b;font-size:10px;background:rgba(245,158,11,0.1);padding:2px 6px;border-radius:4px;">明天</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;border-radius:10px;padding:8px 12px;opacity:0.5;">
+        <span style="color:#6366f1;">✓</span>
+        <span style="color:#6b6b6b;font-size:13px;flex:1;text-decoration:line-through;">回复邮件</span>
+      </div>
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-header">改造后：Glass Cards + 微交互</div>
+    <div class="mockup-body" style="background:linear-gradient(135deg,#0a0a10,#0f0f18,#0a0a15);padding:20px;border-radius:8px;">
+      <div style="color:#f0f0f0;font-size:15px;font-weight:600;margin-bottom:14px;">今天</div>
+      <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.15);border-radius:12px;padding:10px 14px;margin-bottom:8px;box-shadow:0 2px 12px rgba(99,102,241,0.06);transform:translateY(-1px);">
+        <span style="width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;display:inline-block;vertical-align:middle;margin-right:10px;"></span>
+        <span style="color:#f0f0f0;font-size:13px;">完成项目报告</span>
+        <span style="float:right;color:#ef4444;font-size:10px;background:rgba(239,68,68,0.12);padding:3px 8px;border-radius:6px;">今天</span>
+        <span style="float:right;margin-right:6px;color:#ef4444;font-size:12px;">🚩</span>
+      </div>
+      <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:12px;padding:10px 14px;margin-bottom:8px;">
+        <span style="width:18px;height:18px;border:2px solid rgba(255,255,255,0.2);border-radius:50%;display:inline-block;vertical-align:middle;margin-right:10px;"></span>
+        <span style="color:rgba(255,255,255,0.7);font-size:13px;">买周末食材</span>
+        <span style="float:right;color:#f59e0b;font-size:10px;background:rgba(245,158,11,0.1);padding:3px 8px;border-radius:6px;">明天</span>
+      </div>
+      <div style="background:rgba(16,185,129,0.04);border:1px solid rgba(16,185,129,0.08);border-radius:12px;padding:10px 14px;opacity:0.55;position:relative;overflow:hidden;">
+        <span style="color:#10b981;font-size:16px;display:inline-block;vertical-align:middle;margin-right:10px;">✓</span>
+        <span style="color:rgba(255,255,255,0.35);font-size:13px;text-decoration:line-through;">回复邮件</span>
+        <div style="position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(16,185,129,0.08),transparent);"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px;">
+  <div class="label">TaskItem 微交互清单</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+    <div style="background:rgba(28,28,44,0.5);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px;">
+      <h3 style="color:#f0f0f0;font-size:13px;margin-bottom:4px;">Hover 上浮</h3>
+      <p style="color:rgba(255,255,255,0.4);font-size:11px;">translateY(-1px) + 阴影增强 + 边框微亮，150ms 过渡</p>
+    </div>
+    <div style="background:rgba(28,28,44,0.5);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px;">
+      <h3 style="color:#f0f0f0;font-size:13px;margin-bottom:4px;">完成流光</h3>
+      <p style="color:rgba(255,255,255,0.4);font-size:11px;">勾选完成时绿色光带从左扫到右，300ms + 绿色背景渐入</p>
+    </div>
+    <div style="background:rgba(28,28,44,0.5);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px;">
+      <h3 style="color:#f0f0f0;font-size:13px;margin-bottom:4px;">日期 Badge 质感</h3>
+      <p style="color:rgba(255,255,255,0.4);font-size:11px;">逾期红色微光、临近橙色脉冲、正常灰色半透明</p>
+    </div>
+    <div style="background:rgba(28,28,44,0.5);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px;">
+      <h3 style="color:#f0f0f0;font-size:13px;margin-bottom:4px;">Pin 图钉动画</h3>
+      <p style="color:rgba(255,255,255,0.4);font-size:11px;">固定时小回弹 + 卡片自动跳到顶部（已有 layout animation，加光泽）</p>
+    </div>
+    <div style="background:rgba(28,28,44,0.5);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px;">
+      <h3 style="color:#f0f0f0;font-size:13px;margin-bottom:4px;">删除按钮</h3>
+      <p style="color:rgba(255,255,255,0.4);font-size:11px;">hover 时红色扩散光晕，点击后卡片缩小消失</p>
+    </div>
+    <div style="background:rgba(28,28,44,0.5);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px;">
+      <h3 style="color:#f0f0f0;font-size:13px;margin-bottom:4px;">拖拽排序</h3>
+      <p style="color:rgba(255,255,255,0.4);font-size:11px;">拖拽中的卡片轻微放大 + 旋转 2deg + 强阴影，placeholder 位置留玻璃凹陷</p>
+    </div>
+  </div>
+</div>
