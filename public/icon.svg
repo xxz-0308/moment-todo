@@ -1,88 +1,52 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <defs>
-    <!-- Deep space background -->
     <radialGradient id="bgGrad" cx="50%" cy="40%" r="70%">
       <stop offset="0%" stop-color="#1e1b4b"/>
-      <stop offset="40%" stop-color="#0f0d25"/>
-      <stop offset="100%" stop-color="#060610"/>
+      <stop offset="100%" stop-color="#0a0a15"/>
     </radialGradient>
-
-    <!-- Crystal body: rich indigo-violet -->
-    <linearGradient id="body" x1="10%" y1="90%" x2="90%" y2="10%">
+    <linearGradient id="diamondGrad" x1="0%" y1="100%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#3730a3"/>
       <stop offset="25%" stop-color="#4f46e5"/>
-      <stop offset="55%" stop-color="#7c3aed"/>
+      <stop offset="60%" stop-color="#7c3aed"/>
       <stop offset="100%" stop-color="#a78bfa"/>
     </linearGradient>
-
-    <!-- Top-left glass highlight -->
-    <linearGradient id="hlTop" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
-      <stop offset="35%" stop-color="rgba(255,255,255,0.08)"/>
+    <linearGradient id="hl" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.3)"/>
       <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
     </linearGradient>
-
-    <!-- Bottom-right shadow -->
-    <linearGradient id="shBottom" x1="100%" y1="100%" x2="20%" y2="20%">
-      <stop offset="0%" stop-color="rgba(0,0,0,0.4)"/>
-      <stop offset="50%" stop-color="rgba(0,0,0,0.05)"/>
+    <linearGradient id="sh" x1="100%" y1="100%" x2="20%" y2="20%">
+      <stop offset="0%" stop-color="rgba(0,0,0,0.35)"/>
       <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
     </linearGradient>
-
-    <!-- Diagonal glass stripe -->
     <linearGradient id="glass" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="rgba(255,255,255,0.3)"/>
-      <stop offset="20%" stop-color="rgba(255,255,255,0.02)"/>
+      <stop offset="0%" stop-color="rgba(255,255,255,0.25)"/>
+      <stop offset="25%" stop-color="rgba(255,255,255,0)"/>
       <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
     </linearGradient>
-
-    <!-- Outer aura -->
     <radialGradient id="aura" cx="50%" cy="50%" r="50%">
-      <stop offset="55%" stop-color="rgba(129,140,248,0.15)"/>
-      <stop offset="75%" stop-color="rgba(99,102,241,0.04)"/>
+      <stop offset="55%" stop-color="rgba(129,140,248,0.12)"/>
       <stop offset="100%" stop-color="rgba(99,102,241,0)"/>
     </radialGradient>
-
-    <!-- Inner edge highlight -->
-    <linearGradient id="edgeRing" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="rgba(255,255,255,0.15)"/>
-      <stop offset="30%" stop-color="rgba(255,255,255,0.04)"/>
-      <stop offset="70%" stop-color="rgba(255,255,255,0.02)"/>
-      <stop offset="100%" stop-color="rgba(255,255,255,0.08)"/>
-    </linearGradient>
   </defs>
 
-  <!-- App icon rounded rect background -->
-  <rect x="8" y="8" width="496" height="496" rx="96" ry="96" fill="url(#bgGrad)"/>
-
-  <!-- Aura glow behind crystal -->
-  <circle cx="256" cy="248" r="170" fill="url(#aura)"/>
+  <!-- Aura glow -->
+  <circle cx="256" cy="256" r="180" fill="url(#aura)"/>
 
   <!-- Diamond crystal -->
   <g transform="rotate(45 256 256)">
-    <!-- Main body with subtle scale to fit rotated bounds -->
-    <rect x="116" y="116" width="280" height="280" rx="24" ry="24" fill="url(#body)"/>
-
-    <!-- Edge highlight ring (subtle inner border) -->
-    <rect x="118" y="118" width="276" height="276" rx="22" ry="22"
-          fill="none" stroke="url(#edgeRing)" stroke-width="3"/>
-
-    <!-- Top-left glass highlight quadrant -->
-    <path d="M116 116 L256 116 L256 256 Z" fill="url(#hlTop)"/>
-
-    <!-- Bottom-right shadow quadrant -->
-    <path d="M256 256 L396 256 L396 396 L256 396 Z" fill="url(#shBottom)"/>
-
-    <!-- Diagonal glass reflection stripe -->
-    <ellipse cx="200" cy="200" rx="140" ry="32" fill="url(#glass)"/>
-
-    <!-- Tiny bright specular spot -->
-    <ellipse cx="165" cy="165" rx="24" ry="10" fill="rgba(255,255,255,0.35)"/>
-
-    <!-- Checkmark — same proportions as TitleBar SVG -->
-    <polyline points="196,266 236,306 326,206"
-              fill="none" stroke="white" stroke-width="18"
-              stroke-linecap="round" stroke-linejoin="round"
-              opacity="0.9"/>
+    <rect x="100" y="100" width="312" height="312" rx="28" ry="28" fill="url(#diamondGrad)"/>
+    <!-- Top-left highlight -->
+    <path d="M100 100 L230 100 L230 230 Z" fill="url(#hl)"/>
+    <!-- Bottom-right shadow -->
+    <path d="M256 256 L412 256 L412 412 L256 412 Z" fill="url(#sh)"/>
+    <!-- Glass stripe -->
+    <ellipse cx="240" cy="240" rx="160" ry="36" fill="url(#glass)"/>
+    <!-- Specular highlight dot -->
+    <ellipse cx="165" cy="165" rx="28" ry="12" fill="rgba(255,255,255,0.25)"/>
   </g>
+
+  <!-- Checkmark in visual space — the CORRECT one -->
+  <polyline points="185,270 210,320 330,215"
+            fill="none" stroke="white" stroke-width="24"
+            stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
 </svg>

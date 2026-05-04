@@ -1,32 +1,25 @@
-// Rasterize icon SVGs to PNGs at multiple sizes, then build ICO
-// Uses icon.svg for large sizes, icon-small.svg (simplified/bolder) for small sizes
+// Rasterize icon.svg to PNGs at all sizes, using ONLY the single SVG source
 import sharp from 'sharp'
 import fs from 'fs'
 
-const svgLarge = fs.readFileSync('public/icon.svg')
-const svgSmall = fs.readFileSync('public/icon-small.svg')
+const svg = fs.readFileSync('public/icon.svg')
 
-// Generate PNGs: small sizes use the simplified SVG for readability at tray/taskbar
+// Generate all PNGs from the same SVG
 const pngConfigs = [
-  { size: 512, svg: svgLarge, out: 'public/icon.png' },
-  { size: 32,  svg: svgSmall, out: 'public/icon-32.png' },
+  { size: 512, out: 'public/icon.png' },
+  { size: 32,  out: 'public/icon-32.png' },
 ]
 
-for (const { size, svg, out } of pngConfigs) {
+for (const { size, out } of pngConfigs) {
   const png = await sharp(svg).resize(size, size).png().toBuffer()
   fs.writeFileSync(out, png)
   console.log(`  ${out} (${size}x${size}, ${png.length} bytes)`)
 }
 
-// Build ICO: small sizes from small SVG, larger from full SVG
-const icoSizes = [
-  { size: 16, svg: svgSmall },
-  { size: 32, svg: svgSmall },
-  { size: 48, svg: svgSmall },
-  { size: 256, svg: svgLarge },
-]
+// Build ICO: all sizes from the same SVG
+const icoSizes = [16, 32, 48, 256]
 const images = []
-for (const { size, svg } of icoSizes) {
+for (const size of icoSizes) {
   images.push(await sharp(svg).resize(size, size).png().toBuffer())
 }
 
