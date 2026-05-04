@@ -74,8 +74,10 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
     <motion.div
       layout
       transition={{ layout: { type: 'spring', stiffness: 500, damping: 35 } }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{
         opacity: 1,
+        y: 0,
         backgroundColor: flashHighlight
           ? ['rgba(99,102,241,0.25)', 'rgba(99,102,241,0)']
           : undefined,
@@ -90,15 +92,22 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
           }
         }
       }}
+      whileHover={{
+        y: -1,
+        boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+        borderColor: 'rgba(255,255,255,0.08)',
+        transition: { duration: 0.15 },
+      }}
       className={`
         task-item group flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer
-        border border-transparent relative overflow-hidden
+        relative overflow-hidden
+        bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.04)]
         ${isSelected
-          ? 'bg-accent-muted border-accent/20'
-          : 'hover:bg-surface-hover hover:border-border-subtle'
+          ? '!bg-[rgba(99,102,241,0.08)] !border-[rgba(99,102,241,0.2)]'
+          : ''
         }
-        ${task.completed ? 'opacity-50' : ''}
-        ${isMultiSelected ? 'ring-1 ring-accent bg-accent-muted' : ''}
+        ${task.completed ? 'opacity-40' : ''}
+        ${isMultiSelected ? 'ring-1 ring-accent bg-[rgba(99,102,241,0.08)]' : ''}
       `}
       onClick={(e) => {
         // Don't stop propagation in multi-select mode so Ctrl+click works
@@ -114,12 +123,14 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
       <AnimatePresence>
         {justCompleted && (
           <motion.div
-            initial={{ opacity: 0.6 }}
-            animate={{ opacity: 0 }}
+            initial={{ x: '-100%', opacity: 0 }}
+            animate={{ x: '100%', opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
             className="absolute inset-0 rounded-xl pointer-events-none"
-            style={{ backgroundColor: 'rgba(16, 185, 129, 0.25)' }}
+            style={{
+              background: 'linear-gradient(90deg, transparent 0%, rgba(16,185,129,0.12) 40%, rgba(16,185,129,0.08) 60%, transparent 100%)',
+            }}
           />
         )}
       </AnimatePresence>
@@ -156,14 +167,20 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
             togglePin(task.id)
           }}
           className={`
-            flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-md transition-all
+            flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-md transition-all duration-150
             ${task.pinned
               ? 'text-accent opacity-100 hover:bg-accent-muted'
               : 'text-text-tertiary opacity-0 group-hover:opacity-100 hover:text-accent hover:bg-accent-muted'
             }
           `}
         >
-          <Pin size={13} strokeWidth={2.5} fill={!!task.pinned ? 'currentColor' : 'none'} />
+          <motion.span
+            whileTap={{ scale: 0.85 }}
+            animate={!!task.pinned ? { scale: [1, 1.2, 1] } : {}}
+            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+          >
+            <Pin size={13} strokeWidth={2.5} fill={!!task.pinned ? 'currentColor' : 'none'} />
+          </motion.span>
         </button>
       )}
 
@@ -181,7 +198,7 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
             animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
           >
-            <CheckCircle2 size={20} strokeWidth={2} className="text-accent" />
+            <CheckCircle2 size={20} strokeWidth={2} className="text-accent" style={{ filter: 'drop-shadow(0 0 4px rgba(99,102,241,0.3))' }} />
           </motion.span>
         ) : (
           <motion.span
@@ -215,12 +232,12 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
       {hasDueDate && !showCompletedState && (
         <span
           className={`
-            flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md flex-shrink-0
+            flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md flex-shrink-0 transition-shadow
             ${overdue
-              ? 'bg-danger-muted text-danger'
+              ? 'bg-[rgba(239,68,68,0.12)] text-danger shadow-[0_0_8px_rgba(239,68,68,0.15)]'
               : approaching
-                ? 'bg-[rgba(245,158,11,0.12)] text-[var(--color-warning)]'
-                : 'bg-surface-tertiary text-text-tertiary group-hover:text-text-secondary'
+                ? 'bg-[rgba(245,158,11,0.12)] text-[var(--color-warning)] shadow-[0_0_6px_rgba(245,158,11,0.12)] animate-pulse'
+                : 'bg-[rgba(255,255,255,0.04)] text-text-tertiary group-hover:text-text-secondary'
             }
           `}
         >
@@ -246,7 +263,7 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
             e.stopPropagation()
             removeTask(task.id)
           }}
-          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-md text-text-tertiary hover:text-danger hover:bg-danger-muted opacity-0 group-hover:opacity-100 transition-all"
+          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-md text-text-tertiary hover:text-danger hover:bg-[rgba(239,68,68,0.12)] hover:shadow-[0_0_10px_rgba(239,68,68,0.15)] opacity-0 group-hover:opacity-100 transition-all"
         >
           <Trash2 size={13} strokeWidth={1.8} />
         </button>
