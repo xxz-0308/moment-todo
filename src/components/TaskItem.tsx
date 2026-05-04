@@ -292,7 +292,6 @@ export function ReorderableTaskItem({ task, isSelected, onSelect, showCompletedS
       onDragEnd={() => { setTimeout(() => { wasDragging.current = false }, 100) }}
       whileDrag={{
         scale: 1.03,
-        rotate: 1.5,
         boxShadow: '0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.15)',
         zIndex: 50,
         cursor: 'grabbing',
