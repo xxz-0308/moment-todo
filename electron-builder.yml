@@ -7,7 +7,6 @@ files:
   - dist/**/*
   - dist-electron/**/*
   - assets/**/*
-afterPack: scripts/set-exe-icon.cjs
 win:
   target:
     - nsis
