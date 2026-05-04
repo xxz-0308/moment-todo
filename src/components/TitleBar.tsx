@@ -39,15 +39,21 @@ export function TitleBar() {
         <div className="flex items-center gap-2.5 no-drag">
           <svg width="20" height="20" viewBox="0 0 20 20" className="flex-shrink-0">
             <defs>
-              <linearGradient id="tb-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#6366f1"/>
-                <stop offset="100%" stopColor="#818cf8"/>
+              <linearGradient id="tb-body" x1="10%" y1="90%" x2="90%" y2="10%">
+                <stop offset="0%" stopColor="#3730a3"/>
+                <stop offset="50%" stopColor="#6366f1"/>
+                <stop offset="100%" stopColor="#a78bfa"/>
+              </linearGradient>
+              <linearGradient id="tb-hl" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="rgba(255,255,255,0.35)"/>
+                <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
               </linearGradient>
             </defs>
-            <rect x="3" y="3" width="14" height="14" rx="1.5" ry="1.5"
-                  transform="rotate(45 10 10)" fill="url(#tb-grad)"/>
+            <rect x="3" y="3" width="14" height="14" rx="1.2" ry="1.2"
+                  transform="rotate(45 10 10)" fill="url(#tb-body)"/>
+            <path d="M3.5 3.5 L7 3.5 L7 7 Z" transform="rotate(45 10 10)" fill="url(#tb-hl)"/>
             <polyline points="7,10.5 9,12.5 13.5,7.5"
-                      fill="none" stroke="white" strokeWidth="1.4"
+                      fill="none" stroke="white" strokeWidth="1.3"
                       strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           <span className="text-[13px] font-semibold text-text-primary tracking-tight">
