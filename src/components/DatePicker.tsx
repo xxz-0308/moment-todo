@@ -73,7 +73,7 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
             initial={{ opacity: 0, y: -4, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.96 }}
-            transition={{ duration: 0.18 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             className="absolute left-0 top-full mt-1 z-40 bg-surface-tertiary border border-border rounded-xl shadow-xl p-3 w-56"
           >
             {/* Month header */}

@@ -79,7 +79,7 @@ export function EmptyState({ view }: EmptyStateProps) {
           }}
         >
           <motion.div
-            animate={{ scale: [1, 1.08, 1], opacity: [0.8, 1, 0.8] }}
+            animate={{ scale: [1, 1.08, 1], opacity: [0.9, 1, 0.9] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
           >
             <Trophy size={40} strokeWidth={1.5} className="text-accent" />
