@@ -86,9 +86,9 @@ export function CommandPalette() {
       }}
     >
       <motion.div
-        initial={{ opacity: 0, y: -20, scale: 0.96 }}
+        initial={{ opacity: 0, y: -12, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: -20, scale: 0.96 }}
+        exit={{ opacity: 0, y: -12, scale: 0.98 }}
         transition={{ type: 'spring', stiffness: 500, damping: 35 }}
         className="w-[480px] rounded-2xl overflow-hidden"
         style={{
