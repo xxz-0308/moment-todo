@@ -16,9 +16,13 @@ export function ToastContainer() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-            className="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-secondary border border-border shadow-xl backdrop-blur-sm"
+            className="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl"
             style={{
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+              background: 'rgba(28,28,48,0.9)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
             }}
           >
             <span className="text-[13px] text-text-primary">{toast.message}</span>
