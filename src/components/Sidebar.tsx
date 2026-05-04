@@ -9,6 +9,7 @@ import {
   Trash2,
   BarChart3,
   Settings,
+  Search,
 } from 'lucide-react'
 import { useStore } from '@/store'
 
@@ -26,6 +27,7 @@ export function Sidebar() {
   const removeList = useStore((s) => s.removeList)
   const toggleSettings = useStore((s) => s.toggleSettings)
   const toggleStats = useStore((s) => s.toggleStats)
+  const toggleCommandPalette = useStore((s) => s.toggleCommandPalette)
   const tasks = useStore((s) => s.tasks)
 
   const [showNewList, setShowNewList] = useState(false)
@@ -251,6 +253,17 @@ export function Sidebar() {
 
       {/* Bottom actions */}
       <div className="p-3 border-t border-[rgba(255,255,255,0.04)] space-y-0.5">
+        <motion.button
+          onClick={toggleCommandPalette}
+          className="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-text-secondary hover:text-text-primary hover:bg-[rgba(255,255,255,0.03)] transition-all duration-150"
+          whileTap={{ scale: 0.97 }}
+        >
+          <div className="flex items-center gap-3">
+            <Search size={17} strokeWidth={1.8} />
+            <span>搜索</span>
+          </div>
+          <kbd className="text-[10px] text-text-tertiary font-medium tracking-tight">Ctrl+K</kbd>
+        </motion.button>
         <motion.button
           onClick={toggleStats}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-text-secondary hover:text-text-primary hover:bg-[rgba(255,255,255,0.03)] transition-all duration-150"
