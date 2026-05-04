@@ -28,8 +28,9 @@ export interface List {
 export type ViewType = 'today' | 'upcoming' | 'completed' | string
 
 interface UndoAction {
-  type: 'delete' | 'complete' | 'update'
-  task: Task
+  type: 'delete' | 'complete' | 'update' | 'deleteList'
+  task?: Task
+  list?: List
   previousValues?: Partial<Task>
   timestamp: number
 }
@@ -281,6 +282,12 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   removeList: async (id) => {
+    const list = get().lists.find((l) => l.id === id)
+    if (!list) return
+
+    playDeleteSound()
+    get().pushUndo({ type: 'deleteList', list: { ...list }, timestamp: Date.now() })
+
     await db.deleteList(id)
     set((s) => ({
       lists: s.lists.filter((l) => l.id !== id),
@@ -290,6 +297,10 @@ export const useStore = create<AppState>((set, get) => ({
         t.list_id === id ? { ...t, list_id: 'default' as string } : t
       ),
     }))
+    get().addToast(`已删除列表: ${list.name}`, {
+      label: '撤销',
+      onClick: () => { get().undo() },
+    })
   },
 
   // ── Undo (needs full reload due to complex state) ──
@@ -304,19 +315,20 @@ export const useStore = create<AppState>((set, get) => ({
       return
     }
 
+    const task = lastAction.task!
     switch (lastAction.type) {
       case 'delete':
         await db.createTask({
-          title: lastAction.task.title,
-          priority: lastAction.task.priority,
-          dueDate: lastAction.task.due_date,
-          listId: lastAction.task.list_id,
-          notes: lastAction.task.notes,
-          sortOrder: lastAction.task.sort_order,
+          title: task.title,
+          priority: task.priority,
+          dueDate: task.due_date,
+          listId: task.list_id,
+          notes: task.notes,
+          sortOrder: task.sort_order,
         })
         break
       case 'complete':
-        await db.updateTask(lastAction.task.id, { completed: 0 })
+        await db.updateTask(task.id, { completed: 0 })
         break
       case 'update':
         if (lastAction.previousValues) {
@@ -327,7 +339,12 @@ export const useStore = create<AppState>((set, get) => ({
           if (prev.due_date !== undefined) updates.due_date = prev.due_date
           if (prev.list_id !== undefined) updates.list_id = prev.list_id
           if (prev.notes !== undefined) updates.notes = prev.notes
-          await db.updateTask(lastAction.task.id, updates)
+          await db.updateTask(task.id, updates)
+        }
+        break
+      case 'deleteList':
+        if (lastAction.list) {
+          await db.createList(lastAction.list.name, lastAction.list.color || undefined)
         }
         break
     }
@@ -335,12 +352,14 @@ export const useStore = create<AppState>((set, get) => ({
     set({ undoStack: stack.slice(0, -1) })
     await get().loadData()
     playUndoSound()
-    // Flash the restored task
-    const restoredId = lastAction.task.id
-    set({ restoredTaskId: restoredId })
-    setTimeout(() => {
-      if (get().restoredTaskId === restoredId) set({ restoredTaskId: null })
-    }, 1000)
+    // Flash the restored task (only for task actions)
+    if (lastAction.task) {
+      const restoredId = lastAction.task.id
+      set({ restoredTaskId: restoredId })
+      setTimeout(() => {
+        if (get().restoredTaskId === restoredId) set({ restoredTaskId: null })
+      }, 1000)
+    }
     get().addToast('已撤销')
   },
 
