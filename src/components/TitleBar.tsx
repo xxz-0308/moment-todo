@@ -37,9 +37,19 @@ export function TitleBar() {
     <div className="drag-region h-11 flex items-center justify-between px-4 border-b border-border-subtle flex-shrink-0 bg-surface-gradient">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2.5 no-drag">
-          <div className="w-5 h-5 rounded-md bg-accent flex items-center justify-center">
-            <SquareStack size={11} className="text-white" strokeWidth={2.5} />
-          </div>
+          <svg width="20" height="20" viewBox="0 0 20 20" className="flex-shrink-0">
+            <defs>
+              <linearGradient id="tb-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#6366f1"/>
+                <stop offset="100%" stopColor="#818cf8"/>
+              </linearGradient>
+            </defs>
+            <rect x="3" y="3" width="14" height="14" rx="1.5" ry="1.5"
+                  transform="rotate(45 10 10)" fill="url(#tb-grad)"/>
+            <polyline points="7,10.5 9,12.5 13.5,7.5"
+                      fill="none" stroke="white" strokeWidth="1.4"
+                      strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
           <span className="text-[13px] font-semibold text-text-primary tracking-tight">
             Moment
           </span>
