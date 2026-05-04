@@ -29,7 +29,7 @@ export default function Stats() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-40 bg-surface flex items-center justify-center"
+        className="fixed inset-0 z-40 bg-surface flex flex-col"
       >
         <div className="w-6 h-6 rounded-full border-2 border-accent border-t-transparent animate-spin" />
       </motion.div>
@@ -51,10 +51,11 @@ export default function Stats() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-40 bg-surface overflow-y-auto"
+      className="fixed inset-0 z-40 bg-surface flex flex-col"
+      onClick={() => toggleStats()}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle">
+      {/* Header — sticky */}
+      <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-border-subtle">
         <h2 className="text-[16px] font-semibold text-text-primary">统计</h2>
         <button
           onClick={toggleStats}
@@ -64,7 +65,10 @@ export default function Stats() {
         </button>
       </div>
 
-      <div className="max-w-[640px] mx-auto px-6 py-8 space-y-8">
+      <div
+        className="flex-1 overflow-y-auto max-w-[640px] w-full mx-auto px-6 py-8 space-y-8"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Summary cards */}
         <div className="grid grid-cols-4 gap-3">
           {[
@@ -160,6 +164,15 @@ export default function Stats() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        background: 'var(--color-surface-tertiary)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '10px',
+                        fontSize: '12px',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    />
                   </RPieChart>
                 </ResponsiveContainer>
                 <div className="flex-1 space-y-2.5">

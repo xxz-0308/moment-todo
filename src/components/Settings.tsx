@@ -38,10 +38,11 @@ export default function Settings() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-40 bg-surface overflow-y-auto"
+      className="fixed inset-0 z-40 bg-surface flex flex-col"
+      onClick={() => toggleSettings()}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle">
+      {/* Header — sticky */}
+      <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-border-subtle">
         <h2 className="text-[16px] font-semibold text-text-primary">设置</h2>
         <button
           onClick={toggleSettings}
@@ -51,7 +52,10 @@ export default function Settings() {
         </button>
       </div>
 
-      <div className="max-w-[560px] mx-auto px-6 py-8 space-y-8">
+      <div
+        className="flex-1 overflow-y-auto max-w-[560px] w-full mx-auto px-6 py-8 space-y-8"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Theme */}
         <section>
           <h3 className="flex items-center gap-2 text-[13px] font-semibold text-text-primary mb-4">
