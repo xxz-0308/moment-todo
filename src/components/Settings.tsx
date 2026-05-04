@@ -38,11 +38,11 @@ export default function Settings() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-40 bg-surface flex flex-col"
+      className="fixed inset-0 z-40 bg-surface-gradient flex flex-col"
       onClick={() => toggleSettings()}
     >
       {/* Header — sticky */}
-      <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-border-subtle">
+      <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-[rgba(255,255,255,0.05)]">
         <h2 className="text-[16px] font-semibold text-text-primary">设置</h2>
         <button
           onClick={toggleSettings}
@@ -66,12 +66,12 @@ export default function Settings() {
             <button
               onClick={() => setTheme('dark')}
               className={`
-                flex-1 flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-all
-                ${theme === 'dark'
-                  ? 'border-accent bg-accent-muted'
-                  : 'border-border hover:border-border-subtle bg-surface-secondary'
-                }
-              `}
+  flex-1 flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all
+  ${theme === 'dark'
+    ? 'bg-[rgba(99,102,241,0.08)] border border-[rgba(99,102,241,0.2)] shadow-[0_0_12px_rgba(99,102,241,0.06)]'
+    : 'bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.04)] hover:border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.03)]'
+  }
+`}
             >
               <Moon size={18} strokeWidth={2} className={theme === 'dark' ? 'text-accent' : 'text-text-tertiary'} />
               <div className="text-left">
@@ -84,12 +84,12 @@ export default function Settings() {
             <button
               onClick={() => setTheme('light')}
               className={`
-                flex-1 flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-all
-                ${theme === 'light'
-                  ? 'border-accent bg-accent-muted'
-                  : 'border-border hover:border-border-subtle bg-surface-secondary'
-                }
-              `}
+  flex-1 flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all
+  ${theme === 'light'
+    ? 'bg-[rgba(99,102,241,0.08)] border border-[rgba(99,102,241,0.2)] shadow-[0_0_12px_rgba(99,102,241,0.06)]'
+    : 'bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.04)] hover:border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.03)]'
+  }
+`}
             >
               <Sun size={18} strokeWidth={2} className={theme === 'light' ? 'text-accent' : 'text-text-tertiary'} />
               <div className="text-left">
@@ -111,7 +111,7 @@ export default function Settings() {
           <div className="space-y-3">
             <button
               onClick={handleBackup}
-              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl bg-surface-secondary border border-border-subtle hover:border-border transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.04)] hover:border-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.04)] transition-all"
             >
               <div className="text-left">
                 <p className="text-[13px] font-medium text-text-primary">立即备份</p>
@@ -121,7 +121,7 @@ export default function Settings() {
             </button>
             <button
               onClick={handleExport}
-              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl bg-surface-secondary border border-border-subtle hover:border-border transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.04)] hover:border-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.04)] transition-all"
             >
               <div className="text-left">
                 <p className="text-[13px] font-medium text-text-primary">导出 JSON</p>
