@@ -251,20 +251,22 @@ export function Sidebar() {
 
       {/* Bottom actions */}
       <div className="p-3 border-t border-[rgba(255,255,255,0.04)] space-y-0.5">
-        <button
+        <motion.button
           onClick={toggleStats}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-text-secondary hover:text-text-primary hover:bg-[rgba(255,255,255,0.03)] transition-all duration-150"
+          whileTap={{ scale: 0.97 }}
         >
           <BarChart3 size={17} strokeWidth={1.8} />
           <span>统计</span>
-        </button>
-        <button
+        </motion.button>
+        <motion.button
           onClick={toggleSettings}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-text-secondary hover:text-text-primary hover:bg-[rgba(255,255,255,0.03)] transition-all duration-150"
+          whileTap={{ scale: 0.97 }}
         >
           <Settings size={17} strokeWidth={1.8} />
           <span>设置</span>
-        </button>
+        </motion.button>
       </div>
     </aside>
   )
