@@ -1,4 +1,4 @@
-icon: public/icon.png
+icon: public/icon.ico
 appId: com.moment.todo
 productName: Moment
 directories:
