@@ -18,6 +18,7 @@ const COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4'
 export default function Stats() {
   const toggleStats = useStore((s) => s.toggleStats)
   const [stats, setStats] = useState<StatsData | null>(null)
+  const [activePieIndex, setActivePieIndex] = useState<number | undefined>(undefined)
 
   useEffect(() => {
     getStats().then(setStats)
@@ -159,19 +160,16 @@ export default function Stats() {
                       outerRadius={70}
                       innerRadius={40}
                       strokeWidth={0}
+                      activeIndex={activePieIndex}
+                      onMouseEnter={(_: any, index: number) => setActivePieIndex(index)}
+                      onMouseLeave={() => setActivePieIndex(undefined)}
                       activeShape={(props: any) => (
-                        <g>
-                          <defs>
-                            <filter id="pie-shadow">
-                              <feDropShadow dx="0" dy="1" stdDeviation="2" floodOpacity="0.3" />
-                            </filter>
-                          </defs>
-                          <Sector
-                            {...props}
-                            outerRadius={props.outerRadius + 5}
-                            filter="url(#pie-shadow)"
-                          />
-                        </g>
+                        <Sector
+                          {...props}
+                          outerRadius={props.outerRadius + 5}
+                          innerRadius={props.innerRadius + 5}
+                          style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
+                        />
                       )}
                     >
                       {stats.byList.map((_, index) => (
