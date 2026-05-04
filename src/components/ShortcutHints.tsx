@@ -52,6 +52,23 @@ export function ShortcutHints() {
     }
   }, [showCommandPalette, showQuickAdd])
 
+  // Dismiss on any mouse click (e.g. Ctrl+Click multi-select) or non-Ctrl key press
+  useEffect(() => {
+    if (!visible) return
+
+    const onMouseDown = () => setVisible(false)
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Control') setVisible(false)
+    }
+
+    window.addEventListener('mousedown', onMouseDown)
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.removeEventListener('mousedown', onMouseDown)
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [visible])
+
   return (
     <AnimatePresence>
       {visible && (
