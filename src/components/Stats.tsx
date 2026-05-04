@@ -131,6 +131,7 @@ export default function Stats() {
                       fontSize: '12px',
                       color: 'var(--color-text-primary)',
                     }}
+                    labelStyle={{ color: 'var(--color-text-secondary)' }}
                     cursor={{ fill: 'var(--color-surface-hover)' }}
                   />
                   <Bar dataKey="completed" fill="var(--color-accent)" radius={[6, 6, 0, 0]} maxBarSize={32} />
@@ -188,6 +189,8 @@ export default function Stats() {
                         fontSize: '12px',
                         color: 'var(--color-text-primary)',
                       }}
+                      labelStyle={{ color: 'var(--color-text-primary)' }}
+                      itemStyle={{ color: 'var(--color-text-secondary)' }}
                     />
                   </RPieChart>
                 </ResponsiveContainer>
