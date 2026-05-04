@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { X, TrendingUp, PieChart, CheckCircle2, AlertTriangle, ListTodo } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart as RPieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart as RPieChart, Pie, Cell, ResponsiveContainer, Sector } from 'recharts'
 import { useStore } from '@/store'
 import { getStats } from '@/db'
 
@@ -159,8 +159,20 @@ export default function Stats() {
                       outerRadius={70}
                       innerRadius={40}
                       strokeWidth={0}
-                      activeIndex={-1}
-                      activeShape={{}}
+                      activeShape={(props: any) => (
+                        <g>
+                          <defs>
+                            <filter id="pie-shadow">
+                              <feDropShadow dx="0" dy="1" stdDeviation="2" floodOpacity="0.3" />
+                            </filter>
+                          </defs>
+                          <Sector
+                            {...props}
+                            outerRadius={props.outerRadius + 5}
+                            filter="url(#pie-shadow)"
+                          />
+                        </g>
+                      )}
                     >
                       {stats.byList.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
