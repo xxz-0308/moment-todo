@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { X, TrendingUp, PieChart, CheckCircle2, AlertTriangle, ListTodo } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart as RPieChart, Pie, Cell, ResponsiveContainer, Sector } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { useStore } from '@/store'
 import { getStats } from '@/db'
 
@@ -14,6 +14,25 @@ interface StatsData {
 }
 
 const COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4']
+
+function polar(cx: number, cy: number, r: number, angle: number) {
+  return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) }
+}
+
+function donutPath(cx: number, cy: number, innerR: number, outerR: number, start: number, end: number): string {
+  const outerStart = polar(cx, cy, outerR, start)
+  const outerEnd = polar(cx, cy, outerR, end)
+  const innerStart = polar(cx, cy, innerR, end)
+  const innerEnd = polar(cx, cy, innerR, start)
+  const large = (end - start) > Math.PI ? 1 : 0
+  return [
+    `M ${outerStart.x} ${outerStart.y}`,
+    `A ${outerR} ${outerR} 0 ${large} 1 ${outerEnd.x} ${outerEnd.y}`,
+    `L ${innerStart.x} ${innerStart.y}`,
+    `A ${innerR} ${innerR} 0 ${large} 0 ${innerEnd.x} ${innerEnd.y}`,
+    'Z',
+  ].join(' ')
+}
 
 export default function Stats() {
   const toggleStats = useStore((s) => s.toggleStats)
@@ -149,48 +168,53 @@ export default function Stats() {
           <div className="p-5 rounded-xl bg-surface-secondary border border-border-subtle">
             {stats.byList.length > 0 ? (
               <div className="flex items-center">
-                <ResponsiveContainer width="55%" height={180}>
-                  <RPieChart>
-                    <Pie
-                      data={stats.byList}
-                      dataKey="count"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={70}
-                      innerRadius={40}
-                      strokeWidth={0}
-                      activeIndex={activePieIndex}
-                      onMouseEnter={(_: any, index: number) => setActivePieIndex(index)}
-                      onMouseLeave={() => setActivePieIndex(undefined)}
-                      activeShape={(props: any) => (
-                        <Sector
-                          {...props}
-                          style={{
-                            transform: `scale(1.08)`,
-                            transformOrigin: `${props.cx}px ${props.cy}px`,
-                            transition: 'transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                            filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))',
-                          }}
-                        />
-                      )}
-                    >
-                      {stats.byList.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        background: '#242424',
-                        border: '1px solid #2e2e2e',
-                        borderRadius: '10px',
-                        fontSize: '12px',
-                      }}
-                      labelStyle={{ color: '#f0f0f0' }}
-                      itemStyle={{ color: '#a0a0a0' }}
-                    />
-                  </RPieChart>
-                </ResponsiveContainer>
+                {/* Custom SVG donut with Framer Motion path animation */}
+                <div className="w-[55%] flex items-center justify-center">
+                  <svg viewBox="0 0 180 180" className="w-full h-auto">
+                    {(() => {
+                      const cx = 90, cy = 90, outerR = 70, innerR = 40
+                      const total = stats.byList.reduce((s, d) => s + d.count, 0) || 1
+                      let currentAngle = -Math.PI / 2 // Start from top
+
+                      return stats.byList.map((item, i) => {
+                        const sliceAngle = (item.count / total) * Math.PI * 2
+                        const start = currentAngle
+                        const end = currentAngle + sliceAngle
+                        currentAngle = end
+
+                        const isHovered = activePieIndex === i
+                        const normalPath = donutPath(cx, cy, innerR, outerR, start, end)
+                        const expandedPath = donutPath(
+                          cx, cy,
+                          Math.max(5, innerR - 8),  // Expand inward
+                          outerR + 8,                  // Expand outward
+                          start - 0.05,                 // Widen left
+                          end + 0.05                    // Widen right
+                        )
+
+                        return (
+                          <motion.path
+                            key={i}
+                            d={isHovered ? expandedPath : normalPath}
+                            fill={COLORS[i % COLORS.length]}
+                            stroke="transparent"
+                            animate={{ d: isHovered ? expandedPath : normalPath }}
+                            transition={{ duration: 0.2, ease: 'easeOut' }}
+                            onMouseEnter={() => setActivePieIndex(i)}
+                            onMouseLeave={() => setActivePieIndex(undefined)}
+                            style={{
+                              cursor: 'pointer',
+                              filter: isHovered
+                                ? 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))'
+                                : 'none',
+                              transition: 'filter 0.2s ease',
+                            }}
+                          />
+                        )
+                      })
+                    })()}
+                  </svg>
+                </div>
                 <div className="flex-1 space-y-2.5">
                   {stats.byList.map((item, index) => (
                     <div key={item.name} className="flex items-center gap-2.5">
