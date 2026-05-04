@@ -4,21 +4,21 @@
 
 :root {
   /* Dark theme (default) */
-  --color-surface: #0f0f0f;
-  --color-surface-secondary: #1a1a1a;
-  --color-surface-tertiary: #242424;
-  --color-surface-hover: #2a2a2a;
-  --color-border: #2e2e2e;
-  --color-border-subtle: #222222;
+  --color-surface: #0a0a10;
+  --color-surface-secondary: #0f0f18;
+  --color-surface-tertiary: #1a1a28;
+  --color-surface-hover: rgba(255, 255, 255, 0.04);
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-subtle: rgba(255, 255, 255, 0.04);
   --color-text-primary: #f0f0f0;
-  --color-text-secondary: #a0a0a0;
-  --color-text-tertiary: #6b6b6b;
+  --color-text-secondary: rgba(255, 255, 255, 0.55);
+  --color-text-tertiary: rgba(255, 255, 255, 0.3);
   --color-accent: #6366f1;
   --color-accent-hover: #818cf8;
   --color-accent-muted: rgba(99, 102, 241, 0.12);
   --color-danger: #ef4444;
   --color-danger-hover: #f87171;
-  --color-danger-muted: rgba(239, 68, 68, 0.12);
+  --color-danger-muted: rgba(239, 68, 68, 0.1);
   --color-success: #10b981;
   --color-warning: #f59e0b;
 
@@ -41,15 +41,15 @@
 }
 
 :root.light {
-  --color-surface: #fafafa;
-  --color-surface-secondary: #f3f3f3;
-  --color-surface-tertiary: #e8e8e8;
-  --color-surface-hover: #ebebeb;
-  --color-border: #e0e0e0;
-  --color-border-subtle: #eeeeee;
+  --color-surface: #f5f5f7;
+  --color-surface-secondary: #eeeeef;
+  --color-surface-tertiary: #e4e4e6;
+  --color-surface-hover: rgba(0, 0, 0, 0.04);
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-border-subtle: rgba(0, 0, 0, 0.06);
   --color-text-primary: #1a1a1a;
-  --color-text-secondary: #6b6b6b;
-  --color-text-tertiary: #a0a0a0;
+  --color-text-secondary: rgba(0, 0, 0, 0.55);
+  --color-text-tertiary: rgba(0, 0, 0, 0.35);
   --color-accent: #6366f1;
   --color-accent-hover: #4f46e5;
   --color-accent-muted: rgba(99, 102, 241, 0.08);
@@ -98,12 +98,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-tertiary);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Drag region for custom title bar */
