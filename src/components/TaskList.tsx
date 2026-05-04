@@ -251,7 +251,10 @@ export function TaskList() {
   const allTasks = [...sortedToday, ...sortedOverdue, ...sortedRegular]
 
   return (
-    <div className="flex-1 flex flex-col min-w-0">
+    <motion.div
+      layout
+      transition={{ layout: { type: 'spring', stiffness: 170, damping: 26 } }}
+      className="flex-1 flex flex-col min-w-0">
       {/* Header */}
       <div className="px-6 pt-5 pb-3 flex items-center justify-between">
         <h1 className="text-lg font-semibold text-text-primary">{getViewTitle()}</h1>
@@ -446,6 +449,6 @@ export function TaskList() {
           renderTaskSection(sortedRegular)
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }

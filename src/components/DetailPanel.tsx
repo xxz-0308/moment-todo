@@ -86,11 +86,11 @@ export function DetailPanel() {
 
   return (
     <motion.aside
-      initial={{ x: 320, opacity: 0 }}
+      initial={{ x: '100%', opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
-      exit={{ x: 320, opacity: 0 }}
-      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-      className="w-[320px] flex-shrink-0 bg-surface-secondary border-l border-border-subtle flex flex-col overflow-hidden absolute right-0 top-0 bottom-0 z-30"
+      exit={{ x: '100%', opacity: 0 }}
+      transition={{ type: 'spring', stiffness: 170, damping: 26 }}
+      className="w-[320px] flex-shrink-0 bg-surface-secondary border-l border-border-subtle flex flex-col overflow-hidden"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">

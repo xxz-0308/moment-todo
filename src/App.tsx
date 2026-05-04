@@ -70,7 +70,7 @@ export default function App() {
       <TitleBar />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar />
-        <main className="flex-1 flex overflow-hidden relative">
+        <main className="flex-1 flex overflow-hidden">
           <TaskList />
           <AnimatePresence>
             {selectedTaskId && <DetailPanel key="detail-panel" />}
