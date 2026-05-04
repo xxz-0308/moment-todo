@@ -71,11 +71,16 @@ export function EmptyState({ view }: EmptyStateProps) {
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.1 }}
-          className="w-20 h-20 rounded-full bg-accent-muted flex items-center justify-center mb-5"
+          className="w-20 h-20 rounded-full flex items-center justify-center mb-5"
+          style={{
+            background: 'rgba(99,102,241,0.1)',
+            border: '1px solid rgba(99,102,241,0.2)',
+            boxShadow: '0 0 32px rgba(99,102,241,0.1)',
+          }}
         >
           <motion.div
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            animate={{ scale: [1, 1.08, 1], opacity: [0.8, 1, 0.8] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
           >
             <Trophy size={40} strokeWidth={1.5} className="text-accent" />
           </motion.div>
@@ -113,7 +118,11 @@ export function EmptyState({ view }: EmptyStateProps) {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 400, damping: 25, delay: 0.1 }}
-          className="w-16 h-16 rounded-2xl bg-surface-secondary border border-border-subtle flex items-center justify-center mb-5"
+          className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
+          style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.06)',
+          }}
         >
           {isCompletedView ? (
             <CheckCircle2 size={28} strokeWidth={1.5} className="text-text-tertiary" />
@@ -154,7 +163,12 @@ export function EmptyState({ view }: EmptyStateProps) {
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: 'spring', stiffness: 400, damping: 25, delay: 0.1 }}
-        className="w-16 h-16 rounded-2xl bg-accent-muted flex items-center justify-center mb-5"
+        className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
+        style={{
+          background: 'rgba(99,102,241,0.08)',
+          border: '1px solid rgba(99,102,241,0.15)',
+          boxShadow: '0 8px 32px rgba(99,102,241,0.08)',
+        }}
       >
         <Sparkles size={28} strokeWidth={1.5} className="text-accent" />
       </motion.div>
