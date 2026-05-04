@@ -171,6 +171,9 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
       {/* Pin toggle */}
       {!showCompletedState && (
         <motion.button
+          onPointerDown={(e) => {
+            e.stopPropagation()
+          }}
           onClick={(e) => {
             e.stopPropagation()
             togglePin(task.id)
@@ -194,6 +197,9 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
 
       {/* Complete circle */}
       <button
+        onPointerDown={(e) => {
+          e.stopPropagation()
+        }}
         onClick={(e) => {
           e.stopPropagation()
           toggleComplete(task.id)
@@ -267,6 +273,9 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
 
       {/* Hover delete */}
       <button
+          onPointerDown={(e) => {
+            e.stopPropagation()
+          }}
           onClick={(e) => {
             e.stopPropagation()
             removeTask(task.id)
