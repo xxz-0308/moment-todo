@@ -254,7 +254,7 @@ export function TaskList() {
     <motion.div
       layout
       transition={{ layout: { type: 'spring', stiffness: 170, damping: 26 } }}
-      className="flex-1 flex flex-col min-w-0">
+      className="flex-1 flex flex-col min-w-0 bg-surface-gradient">
       {/* Header */}
       <div className="px-6 pt-5 pb-3 flex items-center justify-between">
         <h1 className="text-lg font-semibold text-text-primary">{getViewTitle()}</h1>
@@ -277,7 +277,7 @@ export function TaskList() {
       {/* Quick add input */}
       {!isCompletedView && (
         <div className="px-6 pb-3">
-          <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface-secondary border border-border-subtle focus-within:border-accent/40 transition-colors">
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] focus-within:border-accent/40 focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.08)] transition-all">
             <Plus size={17} strokeWidth={2} className="text-text-tertiary flex-shrink-0" />
             <input
               ref={inputRef}
@@ -363,8 +363,8 @@ export function TaskList() {
               className={`
                 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all
                 ${activeFilter === chip.id
-                  ? 'bg-accent text-white'
-                  : 'bg-surface-tertiary text-text-tertiary hover:text-text-secondary hover:bg-surface-hover'
+                  ? 'bg-[rgba(99,102,241,0.1)] text-accent border border-[rgba(99,102,241,0.2)] shadow-[0_0_10px_rgba(99,102,241,0.08)]'
+                  : 'bg-[rgba(255,255,255,0.03)] text-text-tertiary hover:text-text-secondary hover:bg-[rgba(255,255,255,0.05)] border border-transparent'
                 }
               `}
             >
@@ -383,7 +383,7 @@ export function TaskList() {
             exit={{ opacity: 0, y: -8 }}
             className="px-6 pb-2"
           >
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent-muted border border-accent/20">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[rgba(99,102,241,0.08)] border border-[rgba(99,102,241,0.2)] shadow-[0_0_12px_rgba(99,102,241,0.06)]">
               <span className="text-[12px] font-medium text-accent">
                 已选 {multiSelectIds.size} 项
               </span>
@@ -434,11 +434,11 @@ export function TaskList() {
             {sortedOverdue.length > 0 && (
               <>
                 <div className="flex items-center gap-2 my-3 px-1">
-                  <div className="flex-1 h-px bg-border-subtle" />
-                  <span className="text-[11px] font-semibold text-text-tertiary uppercase tracking-wider">
+                  <div className="flex-1 h-px bg-[rgba(255,255,255,0.04)]" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.25)' }}>
                     逾期 · {sortedOverdue.length}
                   </span>
-                  <div className="flex-1 h-px bg-border-subtle" />
+                  <div className="flex-1 h-px bg-[rgba(255,255,255,0.04)]" />
                 </div>
                 {renderTaskSection(sortedOverdue)}
               </>
