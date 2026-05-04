@@ -169,7 +169,6 @@ export async function getStats(): Promise<{
   const byList = (await api.dbQuery(
     `SELECT l.name, COUNT(t.id) as count
      FROM tasks t JOIN lists l ON t.list_id = l.id
-     WHERE t.completed = 0
      GROUP BY l.name ORDER BY count DESC`
   )) as { name: string; count: number }[]
   const byDay = (await api.dbQuery(
