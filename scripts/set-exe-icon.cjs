@@ -1,7 +1,7 @@
-// electron-builder afterPack hook — embed icon into Windows exe
+// electron-builder afterPack hook — embed icon into Windows exe using resedit
 const fs = require('fs')
 const path = require('path')
-const { Resource } = require('resedit')
+const { NtExecutable, NtExecutableResource, Data } = require('resedit')
 
 exports.default = async function (context) {
   const { appOutDir, packager } = context
@@ -20,27 +20,38 @@ exports.default = async function (context) {
     return
   }
 
-  console.log(`Embedding icon into ${exePath}...`)
+  console.log(`Embedding icon into ${exeName}...`)
+
   const exeData = fs.readFileSync(exePath)
   const icoData = fs.readFileSync(icoPath)
 
+  // Parse ICO to get icon entries
   const icoCount = icoData.readUInt16LE(4)
-  const icons = []
+  const iconEntries = []
   for (let i = 0; i < icoCount; i++) {
     const off = 6 + i * 16
-    icons.push({
-      width: icoData.readUInt8(off) || 256,
-      height: icoData.readUInt8(off + 1) || 256,
+    const w = icoData.readUInt8(off) || 256
+    const h = icoData.readUInt8(off + 1) || 256
+    const size = icoData.readUInt32LE(off + 8)
+    const dataOff = icoData.readUInt32LE(off + 12)
+    iconEntries.push({
+      width: w,
+      height: h,
       bitCount: 32,
       planes: 1,
       id: i + 1,
-      size: icoData.readUInt32LE(off + 8),
-      data: icoData.slice(icoData.readUInt32LE(off + 12), icoData.readUInt32LE(off + 12) + icoData.readUInt32LE(off + 8)),
+      data: icoData.slice(dataOff, dataOff + size),
     })
   }
 
-  const resource = Resource.from(exeData)
-  resource.outputResource({ icon: icons.map(({ width, height, bitCount, planes, id, data }) => ({ width, height, bitCount, planes, id, data })) })
-  fs.writeFileSync(exePath, Buffer.from(resource.generate()))
-  console.log(`Icon embedded: ${icons.map(i => i.width + 'x' + i.height).join(', ')}`)
+  // Open exe, replace icon resource
+  const exe = NtExecutable.from(exeData)
+  const res = NtExecutableResource.from(exe)
+  res.outputResource({ icon: iconEntries })
+  res.outputResource(undefined) // flush
+
+  // Generate new exe binary
+  const newExeData = Buffer.from(exe.generate())
+  fs.writeFileSync(exePath, newExeData)
+  console.log(`Icon embedded: ${iconEntries.map(i => i.width + 'x' + i.height).join(', ')}`)
 }
