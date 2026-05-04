@@ -30,7 +30,7 @@ export default function Stats() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-40 bg-surface-gradient flex flex-col"
+        className="fixed inset-0 z-40 bg-surface-gradient flex flex-col items-center justify-center"
       >
         <div className="w-6 h-6 rounded-full border-2 border-accent border-t-transparent animate-spin" />
       </motion.div>
@@ -182,13 +182,12 @@ export default function Stats() {
                     </Pie>
                     <Tooltip
                       contentStyle={{
-                        background: '#242424',
-                        border: '1px solid #2e2e2e',
+                        background: 'var(--color-surface-tertiary)',
+                        border: '1px solid var(--color-border)',
                         borderRadius: '10px',
                         fontSize: '12px',
+                        color: 'var(--color-text-primary)',
                       }}
-                      labelStyle={{ color: '#f0f0f0' }}
-                      itemStyle={{ color: '#a0a0a0' }}
                     />
                   </RPieChart>
                 </ResponsiveContainer>
