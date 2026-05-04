@@ -70,19 +70,18 @@ function diamondDist(x, y, size) {
   return Math.max(Math.abs(dx), Math.abs(dy)) - half + cornerR
 }
 
-// Check mark (centered in diamond)
+// Check mark — uses the exact same geometry as icon.svg and TitleBar inline SVG
+// icon.svg polyline: 170,270 230,330 350,200 in 512x512 viewBox
+// Normalized to [0,1] then scaled to target size
 function inCheck(x, y, size) {
-  // Thinner stroke for smaller sizes so segments don't blend
-  const w = size < 64 ? 1.2 : size * 0.08
-  const cx = size / 2
-  const s = size * 0.22
-  // Three points forming a distinct V-shaped check:
-  // Start: bottom-left of center
-  // Bend: center, slightly right
-  // End: top-right of center
-  const sx = cx - s * 0.6, sy = cx + s * 0.25   // start: lower-left
-  const mx = cx + s * 0.05, my = cx + s * 0.05   // bend: near center
-  const ex = cx + s * 0.7, ey = cx - s * 0.55    // end: upper-right
+  // Scaled coordinates from icon.svg check mark polyline
+  const scale = size / 512
+  const sx = 170 * scale, sy = 270 * scale    // bottom-left start
+  const mx = 230 * scale, my = 330 * scale    // bend (lowest point)
+  const ex = 350 * scale, ey = 200 * scale    // top-right tip
+
+  // Stroke width: proportional, but with reasonable min/max
+  const w = Math.max(1.0, Math.min(size * 0.07, size < 64 ? 1.8 : 4.5))
 
   const d1 = distToSegment(x, y, sx, sy, mx, my)
   const d2 = distToSegment(x, y, mx, my, ex, ey)
