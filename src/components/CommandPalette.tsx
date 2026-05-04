@@ -74,7 +74,7 @@ export function CommandPalette() {
       transition={{ duration: 0.15 }}
       className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]"
       style={{
-        background: 'rgba(0,0,0,0.45)',
+        background: 'rgba(0,0,0,0.3)',
         backdropFilter: 'blur(4px)',
         WebkitBackdropFilter: 'blur(4px)',
       }}
@@ -92,11 +92,11 @@ export function CommandPalette() {
         transition={{ type: 'spring', stiffness: 500, damping: 35 }}
         className="w-[480px] rounded-2xl overflow-hidden"
         style={{
-          background: 'rgba(28,28,48,0.9)',
-          backdropFilter: 'blur(32px)',
-          WebkitBackdropFilter: 'blur(32px)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          boxShadow: '0 16px 64px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(255,255,255,0.05) inset',
+          background: 'var(--glass-elevated-bg)',
+          backdropFilter: 'var(--glass-elevated-blur)',
+          WebkitBackdropFilter: 'var(--glass-elevated-blur)',
+          border: '1px solid var(--glass-elevated-border)',
+          boxShadow: 'var(--glass-elevated-shadow)',
         }}
       >
         {/* Search input */}

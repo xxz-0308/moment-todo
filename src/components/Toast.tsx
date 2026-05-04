@@ -18,11 +18,11 @@ export function ToastContainer() {
             transition={{ type: 'spring', stiffness: 500, damping: 35 }}
             className="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl"
             style={{
-              background: 'rgba(28,28,48,0.9)',
-              backdropFilter: 'blur(24px)',
-              WebkitBackdropFilter: 'blur(24px)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+              background: 'var(--glass-elevated-bg)',
+              backdropFilter: 'var(--glass-elevated-blur)',
+              WebkitBackdropFilter: 'var(--glass-elevated-blur)',
+              border: '1px solid var(--glass-elevated-border)',
+              boxShadow: 'var(--glass-elevated-shadow)',
             }}
           >
             <span className="text-[13px] text-text-primary">{toast.message}</span>

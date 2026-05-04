@@ -90,12 +90,13 @@ export function DetailPanel() {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: '100%', opacity: 0 }}
       transition={{ type: 'spring', stiffness: 170, damping: 26 }}
-      className="w-[320px] flex-shrink-0 flex flex-col overflow-hidden border-l border-[rgba(255,255,255,0.06)]"
+      className="w-[320px] flex-shrink-0 flex flex-col overflow-hidden"
       style={{
-        background: 'rgba(22,22,38,0.75)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        boxShadow: '-4px 0 32px rgba(0,0,0,0.4)',
+        background: 'var(--glass-bg)',
+        backdropFilter: 'var(--glass-blur)',
+        WebkitBackdropFilter: 'var(--glass-blur)',
+        borderLeft: '1px solid var(--glass-border)',
+        boxShadow: 'var(--glass-shadow)',
       }}
     >
       {/* Header */}

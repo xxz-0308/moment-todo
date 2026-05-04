@@ -77,7 +77,16 @@ export function Sidebar() {
   const todayProgress = todayTotal > 0 ? todayCompleted / todayTotal : 0
 
   return (
-    <aside className="w-[260px] flex-shrink-0 flex flex-col overflow-hidden border-r border-[rgba(255,255,255,0.04)]" style={{ background: 'rgba(22,22,38,0.7)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '4px 0 32px rgba(0,0,0,0.4)' }}>
+    <aside
+      className="w-[260px] flex-shrink-0 flex flex-col overflow-hidden"
+      style={{
+        background: 'var(--glass-bg)',
+        backdropFilter: 'var(--glass-blur)',
+        WebkitBackdropFilter: 'var(--glass-blur)',
+        borderRight: '1px solid var(--glass-border)',
+        boxShadow: 'var(--glass-shadow)',
+      }}
+    >
       {/* Preset views */}
       <nav className="p-3 space-y-0.5">
         {presetViews.map((view) => {
