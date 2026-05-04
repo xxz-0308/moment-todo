@@ -11,6 +11,7 @@ interface TaskItemProps {
   showCompletedState?: boolean
   flashHighlight?: boolean
   isMultiSelected?: boolean
+  disableNativeDrag?: boolean
 }
 
 const priorityConfig = {
@@ -46,7 +47,7 @@ function isApproaching(dateStr: string | null): boolean {
   return diff > 0 && diff <= 2 * 86400000 // within 2 days
 }
 
-export function TaskItem({ task, isSelected, onSelect, showCompletedState, flashHighlight, isMultiSelected }: TaskItemProps) {
+export function TaskItem({ task, isSelected, onSelect, showCompletedState, flashHighlight, isMultiSelected, disableNativeDrag }: TaskItemProps) {
   const toggleComplete = useStore((s) => s.toggleComplete)
   const togglePin = useStore((s) => s.togglePin)
   const removeTask = useStore((s) => s.removeTask)
@@ -83,9 +84,9 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
           : undefined,
         transition: flashHighlight ? { duration: 0.8, ease: 'easeOut' } : undefined,
       }}
-      draggable
+      {...(!disableNativeDrag ? { draggable: true } : {})}
       ref={(el) => {
-        if (el) {
+        if (el && !disableNativeDrag) {
           el.ondragstart = (e: DragEvent) => {
             e.dataTransfer!.setData('text/plain', task.id)
             e.dataTransfer!.effectAllowed = 'move'
@@ -281,6 +282,15 @@ export function ReorderableTaskItem({ task, isSelected, onSelect, showCompletedS
       id={task.id}
       onDragStart={() => { wasDragging.current = true }}
       onDragEnd={() => { setTimeout(() => { wasDragging.current = false }, 100) }}
+      whileDrag={{
+        scale: 1.03,
+        rotate: 1.5,
+        boxShadow: '0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.15)',
+        zIndex: 50,
+        cursor: 'grabbing',
+      }}
+      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+      style={{ position: 'relative' }}
     >
       <TaskItem
         task={task}
@@ -291,6 +301,7 @@ export function ReorderableTaskItem({ task, isSelected, onSelect, showCompletedS
         showCompletedState={showCompletedState}
         flashHighlight={flashHighlight}
         isMultiSelected={isMultiSelected}
+        disableNativeDrag
       />
     </Reorder.Item>
   )
