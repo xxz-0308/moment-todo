@@ -163,14 +163,34 @@ export default function Stats() {
                       activeIndex={activePieIndex}
                       onMouseEnter={(_: any, index: number) => setActivePieIndex(index)}
                       onMouseLeave={() => setActivePieIndex(undefined)}
-                      activeShape={(props: any) => (
-                        <Sector
-                          {...props}
-                          outerRadius={props.outerRadius + 5}
-                          innerRadius={props.innerRadius + 5}
-                          style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
-                        />
-                      )}
+                      animationDuration={300}
+                      animationEasing="ease-out"
+                      activeShape={(props: any) => {
+                        const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value, ...rest } = props
+                        // Wider arc + slightly larger radius for floating feel
+                        const spread = 0.03
+                        const midAngle = (startAngle + endAngle) / 2
+                        return (
+                          <Sector
+                            cx={cx}
+                            cy={cy}
+                            innerRadius={innerRadius}
+                            outerRadius={outerRadius + 6}
+                            startAngle={startAngle - spread}
+                            endAngle={endAngle + spread}
+                            fill={fill}
+                            stroke="transparent"
+                            strokeWidth={0}
+                            animationBegin={0}
+                            animationDuration={150}
+                            animationEasing="ease-out"
+                            style={{
+                              filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.35))',
+                            }}
+                            {...rest}
+                          />
+                        )
+                      }}
                     >
                       {stats.byList.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
