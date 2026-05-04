@@ -170,11 +170,12 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
 
       {/* Pin toggle */}
       {!showCompletedState && (
-        <button
+        <motion.button
           onClick={(e) => {
             e.stopPropagation()
             togglePin(task.id)
           }}
+          whileTap={{ scale: 0.85 }}
           className={`
             flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-md transition-all duration-150
             ${task.pinned
@@ -183,14 +184,12 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
             }
           `}
         >
-          <motion.span
-            whileTap={{ scale: 0.85 }}
-            animate={!!task.pinned ? { scale: [1, 1.2, 1] } : {}}
-            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-          >
-            <Pin size={13} strokeWidth={2.5} fill={!!task.pinned ? 'currentColor' : 'none'} />
-          </motion.span>
-        </button>
+          <Pin
+            size={13}
+            strokeWidth={2.5}
+            fill={!!task.pinned ? 'currentColor' : 'none'}
+          />
+        </motion.button>
       )}
 
       {/* Complete circle */}
