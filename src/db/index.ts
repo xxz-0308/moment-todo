@@ -152,29 +152,52 @@ export async function searchTasks(query: string): Promise<Task[]> {
 }
 
 // Stats
-export async function getStats(): Promise<{
+export async function getStats(fromDate?: string, toDate?: string): Promise<{
   total: number
   completed: number
   overdue: number
   byList: { name: string; count: number }[]
   byDay: { date: string; completed: number }[]
 }> {
-  const total = (await api.dbGet('SELECT COUNT(*) as count FROM tasks WHERE completed = 0')) as { count: number }
-  const completed = (await api.dbGet('SELECT COUNT(*) as count FROM tasks WHERE completed = 1')) as { count: number }
-  const today = new Date().toISOString().split('T')[0]
-  const overdue = (await api.dbGet(
-    'SELECT COUNT(*) as count FROM tasks WHERE completed = 0 AND due_date IS NOT NULL AND due_date < ?',
-    [today]
+  const dateFilter = fromDate && toDate ? ' AND updated_at >= ? AND updated_at <= ?' : fromDate ? ' AND updated_at >= ?' : toDate ? ' AND updated_at <= ?' : ''
+  const dateParams = (): unknown[] => {
+    const p: unknown[] = []
+    if (fromDate) p.push(fromDate)
+    if (toDate) p.push(toDate + ' 23:59:59')
+    return p
+  }
+
+  const totalParams = dateParams()
+  const total = (await api.dbGet(
+    `SELECT COUNT(*) as count FROM tasks WHERE completed = 0${dateFilter}`,
+    totalParams
   )) as { count: number }
+  const completed = (await api.dbGet(
+    `SELECT COUNT(*) as count FROM tasks WHERE completed = 1${dateFilter}`,
+    dateParams()
+  )) as { count: number }
+  const today = new Date().toISOString().split('T')[0]
+  const overdueParams = dateParams()
+  const overdue = (await api.dbGet(
+    `SELECT COUNT(*) as count FROM tasks WHERE completed = 0 AND due_date IS NOT NULL AND due_date < ?${dateFilter}`,
+    [today, ...overdueParams]
+  )) as { count: number }
+
+  const byListParams = dateParams()
   const byList = (await api.dbQuery(
     `SELECT l.name, COUNT(t.id) as count
      FROM tasks t JOIN lists l ON t.list_id = l.id
-     GROUP BY l.name ORDER BY count DESC`
+     WHERE 1=1${dateFilter.replace(/updated_at/g, 't.updated_at').replace(/AND /g, 'AND ')}
+     GROUP BY l.name ORDER BY count DESC`,
+    byListParams
   )) as { name: string; count: number }[]
+
+  const byDayParams = dateParams()
   const byDay = (await api.dbQuery(
     `SELECT date(updated_at) as date, COUNT(*) as completed
-     FROM tasks WHERE completed = 1 AND updated_at >= date('now', '-7 days')
-     GROUP BY date ORDER BY date ASC`
+     FROM tasks WHERE completed = 1${dateFilter}
+     GROUP BY date ORDER BY date ASC`,
+    byDayParams
   )) as { date: string; completed: number }[]
 
   return {

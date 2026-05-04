@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { X, TrendingUp, PieChart, CheckCircle2, AlertTriangle, ListTodo } from 'lucide-react'
+import { X, TrendingUp, PieChart, CheckCircle2, AlertTriangle, ListTodo, Calendar } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart as RPieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import { useStore } from '@/store'
 import { getStats } from '@/db'
@@ -15,14 +15,49 @@ interface StatsData {
 
 const COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4']
 
+type TimeRange = 'week' | 'month' | 'quarter' | 'all' | 'custom'
+
+function getDateRange(range: TimeRange, customFrom: string, customTo: string): { from: string; to: string } {
+  const today = new Date()
+  const to = today.toISOString().split('T')[0]
+  let from = ''
+  switch (range) {
+    case 'week':
+      from = new Date(today.getTime() - 7 * 86400000).toISOString().split('T')[0]
+      break
+    case 'month':
+      from = new Date(today.getTime() - 30 * 86400000).toISOString().split('T')[0]
+      break
+    case 'quarter':
+      from = new Date(today.getTime() - 90 * 86400000).toISOString().split('T')[0]
+      break
+    case 'all':
+      return { from: '', to: '' }
+    case 'custom':
+      return { from: customFrom, to: customTo }
+  }
+  return { from, to }
+}
+
+const timeRangeLabels: { key: TimeRange; label: string }[] = [
+  { key: 'week', label: '本周' },
+  { key: 'month', label: '本月' },
+  { key: 'quarter', label: '近3月' },
+  { key: 'all', label: '全部' },
+]
+
 export default function Stats() {
   const toggleStats = useStore((s) => s.toggleStats)
   const [stats, setStats] = useState<StatsData | null>(null)
   const [hoveredPie, setHoveredPie] = useState<number | undefined>(undefined)
+  const [timeRange, setTimeRange] = useState<TimeRange>('week')
+  const [customFrom, setCustomFrom] = useState('')
+  const [customTo, setCustomTo] = useState('')
 
   useEffect(() => {
-    getStats().then(setStats)
-  }, [])
+    const { from, to } = getDateRange(timeRange, customFrom, customTo)
+    getStats(from || undefined, to || undefined).then(setStats)
+  }, [timeRange, customFrom, customTo])
 
   if (!stats) {
     return (
@@ -66,6 +101,51 @@ export default function Stats() {
         </button>
       </div>
 
+      {/* Time range selector */}
+      <div className="flex-shrink-0 px-6 py-3 border-b border-[rgba(255,255,255,0.05)] flex items-center gap-2">
+        <Calendar size={13} strokeWidth={2} className="text-text-tertiary" />
+        {timeRangeLabels.map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setTimeRange(key)}
+            className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
+              timeRange === key
+                ? 'bg-[rgba(99,102,241,0.1)] text-accent border border-[rgba(99,102,241,0.2)]'
+                : 'text-text-tertiary hover:text-text-secondary hover:bg-[rgba(255,255,255,0.03)] border border-transparent'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+        <button
+          onClick={() => setTimeRange('custom')}
+          className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
+            timeRange === 'custom'
+              ? 'bg-[rgba(99,102,241,0.1)] text-accent border border-[rgba(99,102,241,0.2)]'
+              : 'text-text-tertiary hover:text-text-secondary hover:bg-[rgba(255,255,255,0.03)] border border-transparent'
+          }`}
+        >
+          自定义
+        </button>
+        {timeRange === 'custom' && (
+          <div className="flex items-center gap-1.5 ml-1">
+            <input
+              type="date"
+              value={customFrom}
+              onChange={(e) => setCustomFrom(e.target.value)}
+              className="px-2 py-1 rounded-md bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] text-[12px] text-text-primary outline-none focus:border-accent"
+            />
+            <span className="text-text-tertiary text-[12px]">—</span>
+            <input
+              type="date"
+              value={customTo}
+              onChange={(e) => setCustomTo(e.target.value)}
+              className="px-2 py-1 rounded-md bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] text-[12px] text-text-primary outline-none focus:border-accent"
+            />
+          </div>
+        )}
+      </div>
+
       <div
         className="flex-1 overflow-y-auto max-w-[640px] w-full mx-auto px-6 py-8 space-y-8 [&::-webkit-scrollbar]:hidden"
         onClick={(e) => e.stopPropagation()}
@@ -104,7 +184,7 @@ export default function Stats() {
         <section>
           <h3 className="flex items-center gap-2 text-[13px] font-semibold text-text-primary mb-4">
             <TrendingUp size={16} strokeWidth={2} />
-            本周完成趋势
+            {timeRange === 'week' ? '本周' : timeRange === 'month' ? '本月' : timeRange === 'quarter' ? '近3月' : timeRange === 'custom' ? `${customFrom || '...'} — ${customTo || '...'}` : '全部'}完成趋势
           </h3>
           <div className="p-5 rounded-xl border" style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.06)' }}>
             {formattedDays.length > 0 ? (
