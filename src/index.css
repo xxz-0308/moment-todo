@@ -59,7 +59,26 @@
   --color-success: #10b981;
   --color-warning: #f59e0b;
 
+  /* Glass material system — light */
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-blur: blur(20px);
+  --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --glass-elevated-bg: rgba(255, 255, 255, 0.8);
+  --glass-elevated-border: rgba(0, 0, 0, 0.1);
+  --glass-elevated-blur: blur(32px);
+  --glass-elevated-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+  --glass-accent-bg: rgba(99, 102, 241, 0.06);
+  --glass-accent-border: rgba(99, 102, 241, 0.2);
+  --glow-accent: 0 0 16px rgba(99, 102, 241, 0.08);
+  --glow-danger: 0 0 12px rgba(239, 68, 68, 0.1);
+  --glow-success: 0 0 12px rgba(16, 185, 129, 0.08);
+
   color-scheme: light;
+}
+
+:root.light .bg-surface-gradient {
+  background: linear-gradient(135deg, #f5f5f7 0%, #fafafa 50%, #f0f0f2 100%);
 }
 
 * {
@@ -191,4 +210,12 @@ input::placeholder, textarea::placeholder {
 .backdrop-blur-overlay {
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+}
+
+:root.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+:root.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
 }
