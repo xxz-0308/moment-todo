@@ -163,7 +163,7 @@ export async function getStats(fromDate?: string, toDate?: string): Promise<{
   const dateParams = (): unknown[] => {
     const p: unknown[] = []
     if (fromDate) p.push(fromDate)
-    if (toDate) p.push(toDate + ' 23:59:59')
+    if (toDate) p.push(toDate + 'T23:59:59')
     return p
   }
 

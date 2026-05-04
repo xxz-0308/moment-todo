@@ -102,7 +102,7 @@ export default function Stats() {
       </div>
 
       {/* Time range selector */}
-      <div className="flex-shrink-0 px-6 py-3 border-b border-[rgba(255,255,255,0.05)] flex items-center gap-2">
+      <div className="flex-shrink-0 px-6 py-3 border-b border-[rgba(255,255,255,0.05)] flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
         <Calendar size={13} strokeWidth={2} className="text-text-tertiary" />
         {timeRangeLabels.map(({ key, label }) => (
           <button
