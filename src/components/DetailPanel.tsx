@@ -90,10 +90,16 @@ export function DetailPanel() {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: '100%', opacity: 0 }}
       transition={{ type: 'spring', stiffness: 170, damping: 26 }}
-      className="w-[320px] flex-shrink-0 bg-surface-secondary border-l border-border-subtle flex flex-col overflow-hidden"
+      className="w-[320px] flex-shrink-0 flex flex-col overflow-hidden border-l border-[rgba(255,255,255,0.06)]"
+      style={{
+        background: 'rgba(22,22,38,0.75)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        boxShadow: '-4px 0 32px rgba(0,0,0,0.4)',
+      }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(255,255,255,0.05)]">
         <span className="text-[12px] font-semibold text-text-tertiary uppercase tracking-wider">
           任务详情
         </span>
@@ -135,7 +141,7 @@ export function DetailPanel() {
             }}
             className={`
               flex-1 bg-transparent text-[15px] font-medium text-text-primary outline-none
-              border-b border-transparent hover:border-border focus:border-accent transition-colors pb-1
+              border-b border-transparent hover:border-border focus:border-accent focus:shadow-[0_1px_0_0_rgba(99,102,241,0.3)] transition-colors pb-1
               ${selectedTask.completed ? 'line-through text-text-tertiary' : ''}
             `}
           />
@@ -193,7 +199,7 @@ export function DetailPanel() {
           <select
             value={listId}
             onChange={(e) => saveList(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg bg-surface-tertiary text-[13px] text-text-primary outline-none border border-border focus:border-accent transition-colors appearance-none cursor-pointer"
+            className="w-full px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.03)] text-[13px] text-text-primary outline-none border border-[rgba(255,255,255,0.06)] focus:border-accent focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all appearance-none cursor-pointer"
           >
             {lists.map((list) => (
               <option key={list.id} value={list.id}>
@@ -215,18 +221,18 @@ export function DetailPanel() {
             onBlur={saveNotes}
             placeholder="添加备注..."
             rows={4}
-            className="w-full px-3 py-2.5 rounded-lg bg-surface-tertiary text-[13px] text-text-primary placeholder-text-tertiary outline-none border border-border focus:border-accent transition-colors resize-none"
+            className="w-full px-3 py-2.5 rounded-lg bg-[rgba(255,255,255,0.03)] text-[13px] text-text-primary placeholder-text-tertiary outline-none border border-[rgba(255,255,255,0.06)] focus:border-accent focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all resize-none"
           />
         </div>
       </div>
 
       {/* Footer: Delete */}
-      <div className="p-4 border-t border-border-subtle">
+      <div className="p-4 border-t border-[rgba(255,255,255,0.05)]">
         <button
           onClick={() => {
             removeTask(selectedTask.id)
           }}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-medium text-danger hover:bg-danger-muted transition-colors"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-medium text-danger hover:bg-[rgba(239,68,68,0.1)] hover:shadow-[0_0_16px_rgba(239,68,68,0.12)] transition-all"
         >
           <Trash2 size={15} strokeWidth={2} />
           <span>删除任务</span>
