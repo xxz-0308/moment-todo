@@ -30,7 +30,7 @@ export function TitleBar() {
   }
 
   return (
-    <div className="drag-region h-11 flex items-center justify-between px-4 bg-surface-secondary border-b border-border-subtle flex-shrink-0">
+    <div className="drag-region h-11 flex items-center justify-between px-4 border-b border-border-subtle flex-shrink-0 bg-surface-gradient">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2.5 no-drag">
           <div className="w-5 h-5 rounded-md bg-accent flex items-center justify-center">
@@ -88,13 +88,13 @@ export function TitleBar() {
       <div className="flex items-center gap-1 no-drag">
         <button
           onClick={() => window.electronAPI?.minimizeWindow()}
-          className="w-8 h-8 flex items-center justify-center rounded-md text-text-tertiary hover:text-text-primary hover:bg-surface-hover transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-md text-text-tertiary hover:text-text-primary hover:bg-surface-hover hover:shadow-[0_0_12px_rgba(255,255,255,0.05)] transition-all"
         >
           <Minus size={14} strokeWidth={2} />
         </button>
         <button
           onClick={() => window.electronAPI?.maximizeWindow()}
-          className="w-8 h-8 flex items-center justify-center rounded-md text-text-tertiary hover:text-text-primary hover:bg-surface-hover transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-md text-text-tertiary hover:text-text-primary hover:bg-surface-hover hover:shadow-[0_0_12px_rgba(255,255,255,0.05)] transition-all"
         >
           {isMaximized ? (
             <SquareStack size={13} strokeWidth={2} />
@@ -104,7 +104,7 @@ export function TitleBar() {
         </button>
         <button
           onClick={() => window.electronAPI?.closeWindow()}
-          className="w-8 h-8 flex items-center justify-center rounded-md text-text-tertiary hover:text-white hover:bg-danger transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-md text-text-tertiary hover:text-white hover:bg-danger hover:shadow-[0_0_16px_rgba(239,68,68,0.25)] transition-all"
         >
           <X size={14} strokeWidth={2} />
         </button>
