@@ -38,3 +38,24 @@ export function playCelebrationSound() {
     setTimeout(() => playTone(freq, 0.2, 'sine', 0.07), i * 100)
   })
 }
+
+export function playPinSound() {
+  playTone(800, 0.06, 'square', 0.05)
+}
+
+export function playDragPickupSound() {
+  playTone(300, 0.05, 'sine', 0.04)
+}
+
+export function playDragDropSound() {
+  playTone(180, 0.08, 'triangle', 0.05)
+}
+
+export function playUndoSound() {
+  playTone(1100, 0.06, 'sine', 0.05)
+  setTimeout(() => playTone(600, 0.08, 'sine', 0.05), 60)
+}
+
+export function playQuickAddSound() {
+  playTone(660, 0.08, 'sine', 0.05)
+}
