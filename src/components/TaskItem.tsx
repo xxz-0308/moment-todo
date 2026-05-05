@@ -13,6 +13,7 @@ interface TaskItemProps {
   flashHighlight?: boolean
   isMultiSelected?: boolean
   disableNativeDrag?: boolean
+  scope?: 'personal' | 'team'
 }
 
 const priorityConfig = {
@@ -48,7 +49,7 @@ function isApproaching(dateStr: string | null): boolean {
   return diff > 0 && diff <= 2 * 86400000 // within 2 days
 }
 
-export function TaskItem({ task, isSelected, onSelect, showCompletedState, flashHighlight, isMultiSelected, disableNativeDrag }: TaskItemProps) {
+export function TaskItem({ task, isSelected, onSelect, showCompletedState, flashHighlight, isMultiSelected, disableNativeDrag, scope }: TaskItemProps) {
   const toggleComplete = useStore((s) => s.toggleComplete)
   const togglePin = useStore((s) => s.togglePin)
   const removeTask = useStore((s) => s.removeTask)
@@ -244,6 +245,14 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
         {task.title}
       </span>
 
+      {/* Assignee badge (team tasks) */}
+      {scope === 'team' && (task as any).assigned_to && (
+        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-[rgba(99,102,241,0.1)] text-[rgba(99,102,241,0.85)] flex-shrink-0">
+          <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+          {(task as any).assigned_to.slice(0, 2).toUpperCase()}
+        </span>
+      )}
+
       {/* Due date */}
       {hasDueDate && !showCompletedState && (
         <span
@@ -291,7 +300,7 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
 }
 
 // Wrapper for use inside Reorder.Group
-export function ReorderableTaskItem({ task, isSelected, onSelect, showCompletedState, flashHighlight, isMultiSelected }: TaskItemProps) {
+export function ReorderableTaskItem({ task, isSelected, onSelect, showCompletedState, flashHighlight, isMultiSelected, scope }: TaskItemProps) {
   const wasDragging = useRef(false)
 
   return (
@@ -325,6 +334,7 @@ export function ReorderableTaskItem({ task, isSelected, onSelect, showCompletedS
         flashHighlight={flashHighlight}
         isMultiSelected={isMultiSelected}
         disableNativeDrag
+        scope={scope}
       />
     </Reorder.Item>
   )
