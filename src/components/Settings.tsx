@@ -9,10 +9,13 @@ import {
   Keyboard,
   Monitor,
   Globe,
+  Volume1,
+  Volume2,
 } from 'lucide-react'
 import { useStore } from '@/store'
 import { GlassConfirm } from '@/components/GlassConfirm'
 import { exportJSON, backupDatabase } from '@/db'
+import { setVolume } from '@/hooks/useSound'
 
 const PRESET_COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4']
 
@@ -32,6 +35,10 @@ export default function Settings() {
   const [starting, setStarting] = useState(false)
   const [serverInfo, setServerInfo] = useState<{ ip: string; port: number } | null>(null)
   const [confirm, setConfirm] = useState<{ title: string; message: string; onConfirm: () => void; danger?: boolean } | null>(null)
+  const [soundVolume, setSoundVolume] = useState(() => {
+    const v = localStorage.getItem('moment-sound-volume')
+    return v ? parseInt(v) : 100
+  })
 
   const loadTeamConfig = async () => {
     try {
@@ -254,6 +261,34 @@ export default function Settings() {
                     <p className="text-[11px] text-text-tertiary mt-0.5">清爽明亮</p>
                   </div>
                 </button>
+              </div>
+            </section>
+
+            {/* Volume */}
+            <section>
+              <label className="flex items-center gap-2 text-[13px] font-semibold text-text-primary mb-3">
+                <Volume2 size={16} strokeWidth={2} />
+                音效音量
+              </label>
+              <div className="flex items-center gap-3">
+                <Volume1 size={14} strokeWidth={2} className="text-text-tertiary" />
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={soundVolume}
+                  onChange={(e) => {
+                    const v = parseInt(e.target.value)
+                    setSoundVolume(v)
+                    setVolume(v)
+                  }}
+                  className="flex-1 h-1.5 rounded-full appearance-none bg-[rgba(255,255,255,0.08)] cursor-pointer
+                    [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5
+                    [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:cursor-pointer
+                    [&::-webkit-slider-thumb]:shadow-[0_0_8px_rgba(99,102,241,0.4)]"
+                />
+                <Volume2 size={16} strokeWidth={2} className="text-text-tertiary" />
+                <span className="text-[12px] text-text-tertiary w-8 text-right">{soundVolume}%</span>
               </div>
             </section>
 

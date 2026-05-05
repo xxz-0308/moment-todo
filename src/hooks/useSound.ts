@@ -5,6 +5,15 @@ function getCtx(): AudioContext {
   return audioCtx
 }
 
+export function getVolume(): number {
+  const stored = localStorage.getItem('moment-sound-volume')
+  return stored !== null ? parseInt(stored) / 100 : 1.0
+}
+
+export function setVolume(percent: number): void {
+  localStorage.setItem('moment-sound-volume', String(percent))
+}
+
 function playTone(freq: number, duration: number, type: OscillatorType = 'sine', vol = 0.08) {
   try {
     const ctx = getCtx()
@@ -12,7 +21,7 @@ function playTone(freq: number, duration: number, type: OscillatorType = 'sine',
     const gain = ctx.createGain()
     osc.type = type
     osc.frequency.value = freq
-    gain.gain.setValueAtTime(vol, ctx.currentTime)
+    gain.gain.setValueAtTime(vol * getVolume(), ctx.currentTime)
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration)
     osc.connect(gain)
     gain.connect(ctx.destination)
