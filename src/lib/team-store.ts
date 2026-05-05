@@ -50,6 +50,7 @@ interface TeamState {
   members: TeamMember[]
   connectionStatus: ConnectionStatus
   serverUrl: string | null
+  manualSort: boolean
 
   _handleMessage: (event: TeamEvent) => void
   _updateStatus: (status: ConnectionStatus) => void
@@ -81,6 +82,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
   members: [],
   connectionStatus: 'disabled',
   serverUrl: null,
+  manualSort: false,
 
   _handleMessage: (event: TeamEvent) => {
     const { type, payload } = event
@@ -119,7 +121,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
             return update ? { ...t, sort_order: update.sort_order, list_id: update.list_id } : t
           })
           updated.sort((a, b) => a.sort_order - b.sort_order)
-          return { tasks: updated }
+          return { tasks: updated, manualSort: true }
         })
         break
       }

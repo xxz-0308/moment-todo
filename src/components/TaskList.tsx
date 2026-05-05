@@ -66,9 +66,11 @@ export function TaskList() {
   const isTeamMode = scope === 'team'
   const activeTasks = isTeamMode ? teamTasks : tasks
   const activeLists = isTeamMode ? teamLists : lists
+  const teamManualSort = useTeamStore((s) => s.manualSort)
 
   const [newTitle, setNewTitle] = useState('')
   const [sortManual, setSortManual] = useState(false)
+  const effectiveSortManual = isTeamMode ? teamManualSort : sortManual
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [quickDueDate, setQuickDueDate] = useState<string | null>(null)
   const [activeFilters, setActiveFilters] = useState<string[]>([])
@@ -136,7 +138,7 @@ export function TaskList() {
 
   // ── Sorting ──────────────────────────────────────────
 
-  const sortedToday = sortManual
+  const sortedToday = effectiveSortManual
     ? todayTasks
     : autoSort(todayTasks)
 
@@ -271,7 +273,7 @@ export function TaskList() {
 
   const renderTaskSection = (taskList: Task[]) => {
     if (taskList.length === 0) return null
-    return sortManual ? (
+    return effectiveSortManual ? (
       <Reorder.Group axis="y" values={taskList} onReorder={handleReorder} className="space-y-1">
         {taskList.map(renderReorderableItem)}
       </Reorder.Group>
@@ -293,18 +295,21 @@ export function TaskList() {
       <div className="px-6 pt-5 pb-3 flex items-center justify-between">
         <h1 className="text-lg font-semibold text-text-primary">{getViewTitle()}</h1>
         <button
-          onClick={() => setSortManual(!sortManual)}
+          onClick={() => {
+            if (isTeamMode) useTeamStore.setState({ manualSort: !teamManualSort })
+            else setSortManual(!sortManual)
+          }}
           className={`
             flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-medium
             transition-colors
-            ${sortManual
+            ${effectiveSortManual
               ? 'bg-accent-muted text-accent'
               : 'text-text-tertiary hover:text-text-secondary hover:bg-surface-hover'
             }
           `}
         >
           <ArrowUpDown size={13} strokeWidth={2} />
-          <span>{sortManual ? '手动排序' : '自动排序'}</span>
+          <span>{effectiveSortManual ? '手动排序' : '自动排序'}</span>
         </button>
       </div>
 
@@ -517,7 +522,7 @@ export function TaskList() {
         {allTasks.length === 0 ? (
           <>
             <EmptyState view={currentView} />
-            {sortManual && (
+            {effectiveSortManual && (
               <p className="text-center text-[12px] text-text-tertiary mt-3">
                 当前为手动排序模式，点击「自动排序」切换回默认排列
               </p>

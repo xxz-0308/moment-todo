@@ -135,8 +135,12 @@ export default function Settings() {
       const status = await api.teamGetStatus()
       setConnStatus(status.status)
       if (status.ip) setServerInfo({ ip: status.ip, port: status.port })
+      if (status.status === 'connected') {
+        useStore.getState().addToast(role === 'server' ? `服务端已启动 — ${status.ip}:${status.port}` : '已连接到服务端')
+      }
     } catch {}
-    setStarting(false)
+    // Minimum spinner display time for visibility
+    setTimeout(() => setStarting(false), 600)
   }
 
   const handleStop = async () => {

@@ -212,7 +212,8 @@ function startTeam(mode: 'server' | 'client', config: TeamConfig): void {
       return
     }
     stopDiscovery = publishServer(config.serverPort)
-    // Register server's own member in team_members
+    // Clean stale members from previous session, register server
+    db.run("DELETE FROM team_members WHERE is_server != 1")
     db.run(
       `INSERT INTO team_members (id, name, color, is_server, last_seen) VALUES (?, ?, ?, 1, datetime('now'))
        ON CONFLICT(id) DO UPDATE SET name = ?, color = ?, is_server = 1, last_seen = datetime('now')`,
