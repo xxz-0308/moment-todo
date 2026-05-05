@@ -138,6 +138,10 @@ export class TeamServer {
       this.broadcastToAll({ type: 'task:created', payload: { task, by: senderId }, senderId })
       this.onEvent('task:created', { task, by: senderId })
     } else if (type === 'task:update') {
+      // Read old assigned_to before update for notification
+      const oldForNotify = ('assigned_to' in data && data.assigned_to)
+        ? this.queryOne('SELECT assigned_to, title FROM tasks WHERE id = ?', [data.id])
+        : null
       const fields: string[] = []
       const values: unknown[] = []
       for (const key of ['title', 'completed', 'priority', 'due_date', 'list_id', 'notes', 'pinned', 'sort_order', 'assigned_to']) {
@@ -154,6 +158,18 @@ export class TeamServer {
       }
       this.broadcastToAll({ type: 'task:updated', payload: { id: data.id, ...data, by: senderId }, senderId })
       this.onEvent('task:updated', { id: data.id, ...data, by: senderId })
+      // Notify assignee if assigned_to changed (client→server→other-client path)
+      if (oldForNotify && (oldForNotify.assigned_to as string) !== (data.assigned_to as string) && data.assigned_to) {
+        const member = this.queryOne('SELECT name FROM team_members WHERE id = ?', [senderId])
+        this.sendTo(data.assigned_to as string, {
+          type: 'notify:assigned',
+          payload: {
+            taskId: data.id,
+            taskTitle: (oldForNotify.title as string) || '',
+            assignedBy: (member?.name as string) || senderId,
+          },
+        })
+      }
     } else if (type === 'task:delete') {
       this.db.run('DELETE FROM tasks WHERE id = ?', [data.id])
       this.broadcastToAll({ type: 'task:deleted', payload: { id: data.id, by: senderId }, senderId })
