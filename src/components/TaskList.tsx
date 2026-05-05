@@ -19,22 +19,18 @@ function quickDates(): { label: string; value: string | null }[] {
   ]
 }
 
-function applyFilterChip(tasks: Task[], filter: string | null): Task[] {
-  if (!filter) return tasks
-  if (filter === 'high') return tasks.filter((t) => t.priority === 'high')
-  if (filter === 'due') return tasks.filter((t) => !!t.due_date)
-  if (filter === 'notes') return tasks.filter((t) => !!t.notes)
-  // List filters: filter value is the list_id
-  if (filter.startsWith('list:')) {
-    const listId = filter.slice(5)
-    return tasks.filter((t) => t.list_id === listId)
-  }
-  // Assignee filters: filter value is the member_id
-  if (filter.startsWith('assignee:')) {
-    const memberId = filter.slice(9)
-    return tasks.filter((t) => (t as any).assigned_to === memberId)
-  }
-  return tasks
+function applyFilters(tasks: Task[], filters: string[]): Task[] {
+  if (filters.length === 0) return tasks
+  return tasks.filter((t) => {
+    return filters.every((f) => {
+      if (f === 'high') return t.priority === 'high'
+      if (f === 'due') return !!t.due_date
+      if (f === 'notes') return !!t.notes
+      if (f.startsWith('list:')) return t.list_id === f.slice(5)
+      if (f.startsWith('assignee:')) return (t as any).assigned_to === f.slice(9)
+      return true
+    })
+  })
 }
 
 function autoSort(tasks: Task[]): Task[] {
@@ -75,7 +71,13 @@ export function TaskList() {
   const [sortManual, setSortManual] = useState(false)
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [quickDueDate, setQuickDueDate] = useState<string | null>(null)
-  const [activeFilter, setActiveFilter] = useState<string | null>(null)
+  const [activeFilters, setActiveFilters] = useState<string[]>([])
+
+  const toggleFilter = (id: string) => {
+    setActiveFilters((prev) =>
+      prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
+    )
+  }
   const [multiSelectIds, setMultiSelectIds] = useState<Set<string>>(new Set())
   const inputRef = useRef<HTMLInputElement>(null)
   const dateRef = useRef<HTMLDivElement>(null)
@@ -96,8 +98,8 @@ export function TaskList() {
         const todayActive = active.filter((t) => t.due_date === today)
         const overdue = active.filter((t) => t.due_date && t.due_date < today)
         return {
-          todayTasks: applyFilterChip(todayActive, activeFilter),
-          overdueTasks: applyFilterChip(overdue, activeFilter),
+          todayTasks: applyFilters(todayActive, activeFilters),
+          overdueTasks: applyFilters(overdue, activeFilters),
           regularTasks: [],
         }
       }
@@ -105,16 +107,16 @@ export function TaskList() {
         return {
           todayTasks: [],
           overdueTasks: [],
-          regularTasks: applyFilterChip(
+          regularTasks: applyFilters(
             active.filter((t) => t.due_date && t.due_date >= today),
-            activeFilter
+            activeFilters
           ),
         }
       case 'completed':
         return {
           todayTasks: [],
           overdueTasks: [],
-          regularTasks: applyFilterChip(completed, activeFilter),
+          regularTasks: applyFilters(completed, activeFilters),
         }
       default: {
         // '全部' (id=default) shows all tasks; other lists filter by list_id
@@ -124,11 +126,11 @@ export function TaskList() {
         return {
           todayTasks: [],
           overdueTasks: [],
-          regularTasks: applyFilterChip(listFiltered, activeFilter),
+          regularTasks: applyFilters(listFiltered, activeFilters),
         }
       }
     }
-  }, [activeTasks, currentView, activeFilter, today])
+  }, [activeTasks, currentView, activeFilters, today])
 
   const { todayTasks, overdueTasks, regularTasks } = getFilteredTasks()
 
@@ -381,54 +383,59 @@ export function TaskList() {
         </div>
       )}
 
-      {/* Filter chips */}
-      {!isCompletedView ? (
-        <div className="flex items-center gap-1.5 px-6 pb-3">
-          <Filter size={12} strokeWidth={2} className="text-text-tertiary mr-0.5" />
-          {[
-            { id: 'high', label: '高优先级' },
-            { id: 'due', label: '有截止日期' },
-            { id: 'notes', label: '有备注' },
-          ].map((chip) => (
+      {/* Filter chips — all views */}
+      <div className="flex items-center gap-1.5 px-6 pb-3 flex-wrap">
+        <Filter size={12} strokeWidth={2} className="text-text-tertiary mr-0.5 flex-shrink-0" />
+        {/* Priority / metadata filters */}
+        {[
+          { id: 'high', label: '高优先级' },
+          { id: 'due', label: '有截止日期' },
+          { id: 'notes', label: '有备注' },
+        ].map((chip) => {
+          const isActive = activeFilters.includes(chip.id)
+          return (
             <button
               key={chip.id}
-              onClick={() => setActiveFilter(activeFilter === chip.id ? null : chip.id)}
-              className={`
-                px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all
-                ${activeFilter === chip.id
+              onClick={() => toggleFilter(chip.id)}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                isActive
                   ? 'bg-[rgba(99,102,241,0.1)] text-accent border border-[rgba(99,102,241,0.2)] shadow-[0_0_10px_rgba(99,102,241,0.08)]'
                   : 'bg-[rgba(255,255,255,0.03)] text-text-tertiary hover:text-text-secondary hover:bg-[rgba(255,255,255,0.05)] border border-transparent'
-                }
-              `}
+              }`}
             >
               {chip.label}
             </button>
-          ))}
-        </div>
-      ) : (
-        <div className="flex items-center gap-1.5 px-6 pb-3 flex-wrap">
-          <Filter size={12} strokeWidth={2} className="text-text-tertiary mr-0.5" />
-          {/* Category filter chips */}
-          {activeLists.map((list) => (
+          )
+        })}
+        {/* Category filters */}
+        {activeLists.map((list) => {
+          const id = `list:${list.id}`
+          const isActive = activeFilters.includes(id)
+          return (
             <button
-              key={`list-${list.id}`}
-              onClick={() => setActiveFilter(activeFilter === `list:${list.id}` ? null : `list:${list.id}`)}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
-                activeFilter === `list:${list.id}`
+              key={id}
+              onClick={() => toggleFilter(id)}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                isActive
                   ? 'bg-[rgba(99,102,241,0.1)] text-accent border border-[rgba(99,102,241,0.2)]'
                   : 'bg-[rgba(255,255,255,0.03)] text-text-tertiary hover:text-text-secondary hover:bg-[rgba(255,255,255,0.05)] border border-transparent'
               }`}
             >
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: list.color || '#6366f1' }} />
               {list.name}
             </button>
-          ))}
-          {/* Assignee filter chips (team tasks only) */}
-          {isTeamMode && useTeamStore.getState().members.map((m) => (
+          )
+        })}
+        {/* Assignee filters (team only) */}
+        {isTeamMode && useTeamStore.getState().members.map((m) => {
+          const id = `assignee:${m.id}`
+          const isActive = activeFilters.includes(id)
+          return (
             <button
-              key={`assignee-${m.id}`}
-              onClick={() => setActiveFilter(activeFilter === `assignee:${m.id}` ? null : `assignee:${m.id}`)}
+              key={id}
+              onClick={() => toggleFilter(id)}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
-                activeFilter === `assignee:${m.id}`
+                isActive
                   ? 'bg-[rgba(99,102,241,0.1)] text-accent border border-[rgba(99,102,241,0.2)]'
                   : 'bg-[rgba(255,255,255,0.03)] text-text-tertiary hover:text-text-secondary hover:bg-[rgba(255,255,255,0.05)] border border-transparent'
               }`}
@@ -436,9 +443,18 @@ export function TaskList() {
               <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: m.color }} />
               {m.name}
             </button>
-          ))}
-        </div>
-      )}
+          )
+        })}
+        {/* Clear all filters */}
+        {activeFilters.length > 0 && (
+          <button
+            onClick={() => setActiveFilters([])}
+            className="px-2 py-1 rounded-lg text-[11px] font-medium text-[rgba(239,68,68,0.8)] hover:bg-[rgba(239,68,68,0.08)] border border-transparent hover:border-[rgba(239,68,68,0.15)] transition-all flex-shrink-0"
+          >
+            清除筛选
+          </button>
+        )}
+      </div>
 
       {/* Batch action bar */}
       <AnimatePresence>
