@@ -520,6 +520,12 @@ function setupIPC() {
           const broadcast = { type: 'list:deleted', payload: { id: data.id, by: senderId } }
           teamServer.broadcast(broadcast)
           mainWindow?.webContents.send('team:event', broadcast)
+        } else if (msg.type === 'task:reorder') {
+          const items = data.items as Array<{ id: string; sort_order: number; list_id: string }>
+          for (const item of items) {
+            db.run('UPDATE tasks SET sort_order = ?, list_id = ?, updated_at = ? WHERE id = ?',
+              [item.sort_order, item.list_id, now, item.id])
+          }
         }
         saveDatabase()
       } catch (e) {

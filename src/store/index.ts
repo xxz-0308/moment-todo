@@ -154,7 +154,9 @@ export const useStore = create<AppState>((set, get) => ({
       set({ selectedTaskId: null, selectedTask: null })
       return
     }
-    const task = get().tasks.find((t) => t.id === taskId) || null
+    const task = get().tasks.find((t) => t.id === taskId)
+      || (get().scope === 'team' ? useTeamStore.getState().tasks.find((t) => t.id === taskId) : null)
+      || null
     set({ selectedTaskId: taskId, selectedTask: task })
   },
 
@@ -183,6 +185,9 @@ export const useStore = create<AppState>((set, get) => ({
   updateTask: async (id, updates) => {
     if (get().scope === 'team') {
       useTeamStore.getState().sendMessage('task:update', { id, ...updates })
+      // Optimistically refresh selected task from team store
+      const refreshed = useTeamStore.getState().tasks.find((t) => t.id === id) || null
+      set({ selectedTask: refreshed })
       return
     }
     const currentTask = get().tasks.find((t) => t.id === id)
@@ -297,10 +302,18 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   reorderTask: async (taskId, newOrder, listId) => {
+    if (get().scope === 'team') {
+      useTeamStore.getState().sendMessage('task:update', { id: taskId, sort_order: newOrder, list_id: listId })
+      return
+    }
     await db.updateTask(taskId, { sort_order: newOrder, list_id: listId })
   },
 
   reorderTasks: async (items) => {
+    if (get().scope === 'team') {
+      useTeamStore.getState().sendMessage('task:reorder', { items })
+      return
+    }
     await db.reorderTasks(items)
     const itemMap = new Map(items.map((i) => [i.id, i]))
     set((s) => {

@@ -126,6 +126,13 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         }))
         break
       }
+      case 'list:updated': {
+        const p = payload as { id: string; name?: string; color?: string }
+        set((s) => ({
+          lists: s.lists.map((l) => l.id === p.id ? { ...l, ...p } : l),
+        }))
+        break
+      }
       case 'member:joined': {
         const p = payload as { member: TeamMember }
         set((s) => {
