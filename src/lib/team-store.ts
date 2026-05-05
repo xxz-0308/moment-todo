@@ -52,7 +52,6 @@ interface TeamState {
   serverUrl: string | null
   manualSort: boolean
   onlineMemberCount: number
-  recentlyCompleted: Set<string>
   reconnectSummary: string | null
   _snapshot: { taskIds: Set<string>; completedIds: Set<string> } | null
 
@@ -89,7 +88,6 @@ export const useTeamStore = create<TeamState>((set, get) => ({
   serverUrl: null,
   manualSort: false,
   onlineMemberCount: 0,
-  recentlyCompleted: new Set<string>(),
   reconnectSummary: null,
   _snapshot: null,
 
@@ -121,27 +119,10 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         break
       }
       case 'task:updated': {
-        const p = payload as { id: string; completed?: number } & Partial<TeamTask>
-        const isCompletion = p.completed === 1
-        set((s) => {
-          const prevTask = s.tasks.find(t => t.id === p.id)
-          const wasCompleted = prevTask ? prevTask.completed === 1 : false
-          const newlyCompleted = isCompletion && !wasCompleted
-          const updated = s.tasks.map((t) => (t.id === p.id ? { ...t, ...p, updated_at: new Date().toISOString() } : t))
-          if (newlyCompleted) {
-            const rc = new Set(s.recentlyCompleted)
-            rc.add(p.id)
-            setTimeout(() => {
-              useTeamStore.setState((prev) => {
-                const next = new Set(prev.recentlyCompleted)
-                next.delete(p.id)
-                return { recentlyCompleted: next }
-              })
-            }, 1500)
-            return { tasks: updated, recentlyCompleted: rc }
-          }
-          return { tasks: updated }
-        })
+        const p = payload as { id: string } & Partial<TeamTask>
+        set((s) => ({
+          tasks: s.tasks.map((t) => (t.id === p.id ? { ...t, ...p, updated_at: new Date().toISOString() } : t)),
+        }))
         break
       }
       case 'task:deleted': {

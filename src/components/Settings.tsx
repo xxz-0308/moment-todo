@@ -39,9 +39,6 @@ export default function Settings() {
     const v = localStorage.getItem('moment-sound-volume')
     return v ? parseInt(v) : 100
   })
-  const [completionNotify, setCompletionNotify] = useState(() =>
-    localStorage.getItem('moment-team-completion-notify') !== 'false'
-  )
 
   const loadTeamConfig = async () => {
     try {
@@ -292,26 +289,6 @@ export default function Settings() {
                 />
                 <Volume2 size={16} strokeWidth={2} className="text-text-tertiary" />
                 <span className="text-[12px] text-text-tertiary w-8 text-right">{soundVolume}%</span>
-              </div>
-            </section>
-
-            {/* Completion notification toggle */}
-            <section>
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-[13px] font-medium text-text-primary">团队任务完成提醒</span>
-                  <p className="text-[11px] text-text-tertiary mt-0.5">有人完成任务时显示绿色动画</p>
-                </div>
-                <button
-                  onClick={() => {
-                    const next = !completionNotify
-                    localStorage.setItem('moment-team-completion-notify', String(next))
-                    setCompletionNotify(next)
-                  }}
-                  className={`w-9 h-5 rounded-full transition-colors relative ${completionNotify ? 'bg-accent' : 'bg-[rgba(255,255,255,0.1)]'}`}
-                >
-                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${completionNotify ? 'left-[18px]' : 'left-[2px]'}`} />
-                </button>
               </div>
             </section>
 

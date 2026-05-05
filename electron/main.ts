@@ -535,6 +535,10 @@ function setupIPC() {
           teamServer.broadcast(broadcast)
           mainWindow?.webContents.send('team:event', broadcast)
         } else if (msg.type === 'task:update') {
+          // Read old assigned_to BEFORE DB update for notification comparison
+          const oldForNotify = ('assigned_to' in data && data.assigned_to)
+            ? (queryAll('SELECT assigned_to, title FROM tasks WHERE id = ?', [data.id])[0] as Record<string, unknown> | undefined)
+            : null
           const fields: string[] = []
           const values: unknown[] = []
           for (const key of ['title', 'completed', 'priority', 'due_date', 'list_id', 'notes', 'pinned', 'sort_order', 'assigned_to']) {
@@ -549,19 +553,16 @@ function setupIPC() {
           teamServer.broadcast(broadcast)
           mainWindow?.webContents.send('team:event', broadcast)
           // If assigned_to actually changed, send notification to assignee
-          if ('assigned_to' in data && data.assigned_to && teamServer) {
-            const oldTask = queryAll('SELECT assigned_to, title FROM tasks WHERE id = ?', [data.id])[0] as Record<string, unknown> | undefined
-            if (oldTask && oldTask.assigned_to !== data.assigned_to) {
-              const config = readTeamConfig()
-              teamServer.sendTo(data.assigned_to as string, {
-                type: 'notify:assigned',
-                payload: {
-                  taskId: data.id,
-                  taskTitle: oldTask.title || '',
-                  assignedBy: config.member.name || '未知',
-                },
-              })
-            }
+          if (oldForNotify && oldForNotify.assigned_to !== data.assigned_to && teamServer) {
+            const config = readTeamConfig()
+            teamServer.sendTo(data.assigned_to as string, {
+              type: 'notify:assigned',
+              payload: {
+                taskId: data.id,
+                taskTitle: oldForNotify.title || '',
+                assignedBy: config.member.name || '未知',
+              },
+            })
           }
         } else if (msg.type === 'task:delete') {
           db.run('DELETE FROM tasks WHERE id = ?', [data.id])
