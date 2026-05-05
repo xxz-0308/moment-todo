@@ -312,6 +312,11 @@ function createWindow() {
   })
 
   mainWindow.on('close', (e) => {
+    if (teamServer && teamServer.memberCount > 0) {
+      e.preventDefault()
+      mainWindow?.webContents.send('team:quit-warning', { memberCount: teamServer.memberCount })
+      return
+    }
     saveDatabase()
     backupDatabase()
     // Close sql.js to free WASM memory while hidden in tray
@@ -602,6 +607,21 @@ function setupIPC() {
     }
     if (teamClient) return { status: teamClient.status }
     return { status: 'disabled' }
+  })
+  ipcMain.handle('team:confirm-quit', () => {
+    saveDatabase()
+    backupDatabase()
+    if (teamServer) {
+      teamServer.stop()
+      teamServer = null
+    }
+    if (teamClient) {
+      teamClient.disconnect()
+      teamClient = null
+    }
+    stopReminders()
+    app.exit(0)
+    return true
   })
   ipcMain.handle('team:get-members', () => {
     if (!db) return []

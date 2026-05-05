@@ -39,4 +39,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onTeamEvent: (callback: (event: { type: string; payload: unknown }) => void) => {
     ipcRenderer.on('team:event', (_e, event) => callback(event))
   },
+  onTeamQuitWarning: (callback: (data: { memberCount: number }) => void) => {
+    ipcRenderer.on('team:quit-warning', (_e, data) => callback(data))
+  },
+  teamConfirmQuit: () => ipcRenderer.invoke('team:confirm-quit'),
 })

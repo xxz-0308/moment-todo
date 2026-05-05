@@ -73,6 +73,16 @@ export default function App() {
     })
   }, [])
 
+  useEffect(() => {
+    const api = (window as any).electronAPI
+    if (!api?.onTeamQuitWarning) return
+    api.onTeamQuitWarning((data: { memberCount: number }) => {
+      if (window.confirm(`服务端将关闭，当前 ${data.memberCount} 个客户端将断开连接。确定退出吗？`)) {
+        api.teamConfirmQuit?.()
+      }
+    })
+  }, [])
+
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-surface">
