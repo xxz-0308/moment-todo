@@ -109,9 +109,18 @@ export default function Stats() {
     if (scope === 'team') {
       setStats(computeTeamStats(teamTasks, teamLists, from, to))
     } else {
-      getStats(from || undefined, to || undefined).then(s => setStats({
-        ...s, byListAll: s.byList, byListActive: [], byListCompleted: [],
-      }))
+      getStats(from || undefined, to || undefined).then(s => {
+        // DB gives all tasks by list — can't split completed/uncompleted.
+        // Use heuristics: if all tasks are active, byListActive = byListAll; etc.
+        const allActive = s.completed === 0
+        const allCompleted = s.total === 0
+        setStats({
+          ...s,
+          byListAll: s.byList,
+          byListActive: allActive ? s.byList : [],
+          byListCompleted: allCompleted ? s.byList : [],
+        })
+      })
     }
   }, [timeRange, customFrom, customTo, scope, teamTasks, teamLists])
 
