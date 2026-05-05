@@ -83,6 +83,17 @@ export default function App() {
     })
   }, [])
 
+  // Show reconnect summary toast
+  useEffect(() => {
+    const unsub = useTeamStore.subscribe((state, prev) => {
+      if (state.reconnectSummary && state.reconnectSummary !== prev.reconnectSummary) {
+        useStore.getState().addToast(state.reconnectSummary)
+        useTeamStore.setState({ reconnectSummary: null })
+      }
+    })
+    return unsub
+  }, [])
+
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-surface">

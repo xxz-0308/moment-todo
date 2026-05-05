@@ -53,6 +53,8 @@ interface TeamState {
   manualSort: boolean
   onlineMemberCount: number
   recentlyCompleted: Set<string>
+  reconnectSummary: string | null
+  _snapshot: { taskIds: Set<string>; completedIds: Set<string> } | null
 
   _handleMessage: (event: TeamEvent) => void
   _updateStatus: (status: ConnectionStatus) => void
@@ -88,13 +90,26 @@ export const useTeamStore = create<TeamState>((set, get) => ({
   manualSort: false,
   onlineMemberCount: 0,
   recentlyCompleted: new Set<string>(),
+  reconnectSummary: null,
+  _snapshot: null,
 
   _handleMessage: (event: TeamEvent) => {
     const { type, payload } = event
     switch (type) {
       case 'sync:full': {
         const p = payload as { members: TeamMember[]; lists: TeamList[]; tasks: TeamTask[] }
-        set({ members: p.members || [], lists: p.lists || [], tasks: p.tasks || [], onlineMemberCount: (p.members || []).length })
+        const snap = get()._snapshot
+        set({ members: p.members || [], lists: p.lists || [], tasks: p.tasks || [], onlineMemberCount: (p.members || []).length, _snapshot: null })
+        if (snap && (p.tasks || []).length > 0) {
+          const newTasks = (p.tasks || []).filter(t => !snap.taskIds.has(t.id))
+          const newCompleted = (p.tasks || []).filter(t => t.completed && !snap.completedIds.has(t.id))
+          if (newTasks.length > 0 || newCompleted.length > 0) {
+            const parts: string[] = []
+            if (newTasks.length > 0) parts.push(`新增 ${newTasks.length} 个任务`)
+            if (newCompleted.length > 0) parts.push(`完成 ${newCompleted.length} 个任务`)
+            set({ reconnectSummary: `同步完成：${parts.join('，')}` })
+          }
+        }
         break
       }
       case 'task:created': {
@@ -236,6 +251,17 @@ export const useTeamStore = create<TeamState>((set, get) => ({
   },
 
   _updateStatus: (status: ConnectionStatus) => {
+    if (status === 'disconnected' && get().connectionStatus === 'connected') {
+      const tasks = get().tasks
+      set({
+        connectionStatus: status,
+        _snapshot: {
+          taskIds: new Set(tasks.map(t => t.id)),
+          completedIds: new Set(tasks.filter(t => t.completed).map(t => t.id)),
+        },
+      } as any)
+      return
+    }
     set({ connectionStatus: status })
   },
 
