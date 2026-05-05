@@ -29,6 +29,7 @@ export default function Settings() {
   const [role, setRole] = useState<'' | 'server' | 'client'>('')
   const [serverAddress, setServerAddress] = useState('')
   const [connStatus, setConnStatus] = useState<string>('')
+  const [starting, setStarting] = useState(false)
   const [serverInfo, setServerInfo] = useState<{ ip: string; port: number } | null>(null)
   const [confirm, setConfirm] = useState<{ title: string; message: string; onConfirm: () => void; danger?: boolean } | null>(null)
 
@@ -99,6 +100,7 @@ export default function Settings() {
   }
 
   const handleStart = async () => {
+    if (starting) return
     // For server mode, check for existing server on LAN first
     if (role === 'server') {
       try {
@@ -112,9 +114,12 @@ export default function Settings() {
               danger: true,
               onConfirm: async () => {
                 setConfirm(null)
+                setStarting(true)
                 await saveTeamConfig()
                 const st = await api.teamGetStatus()
                 setConnStatus(st.status)
+                if (st.ip) setServerInfo({ ip: st.ip, port: st.port })
+                setStarting(false)
               },
             })
             return
@@ -122,6 +127,7 @@ export default function Settings() {
         }
       } catch {}
     }
+    setStarting(true)
     await saveTeamConfig()
     try {
       const api = (window as any).electronAPI
@@ -130,6 +136,7 @@ export default function Settings() {
       setConnStatus(status.status)
       if (status.ip) setServerInfo({ ip: status.ip, port: status.port })
     } catch {}
+    setStarting(false)
   }
 
   const handleStop = async () => {
@@ -370,10 +377,11 @@ export default function Settings() {
                 ) : (
                   <button
                     onClick={handleStart}
-                    disabled={!nickname || !role}
-                    className="px-4 py-2 rounded-lg bg-accent text-white text-[13px] font-medium hover:bg-accent-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    disabled={!nickname || !role || starting}
+                    className="px-4 py-2 rounded-lg bg-accent text-white text-[13px] font-medium hover:bg-accent-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
                   >
-                    {role === 'server' ? '启动服务端' : '连接'}
+                    {starting && <span className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />}
+                    {starting ? '启动中...' : role === 'server' ? '启动服务端' : '连接'}
                   </button>
                 )}
                 {role === 'server' && connStatus === 'connected' && (

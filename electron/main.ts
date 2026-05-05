@@ -569,6 +569,9 @@ function setupIPC() {
             db.run('UPDATE tasks SET sort_order = ?, list_id = ?, updated_at = ? WHERE id = ?',
               [item.sort_order, item.list_id, now, item.id])
           }
+          const broadcastMsg = { type: 'task:reorder', payload: { items }, senderId }
+          teamServer.broadcast(broadcastMsg)
+          mainWindow?.webContents.send('team:event', broadcastMsg)
         }
         saveDatabase()
       } catch (e) {

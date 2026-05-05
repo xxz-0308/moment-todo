@@ -110,6 +110,19 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         set((s) => ({ tasks: s.tasks.filter((t) => t.id !== p.id) }))
         break
       }
+      case 'task:reorder': {
+        const p = payload as { items: Array<{ id: string; sort_order: number; list_id: string }> }
+        const itemMap = new Map(p.items.map((i) => [i.id, i]))
+        set((s) => {
+          const updated = s.tasks.map((t) => {
+            const update = itemMap.get(t.id)
+            return update ? { ...t, sort_order: update.sort_order, list_id: update.list_id } : t
+          })
+          updated.sort((a, b) => a.sort_order - b.sort_order)
+          return { tasks: updated }
+        })
+        break
+      }
       case 'list:created': {
         const p = payload as { list: TeamList }
         set((s) => {

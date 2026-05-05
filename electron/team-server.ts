@@ -157,6 +157,10 @@ export class TeamServer {
         this.db.run('UPDATE tasks SET sort_order = ?, list_id = ?, updated_at = ? WHERE id = ?',
           [item.sort_order, item.list_id, now, item.id])
       }
+      // Broadcast to all clients + echo to server renderer
+      const broadcastMsg = { type: 'task:reorder', payload: { items }, senderId }
+      this.broadcastToAll(broadcastMsg)
+      this.onEvent('task:reorder', { items })
     }
   }
 
