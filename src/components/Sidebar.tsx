@@ -151,26 +151,25 @@ export function Sidebar() {
               <Icon size={17} strokeWidth={isActive ? 2.5 : 1.8} className={isActive ? 'text-accent' : ''} />
               <span className="flex-1 text-left">{view.label}</span>
               {view.id === 'today' && todayTotal > 0 ? (
-                <svg width="22" height="22" viewBox="0 0 22 22" className="flex-shrink-0" style={{ filter: 'drop-shadow(0 0 3px rgba(99,102,241,0.3))' }}>
-                  <circle cx="11" cy="11" r="9" fill="none"
-                    stroke="var(--color-border)" strokeWidth="2.5"
-                  />
-                  <motion.circle cx="11" cy="11" r="9" fill="none"
-                    stroke="var(--color-accent)" strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeDasharray={2 * Math.PI * 9}
-                    strokeDashoffset={2 * Math.PI * 9 * (1 - todayProgress)}
-                    transform="rotate(-90 11 11)"
-                    initial={{ strokeDashoffset: 2 * Math.PI * 9 }}
-                    animate={{ strokeDashoffset: 2 * Math.PI * 9 * (1 - todayProgress) }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                  />
-                </svg>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <span className={`text-[11px] font-medium min-w-[18px] text-center ${isActive ? 'text-accent' : 'text-text-tertiary'}`}>
+                    {count}
+                  </span>
+                  <svg width="20" height="20" viewBox="0 0 22 22" style={{ filter: 'drop-shadow(0 0 3px rgba(99,102,241,0.3))' }}>
+                    <circle cx="11" cy="11" r="9" fill="none" stroke="var(--color-border)" strokeWidth="2.5" />
+                    <motion.circle cx="11" cy="11" r="9" fill="none"
+                      stroke="var(--color-accent)" strokeWidth="2.5" strokeLinecap="round"
+                      strokeDasharray={2 * Math.PI * 9}
+                      strokeDashoffset={2 * Math.PI * 9 * (1 - todayProgress)}
+                      transform="rotate(-90 11 11)"
+                      initial={{ strokeDashoffset: 2 * Math.PI * 9 }}
+                      animate={{ strokeDashoffset: 2 * Math.PI * 9 * (1 - todayProgress) }}
+                      transition={{ duration: 0.5, ease: 'easeOut' }}
+                    />
+                  </svg>
+                </div>
               ) : count > 0 ? (
-                <span className={`
-                  text-[11px] font-medium px-1.5 py-0.5 rounded-md min-w-[20px] text-center
-                  ${isActive ? 'bg-accent text-white' : 'bg-surface-tertiary text-text-tertiary'}
-                `}>
+                <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-md min-w-[20px] text-center ${isActive ? 'bg-accent text-white' : 'bg-surface-tertiary text-text-tertiary'}`}>
                   {count}
                 </span>
               ) : null}

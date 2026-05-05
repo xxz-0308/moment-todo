@@ -2,12 +2,16 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Calendar, Flag, Hash } from 'lucide-react'
 import { useStore } from '@/store'
+import { useTeamStore } from '@/lib/team-store'
 import { playQuickAddSound } from '@/hooks/useSound'
 
 export function QuickAdd() {
   const toggleQuickAdd = useStore((s) => s.toggleQuickAdd)
   const addTask = useStore((s) => s.addTask)
-  const lists = useStore((s) => s.lists)
+  const scope = useStore((s) => s.scope)
+  const personalLists = useStore((s) => s.lists)
+  const teamLists = useTeamStore((s) => s.lists)
+  const lists = scope === 'team' ? teamLists : personalLists
   const currentView = useStore((s) => s.currentView)
 
   const [title, setTitle] = useState('')

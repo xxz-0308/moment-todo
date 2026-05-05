@@ -389,19 +389,36 @@ export const useStore = create<AppState>((set, get) => ({
     }
 
     const task = lastAction.task!
+    const isTeamTask = (task as any).scope === 'team'
+
     switch (lastAction.type) {
       case 'delete':
-        await db.createTask({
-          title: task.title,
-          priority: task.priority,
-          dueDate: task.due_date,
-          listId: task.list_id,
-          notes: task.notes,
-          sortOrder: task.sort_order,
-        })
+        if (isTeamTask) {
+          useTeamStore.getState().sendMessage('task:create', {
+            title: task.title,
+            priority: task.priority,
+            dueDate: task.due_date,
+            listId: task.list_id,
+            notes: task.notes,
+            sortOrder: task.sort_order,
+          })
+        } else {
+          await db.createTask({
+            title: task.title,
+            priority: task.priority,
+            dueDate: task.due_date,
+            listId: task.list_id,
+            notes: task.notes,
+            sortOrder: task.sort_order,
+          })
+        }
         break
       case 'complete':
-        await db.updateTask(task.id, { completed: 0 })
+        if (isTeamTask) {
+          useTeamStore.getState().sendMessage('task:update', { id: task.id, completed: 0 })
+        } else {
+          await db.updateTask(task.id, { completed: 0 })
+        }
         break
       case 'update':
         if (lastAction.previousValues) {
@@ -412,7 +429,11 @@ export const useStore = create<AppState>((set, get) => ({
           if (prev.due_date !== undefined) updates.due_date = prev.due_date
           if (prev.list_id !== undefined) updates.list_id = prev.list_id
           if (prev.notes !== undefined) updates.notes = prev.notes
-          await db.updateTask(task.id, updates)
+          if (isTeamTask) {
+            useTeamStore.getState().sendMessage('task:update', { id: task.id, ...updates })
+          } else {
+            await db.updateTask(task.id, updates)
+          }
         }
         break
       case 'deleteList':
@@ -422,8 +443,10 @@ export const useStore = create<AppState>((set, get) => ({
         break
     }
 
+    if (!isTeamTask) {
+      await get().loadData()
+    }
     set({ undoStack: stack.slice(0, -1) })
-    await get().loadData()
     playUndoSound()
     // Flash the restored task (only for task actions)
     if (lastAction.task) {
