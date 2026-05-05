@@ -450,8 +450,18 @@ export const useStore = create<AppState>((set, get) => ({
       set({ searchResults: [] })
       return
     }
-    const results = await db.searchTasks(query)
-    set({ searchResults: results, searchQuery: query })
+    if (get().scope === 'team') {
+      // Team mode: search team-store tasks in-memory
+      const teamTasks = useTeamStore.getState().tasks
+      const q = query.toLowerCase()
+      const results = teamTasks.filter(
+        (t) => t.title.toLowerCase().includes(q) || (t.notes && t.notes.toLowerCase().includes(q))
+      )
+      set({ searchResults: results as any, searchQuery: query })
+    } else {
+      const results = await db.searchTasks(query)
+      set({ searchResults: results, searchQuery: query })
+    }
   },
 
   clearSearch: () => set({ searchResults: [], searchQuery: '' }),
