@@ -14,6 +14,7 @@ export class TeamClient {
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null
   private onEvent: ClientEventHandler
   private _status: ClientStatus = 'disconnected'
+  private _intentionalClose = false
 
   constructor(url: string, member: TeamMember, onEvent: ClientEventHandler) {
     this.url = url
@@ -27,6 +28,7 @@ export class TeamClient {
 
   connect(): void {
     if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) return
+    this._intentionalClose = false
     this._status = 'connecting'
     this.onEvent('status', 'connecting')
 
@@ -79,6 +81,7 @@ export class TeamClient {
   }
 
   disconnect(): void {
+    this._intentionalClose = true
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)
       this.reconnectTimer = null
@@ -89,6 +92,18 @@ export class TeamClient {
       this.ws = null
     }
     this._status = 'disconnected'
+  }
+
+  private scheduleReconnect(): void {
+    if (this._intentionalClose) return
+    this._status = 'disconnected'
+    if (this.reconnectTimer) return
+    console.log(`[TeamClient] Reconnecting in ${this.reconnectDelay}ms...`)
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null
+      this.reconnectDelay = Math.min(this.reconnectDelay * 2, 30000)
+      this.connect()
+    }, this.reconnectDelay)
   }
 
   send(msg: { type: string; payload: unknown }): void {
@@ -102,16 +117,5 @@ export class TeamClient {
       clearInterval(this.heartbeatTimer)
       this.heartbeatTimer = null
     }
-  }
-
-  private scheduleReconnect(): void {
-    this._status = 'disconnected'
-    if (this.reconnectTimer) return
-    console.log(`[TeamClient] Reconnecting in ${this.reconnectDelay}ms...`)
-    this.reconnectTimer = setTimeout(() => {
-      this.reconnectTimer = null
-      this.reconnectDelay = Math.min(this.reconnectDelay * 2, 30000)
-      this.connect()
-    }, this.reconnectDelay)
   }
 }

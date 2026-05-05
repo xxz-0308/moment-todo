@@ -260,6 +260,8 @@ function stopTeam(): void {
     stopDiscovery()
     stopDiscovery = null
   }
+  // Notify renderer that team is now disabled
+  mainWindow?.webContents.send('team:event', { type: 'status', payload: 'disabled' })
 }
 
 // ── Window ────────────────────────────────────────────────
@@ -499,6 +501,9 @@ function setupIPC() {
       const teamLists = queryAll("SELECT * FROM lists WHERE scope = 'team'")
       const teamTasks = queryAll("SELECT * FROM tasks WHERE scope = 'team'")
       mainWindow?.webContents.send('team:event', { type: 'sync:full', payload: { members, lists: teamLists, tasks: teamTasks } })
+    } else if (teamClient && teamClient.status === 'connected') {
+      // Client mode: re-request sync from server
+      teamClient.send({ type: 'sync:request', payload: {} })
     }
     return true
   })
