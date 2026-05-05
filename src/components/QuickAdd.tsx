@@ -17,15 +17,15 @@ export function QuickAdd() {
   const [title, setTitle] = useState('')
   const [priority, setPriority] = useState('medium')
   const [dueDate, setDueDate] = useState('')
-  const [listId, setListId] = useState(
-    ['today', 'upcoming', 'completed'].includes(currentView) ? 'default' : currentView
-  )
+  const [listId, setListId] = useState('default')
   const [showMore, setShowMore] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  // Reset when opened
   useEffect(() => {
+    setListId(['today', 'upcoming', 'completed'].includes(currentView) ? 'default' : currentView)
     inputRef.current?.focus()
-  }, [])
+  }, [currentView])
 
   const handleSubmit = async () => {
     if (!title.trim()) return

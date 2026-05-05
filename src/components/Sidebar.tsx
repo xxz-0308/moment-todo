@@ -151,11 +151,8 @@ export function Sidebar() {
               <Icon size={17} strokeWidth={isActive ? 2.5 : 1.8} className={isActive ? 'text-accent' : ''} />
               <span className="flex-1 text-left">{view.label}</span>
               {view.id === 'today' && todayTotal > 0 ? (
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <span className={`text-[11px] font-medium min-w-[18px] text-center ${isActive ? 'text-accent' : 'text-text-tertiary'}`}>
-                    {count}
-                  </span>
-                  <svg width="20" height="20" viewBox="0 0 22 22" style={{ filter: 'drop-shadow(0 0 3px rgba(99,102,241,0.3))' }}>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <svg width="18" height="18" viewBox="0 0 22 22" style={{ filter: 'drop-shadow(0 0 3px rgba(99,102,241,0.3))' }}>
                     <circle cx="11" cy="11" r="9" fill="none" stroke="var(--color-border)" strokeWidth="2.5" />
                     <motion.circle cx="11" cy="11" r="9" fill="none"
                       stroke="var(--color-accent)" strokeWidth="2.5" strokeLinecap="round"
@@ -167,6 +164,9 @@ export function Sidebar() {
                       transition={{ duration: 0.5, ease: 'easeOut' }}
                     />
                   </svg>
+                  <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-md min-w-[20px] text-center ${isActive ? 'bg-accent text-white' : 'bg-surface-tertiary text-text-tertiary'}`}>
+                    {count}
+                  </span>
                 </div>
               ) : count > 0 ? (
                 <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-md min-w-[20px] text-center ${isActive ? 'bg-accent text-white' : 'bg-surface-tertiary text-text-tertiary'}`}>

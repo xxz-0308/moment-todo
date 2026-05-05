@@ -216,6 +216,12 @@ function startTeam(mode: 'server' | 'client', config: TeamConfig): void {
        ON CONFLICT(id) DO UPDATE SET name = ?, color = ?, is_server = 1, last_seen = datetime('now')`,
       [config.member.id, config.member.name, config.member.color, config.member.name, config.member.color]
     )
+    // Ensure default team list exists
+    db.run(`
+      INSERT INTO lists (id, name, color, sort_order, scope, created_by)
+      VALUES ('default', '全部', '#6366f1', 0, 'team', '')
+      ON CONFLICT(id) DO NOTHING
+    `)
     // Notify renderer that server is running and send team data
     mainWindow?.webContents.send('team:event', { type: 'status', payload: 'connected' })
     const members = queryAll('SELECT * FROM team_members')

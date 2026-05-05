@@ -352,7 +352,15 @@ export const useStore = create<AppState>((set, get) => ({
 
   removeList: async (id) => {
     if (get().scope === 'team') {
+      const list = useTeamStore.getState().lists.find((l) => l.id === id)
+      if (!list) return
+      playDeleteSound()
+      get().pushUndo({ type: 'deleteList', list: { ...list, scope: 'team' } as any, timestamp: Date.now() })
       useTeamStore.getState().sendMessage('list:delete', { id })
+      get().addToast(`已删除分类: ${list.name}`, {
+        label: '撤销',
+        onClick: () => { get().undo() },
+      })
       return
     }
     const list = get().lists.find((l) => l.id === id)
@@ -438,7 +446,14 @@ export const useStore = create<AppState>((set, get) => ({
         break
       case 'deleteList':
         if (lastAction.list) {
-          await db.createList(lastAction.list.name, lastAction.list.color || undefined)
+          if ((lastAction.list as any).scope === 'team') {
+            useTeamStore.getState().sendMessage('list:create', {
+              name: lastAction.list.name,
+              color: lastAction.list.color || undefined,
+            })
+          } else {
+            await db.createList(lastAction.list.name, lastAction.list.color || undefined)
+          }
         }
         break
     }
