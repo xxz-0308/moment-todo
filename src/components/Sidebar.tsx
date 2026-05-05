@@ -352,7 +352,7 @@ export function Sidebar() {
                      connectionStatus === 'connecting' ? 'rgba(245,158,11,0.9)' :
                      'rgba(239,68,68,0.9)',
             }}>
-              {connectionStatus === 'connected' ? `已连接 (${Math.max(1, memberCount)}人)` :
+              {connectionStatus === 'connected' ? `已连接 (${memberCount}人)` :
                connectionStatus === 'connecting' ? '正在连接...' :
                '已离线'}
             </span>
