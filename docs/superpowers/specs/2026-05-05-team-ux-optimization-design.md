@@ -131,6 +131,24 @@ If no snapshot exists (first connect), skip summary.
 
 ## Out of Scope
 
+## 9. Fix Search Scope Isolation
+
+**Bug:** Ctrl+K search in team mode finds personal tasks. Clicking a personal search result in team mode opens it for editing as if it were a team task — data leaks between scopes.
+
+**Fix:**
+- `search()` in the store checks `scope`. In team mode, searches `useTeamStore.tasks` in-memory instead of calling `db.searchTasks()`.
+- `searchResults` are filtered to only show tasks from the current scope.
+- `selectTask()` in team mode uses `useTeamStore.tasks` for the lookup (already fixed in a prior commit — verify).
+
+**Acceptance criteria:**
+- Team mode → Ctrl+K → only team tasks appear
+- Personal mode → Ctrl+K → only personal tasks appear
+- Selecting a result in team mode opens it in team context (DetailPanel uses team data)
+
+---
+
+## Out of Scope
+
 - Real-time typing indicators
 - Voice/video chat integration
 - File sharing on team tasks
