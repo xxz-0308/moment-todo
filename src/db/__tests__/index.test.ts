@@ -101,3 +101,90 @@ describe('createTask', () => {
     expect(values).toContain('default')
   })
 })
+
+describe('updateTask', () => {
+  it('builds SET clause and appends updated_at', async () => {
+    mockApi.dbRun.mockResolvedValue(undefined)
+    await db.updateTask('t1', { title: 'New', priority: 'low' })
+    const sql = mockApi.dbRun.mock.calls[0][0]
+    expect(sql).toContain('title = ?')
+    expect(sql).toContain('priority = ?')
+    expect(sql).toContain('updated_at = ?')
+    expect(mockApi.dbRun.mock.calls[0][1].slice(-1)[0]).toBe('t1')
+  })
+})
+
+describe('deleteTask', () => {
+  it('deletes by id', async () => {
+    mockApi.dbRun.mockResolvedValue(undefined)
+    await db.deleteTask('t1')
+    expect(mockApi.dbRun).toHaveBeenCalledWith('DELETE FROM tasks WHERE id = ?', ['t1'])
+  })
+})
+
+describe('reorderTasks', () => {
+  it('calls UPDATE for each item', async () => {
+    mockApi.dbRun.mockResolvedValue(undefined)
+    await db.reorderTasks([
+      { id: 'a', sort_order: 0, list_id: 'default' },
+      { id: 'b', sort_order: 1, list_id: 'work' },
+    ])
+    expect(mockApi.dbRun).toHaveBeenCalledTimes(2)
+  })
+
+  it('empty array is a no-op', async () => {
+    await db.reorderTasks([])
+    expect(mockApi.dbRun).not.toHaveBeenCalled()
+  })
+})
+
+describe('fetchLists', () => {
+  it('queries personal-scope lists sorted by sort_order', async () => {
+    mockApi.dbQuery.mockResolvedValue([])
+    await db.fetchLists()
+    expect(mockApi.dbQuery).toHaveBeenCalledWith(
+      "SELECT * FROM lists WHERE scope = 'personal' OR scope IS NULL ORDER BY sort_order ASC"
+    )
+  })
+})
+
+describe('searchTasks', () => {
+  it('passes LIKE params and optional scope', async () => {
+    mockApi.dbQuery.mockResolvedValue([])
+    await db.searchTasks('milk', 'team')
+    expect(mockApi.dbQuery).toHaveBeenCalledWith(
+      expect.stringContaining('AND scope = ?'),
+      ['%milk%', '%milk%', 'team']
+    )
+  })
+})
+
+describe('getStats', () => {
+  it('returns all stat fields', async () => {
+    mockApi.dbGet.mockResolvedValueOnce({ count: 5 })
+    mockApi.dbGet.mockResolvedValueOnce({ count: 3 })
+    mockApi.dbGet.mockResolvedValueOnce({ count: 1 })
+    mockApi.dbQuery.mockResolvedValueOnce([{ name: '工作', count: 4 }])
+    mockApi.dbQuery.mockResolvedValueOnce([{ date: '2026-05-01', completed: 2 }])
+
+    const r = await db.getStats()
+    expect(r.total).toBe(5)
+    expect(r.completed).toBe(3)
+    expect(r.overdue).toBe(1)
+    expect(r.byList).toHaveLength(1)
+    expect(r.byDay).toHaveLength(1)
+  })
+
+  it('applies date range when fromDate and toDate provided', async () => {
+    mockApi.dbGet.mockResolvedValue({ count: 0 })
+    mockApi.dbGet.mockResolvedValue({ count: 0 })
+    mockApi.dbGet.mockResolvedValue({ count: 0 })
+    mockApi.dbQuery.mockResolvedValue([])
+    mockApi.dbQuery.mockResolvedValue([])
+
+    await db.getStats('2026-05-01', '2026-05-05')
+    const sql = mockApi.dbGet.mock.calls[0][0]
+    expect(sql).toContain('updated_at >= ?')
+    expect(sql).toContain('updated_at <= ?')
+  })
+})
