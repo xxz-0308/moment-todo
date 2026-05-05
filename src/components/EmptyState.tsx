@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Calendar, ListChecks, CheckCircle2, Sparkles, Plus, Trophy } from 'lucide-react'
 import type { ViewType } from '@/store'
 import { useStore } from '@/store'
+import { useTeamStore } from '@/lib/team-store'
 import { playCelebrationSound } from '@/hooks/useSound'
 
 function getGreeting(): { title: string; subtitle: string } {
@@ -41,6 +42,8 @@ interface EmptyStateProps {
 export function EmptyState({ view }: EmptyStateProps) {
   const toggleQuickAdd = useStore((s) => s.toggleQuickAdd)
   const tasks = useStore((s) => s.tasks)
+  const scope = useStore((s) => s.scope)
+  const connectionStatus = useTeamStore((s) => s.connectionStatus)
   const greeting = getGreeting()
   const config = configs[view]
 
@@ -108,6 +111,16 @@ export function EmptyState({ view }: EmptyStateProps) {
   // For list views, show a generic empty state
   if (!config) {
     const isCompletedView = view === 'completed'
+    let message: string
+    if (scope === 'team') {
+      if (connectionStatus !== 'connected') {
+        message = '团队服务已断开，数据仅可查看。正在自动重连中...'
+      } else {
+        message = '团队还没有待办，点击上方 + 添加第一个团队事务'
+      }
+    } else {
+      message = isCompletedView ? '完成一个任务，它会出现在这里' : '按下 Ctrl + N 添加第一个任务'
+    }
     return (
       <motion.div
         initial={{ opacity: 0, y: 16 }}
@@ -134,7 +147,7 @@ export function EmptyState({ view }: EmptyStateProps) {
           {isCompletedView ? '还没有完成的任务' : '这个列表是空的'}
         </h3>
         <p className="text-[13px] text-text-tertiary mb-6">
-          {isCompletedView ? '完成一个任务，它会出现在这里' : '按下 Ctrl + N 添加第一个任务'}
+          {message}
         </p>
         {!isCompletedView && (
           <motion.button
@@ -152,6 +165,17 @@ export function EmptyState({ view }: EmptyStateProps) {
   }
 
   const Icon = config.icon
+
+  let subtitle: string
+  if (scope === 'team') {
+    if (connectionStatus !== 'connected') {
+      subtitle = '团队服务已断开，数据仅可查看。正在自动重连中...'
+    } else {
+      subtitle = '团队还没有待办，点击上方 + 添加第一个团队事务'
+    }
+  } else {
+    subtitle = config.subtitle
+  }
 
   return (
     <motion.div
@@ -193,7 +217,7 @@ export function EmptyState({ view }: EmptyStateProps) {
 
       <div className="flex flex-col items-center">
         <Icon size={36} strokeWidth={1.2} className="text-text-tertiary/40 mb-4" />
-        <p className="text-[13px] text-text-secondary">{config.subtitle}</p>
+        <p className="text-[13px] text-text-secondary">{subtitle}</p>
       </div>
     </motion.div>
   )
