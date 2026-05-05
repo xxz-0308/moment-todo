@@ -51,6 +51,7 @@ interface TeamState {
   connectionStatus: ConnectionStatus
   serverUrl: string | null
   manualSort: boolean
+  onlineMemberCount: number
 
   _handleMessage: (event: TeamEvent) => void
   _updateStatus: (status: ConnectionStatus) => void
@@ -84,13 +85,14 @@ export const useTeamStore = create<TeamState>((set, get) => ({
   connectionStatus: 'disabled',
   serverUrl: null,
   manualSort: false,
+  onlineMemberCount: 0,
 
   _handleMessage: (event: TeamEvent) => {
     const { type, payload } = event
     switch (type) {
       case 'sync:full': {
         const p = payload as { members: TeamMember[]; lists: TeamList[]; tasks: TeamTask[] }
-        set({ members: p.members || [], lists: p.lists || [], tasks: p.tasks || [] })
+        set({ members: p.members || [], lists: p.lists || [], tasks: p.tasks || [], onlineMemberCount: (p.members || []).length })
         break
       }
       case 'task:created': {
@@ -158,7 +160,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
             updated[idx] = { ...updated[idx], ...p.member }
             return { members: updated }
           }
-          return { members: [...s.members, p.member] }
+          return { members: [...s.members, p.member], onlineMemberCount: s.onlineMemberCount + 1 }
         })
         break
       }
@@ -169,6 +171,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
           members: s.members.map((m) =>
             m.id === p.memberId ? { ...m, last_seen: new Date().toISOString() } : m
           ),
+          onlineMemberCount: Math.max(0, s.onlineMemberCount - 1),
         }))
         break
       }

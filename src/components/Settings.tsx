@@ -86,7 +86,8 @@ export default function Settings() {
   }
 
   const handleRoleChange = (newRole: '' | 'server' | 'client') => {
-    if (connStatus === 'connected' && newRole !== role) {
+    if (newRole === role) return // clicking same role, do nothing
+    if (connStatus === 'connected') {
       setConfirm({
         title: '切换运行模式',
         message: '切换运行模式将停止当前服务，确定要继续吗？',
@@ -101,6 +102,7 @@ export default function Settings() {
 
   const handleStart = async () => {
     if (starting) return
+    setStarting(true)
     // For server mode, check for existing server on LAN first
     if (role === 'server') {
       try {
@@ -108,6 +110,7 @@ export default function Settings() {
         if (api?.teamDiscover) {
           const existing = await api.teamDiscover()
           if (existing) {
+            setStarting(false)
             setConfirm({
               title: '检测到其他服务端',
               message: '局域网内已检测到其他服务端，继续启动可能导致冲突。确定要继续吗？',
@@ -127,7 +130,6 @@ export default function Settings() {
         }
       } catch {}
     }
-    setStarting(true)
     await saveTeamConfig()
     try {
       const api = (window as any).electronAPI

@@ -36,7 +36,7 @@ export function Sidebar() {
   const toggleCommandPalette = useStore((s) => s.toggleCommandPalette)
   const personalTasks = useStore((s) => s.tasks)
   const teamTasks = useTeamStore((s) => s.tasks)
-  const memberCount = useTeamStore((s) => s.members.length)
+  const memberCount = useTeamStore((s) => s.onlineMemberCount)
   const tasks = scope === 'team' ? teamTasks : personalTasks
 
   const [showNewList, setShowNewList] = useState(false)
