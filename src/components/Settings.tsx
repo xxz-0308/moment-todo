@@ -257,7 +257,7 @@ export default function Settings() {
                 <label className="text-[12px] text-text-secondary mb-1.5 block">运行模式</label>
                 <div className="flex gap-3">
                   <button
-                    onClick={() => setRole('server')}
+                    onClick={() => { setRole('server'); setConnStatus('') }}
                     className={`flex-1 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all ${
                       role === 'server'
                         ? 'bg-[rgba(99,102,241,0.1)] text-accent border border-[rgba(99,102,241,0.2)]'
@@ -267,7 +267,7 @@ export default function Settings() {
                     服务端
                   </button>
                   <button
-                    onClick={() => setRole('client')}
+                    onClick={() => { setRole('client'); setConnStatus('') }}
                     className={`flex-1 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all ${
                       role === 'client'
                         ? 'bg-[rgba(99,102,241,0.1)] text-accent border border-[rgba(99,102,241,0.2)]'

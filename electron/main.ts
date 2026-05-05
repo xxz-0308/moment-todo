@@ -467,6 +467,64 @@ function setupIPC() {
   ipcMain.handle('team:send', (_e, msg: { type: string; payload: unknown }) => {
     if (teamClient) {
       teamClient.send(msg)
+    } else if (teamServer && db) {
+      // Server mode: process message locally, write to DB, broadcast to all clients
+      const data = msg.payload as Record<string, unknown>
+      const now = new Date().toISOString()
+      const senderId = '' // server self
+
+      try {
+        if (msg.type === 'task:create') {
+          const id = (data.id as string) || crypto.randomUUID()
+          db.run(
+            `INSERT INTO tasks (id, title, completed, priority, due_date, list_id, notes, pinned, sort_order, scope, created_by, created_at, updated_at)
+             VALUES (?, ?, 0, ?, ?, ?, '', 0, 0, 'team', ?, ?, ?)`,
+            [id, data.title, data.priority || 'medium', data.dueDate || null, data.listId || 'default', senderId, now, now]
+          )
+          const task = queryAll('SELECT * FROM tasks WHERE id = ?', [id])[0]
+          const broadcast = { type: 'task:created', payload: { task, by: senderId } }
+          teamServer.broadcast(broadcast)
+          mainWindow?.webContents.send('team:event', broadcast)
+        } else if (msg.type === 'task:update') {
+          const fields: string[] = []
+          const values: unknown[] = []
+          for (const key of ['title', 'completed', 'priority', 'due_date', 'list_id', 'notes', 'pinned', 'sort_order', 'assigned_to']) {
+            if (key in data) { fields.push(`${key} = ?`); values.push(data[key]) }
+          }
+          if (fields.length > 0) {
+            fields.push("updated_at = ?")
+            values.push(now, data.id)
+            db.run(`UPDATE tasks SET ${fields.join(', ')} WHERE id = ?`, values)
+          }
+          const broadcast = { type: 'task:updated', payload: { id: data.id, ...data, by: senderId } }
+          teamServer.broadcast(broadcast)
+          mainWindow?.webContents.send('team:event', broadcast)
+        } else if (msg.type === 'task:delete') {
+          db.run('DELETE FROM tasks WHERE id = ?', [data.id])
+          const broadcast = { type: 'task:deleted', payload: { id: data.id, by: senderId } }
+          teamServer.broadcast(broadcast)
+          mainWindow?.webContents.send('team:event', broadcast)
+        } else if (msg.type === 'list:create') {
+          const id = (data.id as string) || crypto.randomUUID()
+          const r = db.exec("SELECT COALESCE(MAX(sort_order), -1) as m FROM lists WHERE scope = 'team'")
+          const maxOrder = (r.length > 0 && r[0].values.length > 0) ? (r[0].values[0][0] as number) : -1
+          db.run("INSERT INTO lists (id, name, color, sort_order, scope, created_by) VALUES (?, ?, ?, ?, 'team', ?)",
+            [id, data.name, data.color || '#6366f1', maxOrder + 1, senderId])
+          const list = queryAll('SELECT * FROM lists WHERE id = ?', [id])[0]
+          const broadcast = { type: 'list:created', payload: { list, by: senderId } }
+          teamServer.broadcast(broadcast)
+          mainWindow?.webContents.send('team:event', broadcast)
+        } else if (msg.type === 'list:delete') {
+          db.run("UPDATE tasks SET list_id = 'default' WHERE list_id = ?", [data.id])
+          db.run('DELETE FROM lists WHERE id = ?', [data.id])
+          const broadcast = { type: 'list:deleted', payload: { id: data.id, by: senderId } }
+          teamServer.broadcast(broadcast)
+          mainWindow?.webContents.send('team:event', broadcast)
+        }
+        saveDatabase()
+      } catch (e) {
+        console.error('[TeamServer] Process error:', e)
+      }
     }
     return true
   })

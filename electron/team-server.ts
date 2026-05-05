@@ -188,6 +188,10 @@ export class TeamServer {
     ws.send(msg)
   }
 
+  broadcast(msg: { type: string; payload: unknown; senderId?: string }): void {
+    this.broadcastToAll({ ...msg, senderId: msg.senderId || '' })
+  }
+
   private broadcastToAll(msg: { type: string; payload: unknown; senderId: string }): void {
     const data = JSON.stringify(msg)
     for (const client of this.clients.values()) {

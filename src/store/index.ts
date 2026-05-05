@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import * as db from '@/db'
 import { playCompleteSound, playDeleteSound, playUndoSound } from '@/hooks/useSound'
+import { useTeamStore } from '@/lib/team-store'
 
 // Types
 export interface Task {
@@ -160,6 +161,12 @@ export const useStore = create<AppState>((set, get) => ({
   // ── Optimistic mutations (no loadData, update local state directly) ──
 
   addTask: async (title, priority = 'medium', dueDate = null, listId) => {
+    if (get().scope === 'team') {
+      const currentView = get().currentView
+      const actualListId = listId || (['today', 'upcoming', 'completed'].includes(currentView) ? 'default' : currentView)
+      useTeamStore.getState().sendMessage('task:create', { title, priority, dueDate, listId: actualListId })
+      return undefined as any
+    }
     try {
       const currentView = get().currentView
       const actualListId = listId || (['today', 'upcoming', 'completed'].includes(currentView) ? 'default' : currentView)
@@ -174,6 +181,10 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   updateTask: async (id, updates) => {
+    if (get().scope === 'team') {
+      useTeamStore.getState().sendMessage('task:update', { id, ...updates })
+      return
+    }
     const currentTask = get().tasks.find((t) => t.id === id)
     if (!currentTask) return
 
@@ -199,6 +210,13 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   togglePin: async (id) => {
+    if (get().scope === 'team') {
+      const task = get().tasks.find((t) => t.id === id) || useTeamStore.getState().tasks.find((t) => t.id === id)
+      if (!task) return
+      const newPinned = (task.pinned ?? 0) ? 0 : 1
+      useTeamStore.getState().sendMessage('task:update', { id, pinned: newPinned })
+      return
+    }
     const task = get().tasks.find((t) => t.id === id)
     if (!task) return
     const newPinned = (task.pinned ?? 0) ? 0 : 1
@@ -209,6 +227,13 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   toggleComplete: async (id) => {
+    if (get().scope === 'team') {
+      const task = get().tasks.find((t) => t.id === id) || useTeamStore.getState().tasks.find((t) => t.id === id)
+      if (!task) return
+      const newCompleted = task.completed ? 0 : 1
+      useTeamStore.getState().sendMessage('task:update', { id, completed: newCompleted })
+      return
+    }
     const task = get().tasks.find((t) => t.id === id)
     if (!task) return
 
@@ -241,6 +266,12 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   removeTask: async (id) => {
+    if (get().scope === 'team') {
+      const task = get().tasks.find((t) => t.id === id) || useTeamStore.getState().tasks.find((t) => t.id === id)
+      if (!task) return
+      useTeamStore.getState().sendMessage('task:delete', { id })
+      return
+    }
     const task = get().tasks.find((t) => t.id === id)
     if (!task) return
 
@@ -284,11 +315,19 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   addList: async (name, color) => {
+    if (get().scope === 'team') {
+      useTeamStore.getState().sendMessage('list:create', { name, color })
+      return
+    }
     const list = await db.createList(name, color)
     set((s) => ({ lists: [...s.lists, list] }))
   },
 
   removeList: async (id) => {
+    if (get().scope === 'team') {
+      useTeamStore.getState().sendMessage('list:delete', { id })
+      return
+    }
     const list = get().lists.find((l) => l.id === id)
     if (!list) return
 

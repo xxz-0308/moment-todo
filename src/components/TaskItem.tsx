@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Circle, CheckCircle2, GripVertical, Calendar, Flag, Trash2, Pin } from 'lucide-react'
 import { useStore, type Task } from '@/store'
+import { useTeamStore } from '@/lib/team-store'
 import { Reorder } from 'framer-motion'
 import { playPinSound, playDragPickupSound, playDragDropSound } from '@/hooks/useSound'
 
@@ -246,12 +247,20 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
       </span>
 
       {/* Assignee badge (team tasks) */}
-      {scope === 'team' && (task as any).assigned_to && (
-        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-[rgba(99,102,241,0.1)] text-[rgba(99,102,241,0.85)] flex-shrink-0">
-          <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-          {(task as any).assigned_to.slice(0, 2).toUpperCase()}
-        </span>
-      )}
+      {scope === 'team' && (task as any).assigned_to && (() => {
+        const member = useTeamStore.getState().members.find((m) => m.id === (task as any).assigned_to)
+        const memberColor = member?.color || '#6366f1'
+        const memberInitial = member?.name?.charAt(0) || (task as any).assigned_to.slice(0, 1).toUpperCase()
+        return (
+          <span
+            className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium flex-shrink-0"
+            style={{ backgroundColor: memberColor + '18', color: memberColor }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: memberColor }} />
+            {memberInitial}
+          </span>
+        )
+      })()}
 
       {/* Due date */}
       {hasDueDate && !showCompletedState && (
