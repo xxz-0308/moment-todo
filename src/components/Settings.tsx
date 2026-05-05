@@ -226,18 +226,21 @@ export default function Settings() {
               {/* Nickname */}
               <div>
                 <label className="text-[12px] text-text-secondary mb-1.5 block">我的昵称</label>
-                <input
-                  type="text"
-                  value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
-                  placeholder="输入名字"
-                  className="w-full px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] text-[13px] text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all"
-                />
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                  <input
+                    type="text"
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                    placeholder="输入名字"
+                    className="flex-1 px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] text-[13px] text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all"
+                  />
+                </div>
               </div>
 
               {/* Color */}
               <div>
-                <label className="text-[12px] text-text-secondary mb-1.5 block">我的颜色</label>
+                <label className="text-[12px] text-text-secondary mb-1.5 block">我的颜色 <span className="text-text-tertiary">— 用于任务分配标识</span></label>
                 <div className="flex gap-2">
                   {PRESET_COLORS.map((c) => (
                     <button

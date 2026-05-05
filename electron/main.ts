@@ -206,6 +206,12 @@ function startTeam(mode: 'server' | 'client', config: TeamConfig): void {
       return
     }
     stopDiscovery = publishServer(config.serverPort)
+    // Register server's own member in team_members
+    db.run(
+      `INSERT INTO team_members (id, name, color, is_server, last_seen) VALUES (?, ?, ?, 1, datetime('now'))
+       ON CONFLICT(id) DO UPDATE SET name = ?, color = ?, is_server = 1, last_seen = datetime('now')`,
+      [config.member.id, config.member.name, config.member.color, config.member.name, config.member.color]
+    )
     // Notify renderer that server is running and send team data
     mainWindow?.webContents.send('team:event', { type: 'status', payload: 'connected' })
     const members = queryAll('SELECT * FROM team_members')

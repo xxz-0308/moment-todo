@@ -20,9 +20,11 @@ export function DetailPanel() {
   const updateTask = useStore((s) => s.updateTask)
   const toggleComplete = useStore((s) => s.toggleComplete)
   const removeTask = useStore((s) => s.removeTask)
-  const lists = useStore((s) => s.lists)
-  const theme = useStore((s) => s.theme)
   const scope = useStore((s) => s.scope)
+  const personalLists = useStore((s) => s.lists)
+  const teamLists = useTeamStore((s) => s.lists)
+  const lists = scope === 'team' ? teamLists : personalLists
+  const theme = useStore((s) => s.theme)
   const teamMembers = useTeamStore((s) => s.members)
 
   const titleRef = useRef<HTMLInputElement>(null)
@@ -187,23 +189,33 @@ export function DetailPanel() {
 
         {/* Assignee (team only) */}
         {scope === 'team' && (
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-medium text-text-tertiary">负责人</label>
-            <select
-              value={(selectedTask as any).assigned_to || 'none'}
-              onChange={(e) => {
-                const val = e.target.value === 'none' ? null : e.target.value
-                updateTask(selectedTask.id, { assigned_to: val } as any)
-              }}
-              className="w-full px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] text-[13px] text-text-primary focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all"
-            >
-              <option value="none">未分配</option>
-              {teamMembers.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-[12px] font-medium text-text-tertiary">
+              <Flag size={13} strokeWidth={2} />
+              负责人
+            </label>
+            <div className="relative">
+              <select
+                value={(selectedTask as any).assigned_to || 'none'}
+                onChange={(e) => {
+                  const val = e.target.value === 'none' ? null : e.target.value
+                  updateTask(selectedTask.id, { assigned_to: val } as any)
+                }}
+                className="w-full px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.04)] text-[13px] text-text-primary outline-none border border-[rgba(255,255,255,0.08)] focus:border-accent focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all appearance-none cursor-pointer"
+              >
+                <option value="none" className="bg-[#1a1a2e] text-text-primary">未分配</option>
+                {teamMembers.map((m) => (
+                  <option key={m.id} value={m.id} className="bg-[#1a1a2e] text-text-primary">
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+                  <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-text-tertiary" />
+                </svg>
+              </div>
+            </div>
           </div>
         )}
 
@@ -220,19 +232,26 @@ export function DetailPanel() {
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-[12px] font-medium text-text-tertiary">
             <ListChecks size={13} strokeWidth={2} />
-            所属列表
+            所属分类
           </label>
-          <select
-            value={listId}
-            onChange={(e) => saveList(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.03)] text-[13px] text-text-primary outline-none border border-[rgba(255,255,255,0.06)] focus:border-accent focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all appearance-none cursor-pointer"
-          >
-            {lists.map((list) => (
-              <option key={list.id} value={list.id}>
-                {list.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={listId}
+              onChange={(e) => saveList(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.04)] text-[13px] text-text-primary outline-none border border-[rgba(255,255,255,0.08)] focus:border-accent focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all appearance-none cursor-pointer"
+            >
+              {lists.map((list) => (
+                <option key={list.id} value={list.id} className="bg-[#1a1a2e] text-text-primary">
+                  {list.name}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+                <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-text-tertiary" />
+              </svg>
+            </div>
+          </div>
         </div>
 
         {/* Notes */}
