@@ -152,7 +152,23 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         }))
         break
       }
+      case 'member:connected': {
+        // Real WebSocket connection established — always increment count
+        const p = payload as { member: TeamMember }
+        set((s) => {
+          const idx = s.members.findIndex((m) => m.id === p.member.id)
+          if (idx >= 0) {
+            const updated = [...s.members]
+            updated[idx] = { ...updated[idx], ...p.member, last_seen: new Date().toISOString() }
+            return { members: updated, onlineMemberCount: s.onlineMemberCount + 1 }
+          }
+          return { members: [...s.members, p.member], onlineMemberCount: s.onlineMemberCount + 1 }
+        })
+        break
+      }
+      case 'member:updated':
       case 'member:joined': {
+        // Profile update or sync data — don't change count
         const p = payload as { member: TeamMember }
         set((s) => {
           const idx = s.members.findIndex((m) => m.id === p.member.id)
@@ -161,7 +177,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
             updated[idx] = { ...updated[idx], ...p.member }
             return { members: updated }
           }
-          return { members: [...s.members, p.member], onlineMemberCount: s.onlineMemberCount + 1 }
+          return { members: [...s.members, p.member] }
         })
         break
       }

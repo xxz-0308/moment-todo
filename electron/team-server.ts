@@ -60,8 +60,8 @@ export class TeamServer {
                  ON CONFLICT(id) DO UPDATE SET name = ?, color = ?, last_seen = datetime('now')`,
                 [member.id, member.name, member.color, member.name, member.color]
               )
-              this.broadcastToAll({ type: 'member:joined', payload: { member }, senderId: '' })
-              this.onEvent('member:joined', { member })
+              this.broadcastToAll({ type: 'member:connected', payload: { member }, senderId: '' })
+              this.onEvent('member:connected', { member })
               break
             }
             case 'member:heartbeat': {

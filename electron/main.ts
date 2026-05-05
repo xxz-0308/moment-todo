@@ -486,8 +486,8 @@ function setupIPC() {
         [member.name, member.color, member.id]
       )
       const updated = queryAll('SELECT * FROM team_members WHERE id = ?', [member.id])[0]
-      teamServer.broadcast({ type: 'member:joined', payload: { member: updated } })
-      mainWindow?.webContents.send('team:event', { type: 'member:joined', payload: { member: updated } })
+      teamServer.broadcast({ type: 'member:updated', payload: { member: updated } })
+      mainWindow?.webContents.send('team:event', { type: 'member:updated', payload: { member: updated } })
     }
     return true
   })
