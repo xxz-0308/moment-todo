@@ -1,4 +1,4 @@
-import { useEffect, useCallback, lazy, Suspense } from 'react'
+import { useEffect, useCallback, lazy, Suspense, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useStore } from '@/store'
 import { useTeamStore } from '@/lib/team-store'
@@ -11,6 +11,7 @@ import { CommandPalette } from '@/components/CommandPalette'
 import { QuickAdd } from '@/components/QuickAdd'
 import { ToastContainer } from '@/components/Toast'
 import { ShortcutHints } from '@/components/ShortcutHints'
+import { GlassConfirm } from '@/components/GlassConfirm'
 
 const Settings = lazy(() => import('@/components/Settings'))
 const Stats = lazy(() => import('@/components/Stats'))
@@ -32,6 +33,8 @@ export default function App() {
   const showQuickAdd = useStore((s) => s.showQuickAdd)
   const showSettings = useStore((s) => s.showSettings)
   const showStats = useStore((s) => s.showStats)
+
+  const [quitConfirm, setQuitConfirm] = useState<{ memberCount: number } | null>(null)
 
   useKeyboard()
 
@@ -77,21 +80,28 @@ export default function App() {
     const api = (window as any).electronAPI
     if (!api?.onTeamQuitWarning) return
     api.onTeamQuitWarning((data: { memberCount: number }) => {
-      if (window.confirm(`服务端将关闭，当前 ${data.memberCount} 个客户端将断开连接。确定退出吗？`)) {
-        api.teamConfirmQuit?.()
-      }
+      setQuitConfirm(data)
     })
   }, [])
 
-  // Show reconnect summary toast
+  // Show reconnect summary toast + listen for custom toast events from team-store
   useEffect(() => {
-    const unsub = useTeamStore.subscribe((state, prev) => {
-      if (state.reconnectSummary && state.reconnectSummary !== prev.reconnectSummary) {
+    const unsub = useTeamStore.subscribe((state) => {
+      if (state.reconnectSummary) {
         useStore.getState().addToast(state.reconnectSummary)
-        useTeamStore.setState({ reconnectSummary: null })
+        // Clear after showing — use setTimeout to avoid setState during subscribe
+        setTimeout(() => useTeamStore.setState({ reconnectSummary: null }), 0)
       }
     })
-    return unsub
+    const toastHandler = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      useStore.getState().addToast(detail.message)
+    }
+    window.addEventListener('moment:toast', toastHandler)
+    return () => {
+      unsub()
+      window.removeEventListener('moment:toast', toastHandler)
+    }
   }, [])
 
   if (loading) {
@@ -132,6 +142,20 @@ export default function App() {
 
       <ToastContainer />
       <ShortcutHints />
+
+      <GlassConfirm
+        open={!!quitConfirm}
+        title="关闭服务端"
+        message={`服务端将关闭，当前 ${quitConfirm?.memberCount || 0} 个客户端将断开连接。确定退出吗？`}
+        danger
+        confirmLabel="确定退出"
+        onConfirm={() => {
+          const api = (window as any).electronAPI
+          api?.teamConfirmQuit?.()
+          setQuitConfirm(null)
+        }}
+        onCancel={() => setQuitConfirm(null)}
+      />
     </div>
   )
 }

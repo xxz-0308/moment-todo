@@ -242,8 +242,11 @@ export const useTeamStore = create<TeamState>((set, get) => ({
       }
       case 'notify:assigned': {
         const p = payload as { taskId: string; taskTitle: string }
-        if (typeof window !== 'undefined' && (window as any).electronAPI?.showNotification) {
-          (window as any).electronAPI.showNotification('新任务分配', `你被分配了任务：${p.taskTitle}`)
+        if (typeof window !== 'undefined') {
+          // System notification
+          ;(window as any).electronAPI?.showNotification?.('新任务分配', `你被分配了任务：${p.taskTitle}`)
+          // In-app toast via custom event (avoids circular import)
+          window.dispatchEvent(new CustomEvent('moment:toast', { detail: { message: `新任务：${p.taskTitle}` } }))
         }
         break
       }

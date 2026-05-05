@@ -9,7 +9,7 @@ function generateId(): string {
 // Tasks
 export async function fetchTasks(): Promise<Task[]> {
   return (await api.dbQuery(
-    'SELECT * FROM tasks ORDER BY sort_order ASC, created_at DESC'
+    "SELECT * FROM tasks WHERE scope = 'personal' OR scope IS NULL ORDER BY sort_order ASC, created_at DESC"
   )) as Task[]
 }
 
@@ -18,22 +18,22 @@ export async function fetchTasksByView(view: string): Promise<Task[]> {
   switch (view) {
     case 'today':
       return (await api.dbQuery(
-        'SELECT * FROM tasks WHERE completed = 0 AND due_date = ? ORDER BY sort_order ASC, created_at DESC',
+        "SELECT * FROM tasks WHERE completed = 0 AND due_date = ? AND (scope = 'personal' OR scope IS NULL) ORDER BY sort_order ASC, created_at DESC",
         [today]
       )) as Task[]
     case 'upcoming':
       return (await api.dbQuery(
-        'SELECT * FROM tasks WHERE completed = 0 AND due_date > ? ORDER BY due_date ASC, sort_order ASC',
+        "SELECT * FROM tasks WHERE completed = 0 AND due_date > ? AND (scope = 'personal' OR scope IS NULL) ORDER BY due_date ASC, sort_order ASC",
         [today]
       )) as Task[]
     case 'completed':
       return (await api.dbQuery(
-        'SELECT * FROM tasks WHERE completed = 1 ORDER BY updated_at DESC LIMIT 100'
+        "SELECT * FROM tasks WHERE completed = 1 AND (scope = 'personal' OR scope IS NULL) ORDER BY updated_at DESC LIMIT 100"
       )) as Task[]
     default:
       // list_id
       return (await api.dbQuery(
-        'SELECT * FROM tasks WHERE completed = 0 AND list_id = ? ORDER BY sort_order ASC, created_at DESC',
+        "SELECT * FROM tasks WHERE completed = 0 AND list_id = ? AND (scope = 'personal' OR scope IS NULL) ORDER BY sort_order ASC, created_at DESC",
         [view]
       )) as Task[]
   }
@@ -110,7 +110,9 @@ export async function getTask(id: string): Promise<Task | null> {
 
 // Lists
 export async function fetchLists(): Promise<List[]> {
-  return (await api.dbQuery('SELECT * FROM lists ORDER BY sort_order ASC')) as List[]
+  return (await api.dbQuery(
+    "SELECT * FROM lists WHERE scope = 'personal' OR scope IS NULL ORDER BY sort_order ASC"
+  )) as List[]
 }
 
 export async function createList(name: string, color?: string): Promise<List> {
@@ -144,10 +146,13 @@ export async function setSetting(key: string, value: string): Promise<void> {
 }
 
 // Search
-export async function searchTasks(query: string): Promise<Task[]> {
+export async function searchTasks(query: string, scope?: string): Promise<Task[]> {
+  const scopeFilter = scope ? `AND scope = ?` : ''
+  const params: string[] = [`%${query}%`, `%${query}%`]
+  if (scope) params.push(scope)
   return (await api.dbQuery(
-    "SELECT * FROM tasks WHERE title LIKE ? OR notes LIKE ? ORDER BY updated_at DESC LIMIT 20",
-    [`%${query}%`, `%${query}%`]
+    `SELECT * FROM tasks WHERE (title LIKE ? OR notes LIKE ?) ${scopeFilter} ORDER BY updated_at DESC LIMIT 20`,
+    params
   )) as Task[]
 }
 
@@ -159,6 +164,7 @@ export async function getStats(fromDate?: string, toDate?: string): Promise<{
   byList: { name: string; count: number }[]
   byDay: { date: string; completed: number }[]
 }> {
+  const scopeFilter = " AND (scope = 'personal' OR scope IS NULL)"
   const dateFilter = fromDate && toDate ? ' AND updated_at >= ? AND updated_at <= ?' : fromDate ? ' AND updated_at >= ?' : toDate ? ' AND updated_at <= ?' : ''
   const dateParams = (): unknown[] => {
     const p: unknown[] = []
@@ -169,17 +175,17 @@ export async function getStats(fromDate?: string, toDate?: string): Promise<{
 
   const totalParams = dateParams()
   const total = (await api.dbGet(
-    `SELECT COUNT(*) as count FROM tasks WHERE completed = 0${dateFilter}`,
+    `SELECT COUNT(*) as count FROM tasks WHERE completed = 0${scopeFilter}${dateFilter}`,
     totalParams
   )) as { count: number }
   const completed = (await api.dbGet(
-    `SELECT COUNT(*) as count FROM tasks WHERE completed = 1${dateFilter}`,
+    `SELECT COUNT(*) as count FROM tasks WHERE completed = 1${scopeFilter}${dateFilter}`,
     dateParams()
   )) as { count: number }
   const today = new Date().toISOString().split('T')[0]
   const overdueParams = dateParams()
   const overdue = (await api.dbGet(
-    `SELECT COUNT(*) as count FROM tasks WHERE completed = 0 AND due_date IS NOT NULL AND due_date < ?${dateFilter}`,
+    `SELECT COUNT(*) as count FROM tasks WHERE completed = 0 AND due_date IS NOT NULL AND due_date < ?${scopeFilter}${dateFilter}`,
     [today, ...overdueParams]
   )) as { count: number }
 
@@ -187,7 +193,7 @@ export async function getStats(fromDate?: string, toDate?: string): Promise<{
   const byList = (await api.dbQuery(
     `SELECT l.name, COUNT(t.id) as count
      FROM tasks t JOIN lists l ON t.list_id = l.id
-     WHERE 1=1${dateFilter.replace(/updated_at/g, 't.updated_at').replace(/AND /g, 'AND ')}
+     WHERE (t.scope = 'personal' OR t.scope IS NULL)${dateFilter.replace(/updated_at/g, 't.updated_at').replace(/AND /g, 'AND ')}
      GROUP BY l.name ORDER BY count DESC`,
     byListParams
   )) as { name: string; count: number }[]
@@ -195,7 +201,7 @@ export async function getStats(fromDate?: string, toDate?: string): Promise<{
   const byDayParams = dateParams()
   const byDay = (await api.dbQuery(
     `SELECT date(updated_at) as date, COUNT(*) as completed
-     FROM tasks WHERE completed = 1${dateFilter}
+     FROM tasks WHERE completed = 1${scopeFilter}${dateFilter}
      GROUP BY date ORDER BY date ASC`,
     byDayParams
   )) as { date: string; completed: number }[]

@@ -459,7 +459,7 @@ export const useStore = create<AppState>((set, get) => ({
       )
       set({ searchResults: results as any, searchQuery: query })
     } else {
-      const results = await db.searchTasks(query)
+      const results = await db.searchTasks(query, 'personal')
       set({ searchResults: results, searchQuery: query })
     }
   },

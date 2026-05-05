@@ -47,8 +47,42 @@ const timeRangeLabels: { key: TimeRange; label: string }[] = [
   { key: 'all', label: '全部' },
 ]
 
+import { useTeamStore } from '@/lib/team-store'
+
+function computeTeamStats(tasks: import('@/lib/team-store').TeamTask[], lists: import('@/lib/team-store').TeamList[], from: string, to: string): StatsData {
+  const filtered = tasks.filter(t => {
+    if (from && t.updated_at < from) return false
+    if (to && t.updated_at > to + 'T23:59:59') return false
+    return true
+  })
+  const total = filtered.filter(t => !t.completed).length
+  const completed = filtered.filter(t => t.completed).length
+  const today = new Date().toISOString().split('T')[0]
+  const overdue = filtered.filter(t => !t.completed && t.due_date && t.due_date < today).length
+
+  const byListMap = new Map<string, number>()
+  for (const t of filtered) {
+    const list = lists.find(l => l.id === t.list_id)
+    const name = list?.name || '默认'
+    byListMap.set(name, (byListMap.get(name) || 0) + 1)
+  }
+  const byList = Array.from(byListMap.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count)
+
+  const byDayMap = new Map<string, number>()
+  for (const t of filtered.filter(t => t.completed)) {
+    const day = t.updated_at.split('T')[0]
+    byDayMap.set(day, (byDayMap.get(day) || 0) + 1)
+  }
+  const byDay = Array.from(byDayMap.entries()).map(([date, completed]) => ({ date, completed })).sort((a, b) => a.date.localeCompare(b.date))
+
+  return { total, completed, overdue, byList, byDay }
+}
+
 export default function Stats() {
   const toggleStats = useStore((s) => s.toggleStats)
+  const scope = useStore((s) => s.scope)
+  const teamTasks = useTeamStore((s) => s.tasks)
+  const teamLists = useTeamStore((s) => s.lists)
   const [stats, setStats] = useState<StatsData | null>(null)
   const [hoveredPie, setHoveredPie] = useState<number | undefined>(undefined)
   const [timeRange, setTimeRange] = useState<TimeRange>('week')
@@ -57,8 +91,12 @@ export default function Stats() {
 
   useEffect(() => {
     const { from, to } = getDateRange(timeRange, customFrom, customTo)
-    getStats(from || undefined, to || undefined).then(setStats)
-  }, [timeRange, customFrom, customTo])
+    if (scope === 'team') {
+      setStats(computeTeamStats(teamTasks, teamLists, from, to))
+    } else {
+      getStats(from || undefined, to || undefined).then(setStats)
+    }
+  }, [timeRange, customFrom, customTo, scope, teamTasks, teamLists])
 
   if (!stats) {
     return (

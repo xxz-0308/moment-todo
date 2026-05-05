@@ -190,9 +190,11 @@ export function TeamPlanet({ onClose }: { onClose: () => void }) {
           <span className="flex items-center gap-3">
             <span className="w-3 h-3 rounded-full" style={{ backgroundColor: hoveredMember.color }} />
             <span className="text-text-primary font-semibold text-[14px]">{hoveredMember.name}</span>
-            <span className="text-[12px]" style={{ color: hoveredMember.last_seen && new Date(hoveredMember.last_seen).getTime() > Date.now() - 120000 ? 'rgba(16,185,129,0.85)' : 'var(--color-text-tertiary)' }}>
-              {hoveredMember.last_seen && new Date(hoveredMember.last_seen).getTime() > Date.now() - 120000 ? '在线' : '离线'}
-            </span>
+            {hoveredMember.is_server ? (
+              <span className="text-[12px] text-green-400">服务端</span>
+            ) : (
+              <span className="text-[12px] text-text-tertiary">成员</span>
+            )}
           </span>
         </div>
       )}
