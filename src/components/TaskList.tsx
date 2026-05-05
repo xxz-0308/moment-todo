@@ -295,13 +295,15 @@ export function TaskList() {
       <div className="px-6 pt-5 pb-3 flex items-center justify-between">
         <h1 className="text-lg font-semibold text-text-primary">{getViewTitle()}</h1>
         <button
+          disabled={isTeamMode && connectionStatus !== 'connected'}
           onClick={() => {
-            if (isTeamMode) useTeamStore.setState({ manualSort: !teamManualSort })
+            if (isTeamMode) useTeamStore.getState().setManualSort(!teamManualSort)
             else setSortManual(!sortManual)
           }}
           className={`
             flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-medium
             transition-colors
+            disabled:opacity-30 disabled:cursor-not-allowed
             ${effectiveSortManual
               ? 'bg-accent-muted text-accent'
               : 'text-text-tertiary hover:text-text-secondary hover:bg-surface-hover'

@@ -54,6 +54,7 @@ interface TeamState {
 
   _handleMessage: (event: TeamEvent) => void
   _updateStatus: (status: ConnectionStatus) => void
+  setManualSort: (value: boolean) => void
   connect: (url?: string) => Promise<void>
   disconnect: () => Promise<void>
   startTeam: (mode: 'server' | 'client') => Promise<void>
@@ -171,6 +172,11 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         }))
         break
       }
+      case 'sort:mode': {
+        const p = payload as { manualSort: boolean }
+        set({ manualSort: p.manualSort })
+        break
+      }
       case 'status': {
         const p = payload as unknown as string
         set({ connectionStatus: p as ConnectionStatus })
@@ -207,6 +213,11 @@ export const useTeamStore = create<TeamState>((set, get) => ({
       get()._handleMessage(event)
     })
     await a.teamStart(mode)
+  },
+
+  setManualSort: (value: boolean) => {
+    set({ manualSort: value })
+    get().sendMessage('sort:mode', { manualSort: value })
   },
 
   sendMessage: (type: string, payload: unknown) => {

@@ -370,7 +370,7 @@ export default function Settings() {
               )}
 
               {/* Connection controls */}
-              <div className="flex items-center gap-3 pt-2">
+              <div className="flex items-center gap-3 pt-2 flex-wrap">
                 {connStatus === 'connected' ? (
                   <button
                     onClick={handleStop}
@@ -378,27 +378,29 @@ export default function Settings() {
                   >
                     停止{role === 'server' ? '服务端' : '连接'}
                   </button>
+                ) : starting ? (
+                  <button
+                    disabled
+                    className="px-4 py-2 rounded-lg bg-accent text-white text-[13px] font-medium opacity-60 cursor-not-allowed flex items-center gap-2"
+                  >
+                    <span className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    启动中...
+                  </button>
                 ) : (
                   <button
                     onClick={handleStart}
-                    disabled={!nickname || !role || starting}
-                    className="px-4 py-2 rounded-lg bg-accent text-white text-[13px] font-medium hover:bg-accent-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                    disabled={!nickname || !role}
+                    className="px-4 py-2 rounded-lg bg-accent text-white text-[13px] font-medium hover:bg-accent-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    {starting && <span className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />}
-                    {starting ? '启动中...' : role === 'server' ? '启动服务端' : '连接'}
+                    {role === 'server' ? '启动服务端' : '连接'}
                   </button>
                 )}
-                {role === 'server' && connStatus === 'connected' && (
-                  <span className="text-[11px] text-yellow-400">服务端已在线</span>
-                )}
-                {connStatus && (
-                  <span className="flex items-center gap-1.5 text-[12px]">
-                    <span className={`w-2 h-2 rounded-full ${connStatus === 'connected' ? 'bg-green-500' : connStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 'bg-red-500'}`} />
-                    <span className={connStatus === 'connected' ? 'text-green-400' : connStatus === 'connecting' ? 'text-yellow-400' : 'text-red-400'}>
-                      {connStatus === 'connected' ? '已连接' : connStatus === 'connecting' ? '连接中...' : connStatus}
-                    </span>
+                <span className="flex items-center gap-1.5 text-[12px]">
+                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${starting ? 'bg-yellow-500 animate-pulse' : connStatus === 'connected' ? 'bg-green-500' : connStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : connStatus ? 'bg-red-500' : ''}`} />
+                  <span className={starting ? 'text-yellow-400' : connStatus === 'connected' ? 'text-green-400' : connStatus === 'connecting' ? 'text-yellow-400' : connStatus ? 'text-red-400' : 'text-text-tertiary'}>
+                    {starting ? '启动中...' : connStatus === 'connected' ? '已连接' : connStatus === 'connecting' ? '连接中...' : connStatus || '未连接'}
                   </span>
-                )}
+                </span>
               </div>
 
               {/* Server info — show IP:port when running */}

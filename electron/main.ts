@@ -573,6 +573,10 @@ function setupIPC() {
           const broadcastMsg = { type: 'task:reorder', payload: { items }, senderId }
           teamServer.broadcast(broadcastMsg)
           mainWindow?.webContents.send('team:event', broadcastMsg)
+        } else if (msg.type === 'sort:mode') {
+          const broadcast = { type: 'sort:mode', payload: msg.payload, senderId }
+          teamServer.broadcast(broadcast)
+          mainWindow?.webContents.send('team:event', broadcast)
         }
         saveDatabase()
       } catch (e) {

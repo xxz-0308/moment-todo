@@ -68,6 +68,11 @@ export class TeamServer {
               this.db.run("UPDATE team_members SET last_seen = datetime('now') WHERE id = ?", [memberId])
               break
             }
+            case 'sort:mode': {
+              this.broadcastToAll({ type: 'sort:mode', payload: msg.payload, senderId: memberId })
+              this.onEvent('sort:mode', msg.payload)
+              break
+            }
             case 'sync:request': {
               this.sendSyncFull(ws)
               break
