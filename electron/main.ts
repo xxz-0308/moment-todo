@@ -486,6 +486,16 @@ function setupIPC() {
     const result = await discoverServer()
     return result
   })
+  ipcMain.handle('team:request-sync', () => {
+    if (teamServer && db) {
+      mainWindow?.webContents.send('team:event', { type: 'status', payload: 'connected' })
+      const members = queryAll('SELECT * FROM team_members')
+      const teamLists = queryAll("SELECT * FROM lists WHERE scope = 'team'")
+      const teamTasks = queryAll("SELECT * FROM tasks WHERE scope = 'team'")
+      mainWindow?.webContents.send('team:event', { type: 'sync:full', payload: { members, lists: teamLists, tasks: teamTasks } })
+    }
+    return true
+  })
   ipcMain.handle('team:send', (_e, msg: { type: string; payload: unknown }) => {
     if (teamClient) {
       teamClient.send(msg)

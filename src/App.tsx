@@ -64,6 +64,13 @@ export default function App() {
     api.onTeamEvent((event: { type: string; payload: unknown }) => {
       useTeamStore.getState()._handleMessage(event as any)
     })
+    // Request current team state — main process may have sent events before we were ready
+    api.teamGetStatus?.().then((status: any) => {
+      if (status.status === 'connected') {
+        useTeamStore.getState()._updateStatus('connected')
+        api.teamRequestSync?.()  // Pull full data from server
+      }
+    })
   }, [])
 
   if (loading) {

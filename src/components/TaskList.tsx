@@ -20,9 +20,20 @@ function quickDates(): { label: string; value: string | null }[] {
 }
 
 function applyFilterChip(tasks: Task[], filter: string | null): Task[] {
+  if (!filter) return tasks
   if (filter === 'high') return tasks.filter((t) => t.priority === 'high')
   if (filter === 'due') return tasks.filter((t) => !!t.due_date)
   if (filter === 'notes') return tasks.filter((t) => !!t.notes)
+  // List filters: filter value is the list_id
+  if (filter.startsWith('list:')) {
+    const listId = filter.slice(5)
+    return tasks.filter((t) => t.list_id === listId)
+  }
+  // Assignee filters: filter value is the member_id
+  if (filter.startsWith('assignee:')) {
+    const memberId = filter.slice(9)
+    return tasks.filter((t) => (t as any).assigned_to === memberId)
+  }
   return tasks
 }
 
@@ -103,7 +114,7 @@ export function TaskList() {
         return {
           todayTasks: [],
           overdueTasks: [],
-          regularTasks: completed,
+          regularTasks: applyFilterChip(completed, activeFilter),
         }
       default: {
         // '全部' (id=default) shows all tasks; other lists filter by list_id
@@ -239,6 +250,7 @@ export function TaskList() {
       isMultiSelected={multiSelectIds.has(task.id)}
       showCompletedState={isCompletedView}
       flashHighlight={restoredTaskId === task.id}
+      scope={scope}
     />
   )
 
@@ -251,6 +263,7 @@ export function TaskList() {
       isMultiSelected={multiSelectIds.has(task.id)}
       showCompletedState={isCompletedView}
       flashHighlight={restoredTaskId === task.id}
+      scope={scope}
     />
   )
 
@@ -369,7 +382,7 @@ export function TaskList() {
       )}
 
       {/* Filter chips */}
-      {!isCompletedView && (
+      {!isCompletedView ? (
         <div className="flex items-center gap-1.5 px-6 pb-3">
           <Filter size={12} strokeWidth={2} className="text-text-tertiary mr-0.5" />
           {[
@@ -389,6 +402,39 @@ export function TaskList() {
               `}
             >
               {chip.label}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="flex items-center gap-1.5 px-6 pb-3 flex-wrap">
+          <Filter size={12} strokeWidth={2} className="text-text-tertiary mr-0.5" />
+          {/* Category filter chips */}
+          {activeLists.map((list) => (
+            <button
+              key={`list-${list.id}`}
+              onClick={() => setActiveFilter(activeFilter === `list:${list.id}` ? null : `list:${list.id}`)}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                activeFilter === `list:${list.id}`
+                  ? 'bg-[rgba(99,102,241,0.1)] text-accent border border-[rgba(99,102,241,0.2)]'
+                  : 'bg-[rgba(255,255,255,0.03)] text-text-tertiary hover:text-text-secondary hover:bg-[rgba(255,255,255,0.05)] border border-transparent'
+              }`}
+            >
+              {list.name}
+            </button>
+          ))}
+          {/* Assignee filter chips (team tasks only) */}
+          {isTeamMode && useTeamStore.getState().members.map((m) => (
+            <button
+              key={`assignee-${m.id}`}
+              onClick={() => setActiveFilter(activeFilter === `assignee:${m.id}` ? null : `assignee:${m.id}`)}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                activeFilter === `assignee:${m.id}`
+                  ? 'bg-[rgba(99,102,241,0.1)] text-accent border border-[rgba(99,102,241,0.2)]'
+                  : 'bg-[rgba(255,255,255,0.03)] text-text-tertiary hover:text-text-secondary hover:bg-[rgba(255,255,255,0.05)] border border-transparent'
+              }`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: m.color }} />
+              {m.name}
             </button>
           ))}
         </div>
