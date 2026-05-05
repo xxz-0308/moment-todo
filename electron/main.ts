@@ -64,6 +64,25 @@ function initSchema() {
     )
   `)
 
+  // ── Team migrations ──────────────────────────────────────
+  db.run(`
+    CREATE TABLE IF NOT EXISTS team_members (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      color TEXT NOT NULL DEFAULT '#6366f1',
+      is_server INTEGER DEFAULT 0,
+      last_seen TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `)
+
+  // Add scope columns if missing (try/catch because ALTER TABLE fails if column exists)
+  try { db.run("ALTER TABLE tasks ADD COLUMN scope TEXT NOT NULL DEFAULT 'personal'") } catch {}
+  try { db.run("ALTER TABLE tasks ADD COLUMN created_by TEXT") } catch {}
+  try { db.run("ALTER TABLE tasks ADD COLUMN assigned_to TEXT") } catch {}
+  try { db.run("ALTER TABLE lists ADD COLUMN scope TEXT NOT NULL DEFAULT 'personal'") } catch {}
+  try { db.run("ALTER TABLE lists ADD COLUMN created_by TEXT") } catch {}
+
   const result = db.exec('SELECT COUNT(*) as count FROM lists')
   const count = result.length > 0 ? (result[0].values[0][0] as number) : 0
   if (count === 0) {
