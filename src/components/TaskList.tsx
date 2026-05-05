@@ -163,7 +163,16 @@ export function TaskList() {
       dueDate = dueDate || quickDueDate
     }
 
-    await addTask(parsed.title, 'medium', dueDate, listId)
+    if (isTeamMode) {
+      useTeamStore.getState().sendMessage('task:create', {
+        title: parsed.title,
+        priority: 'medium',
+        dueDate,
+        listId,
+      })
+    } else {
+      await addTask(parsed.title, 'medium', dueDate, listId)
+    }
     setNewTitle('')
     setQuickDueDate(null)
     inputRef.current?.focus()

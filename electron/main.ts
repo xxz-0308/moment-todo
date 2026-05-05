@@ -95,10 +95,11 @@ function initSchema() {
   if (count === 0) {
     db.run("INSERT INTO lists (id, name, color, sort_order) VALUES ('default', ?, '#6366f1', 0)", ['全部'])
     db.run("INSERT INTO lists (id, name, color, sort_order) VALUES ('work', ?, '#f59e0b', 1)", ['工作'])
-    db.run("INSERT INTO lists (id, name, color, sort_order) VALUES ('personal', ?, '#10b981', 2)", ['个人'])
+    db.run("INSERT INTO lists (id, name, color, sort_order) VALUES ('personal', ?, '#10b981', 2)", ['生活'])
   }
   // Migrations
   db.run("UPDATE lists SET name = '全部' WHERE id = 'default' AND name = '收集箱'")
+  db.run("UPDATE lists SET name = '生活' WHERE id = 'personal' AND name = '个人'")
   // Add pinned column if missing
   // Add pinned column if missing (for pre-existing databases)
   const cols = db.exec("PRAGMA table_info(tasks)")
@@ -205,6 +206,12 @@ function startTeam(mode: 'server' | 'client', config: TeamConfig): void {
       return
     }
     stopDiscovery = publishServer(config.serverPort)
+    // Notify renderer that server is running and send team data
+    mainWindow?.webContents.send('team:event', { type: 'status', payload: 'connected' })
+    const members = queryAll('SELECT * FROM team_members')
+    const teamLists = queryAll("SELECT * FROM lists WHERE scope = 'team'")
+    const teamTasks = queryAll("SELECT * FROM tasks WHERE scope = 'team'")
+    mainWindow?.webContents.send('team:event', { type: 'sync:full', payload: { members, lists: teamLists, tasks: teamTasks } })
   } else if (mode === 'client') {
     const address = config.serverAddress || ''
     if (!address) {

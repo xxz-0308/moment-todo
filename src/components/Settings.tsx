@@ -38,6 +38,9 @@ export default function Settings() {
       setColor(config.member.color || '#6366f1')
       setRole(config.role || '')
       setServerAddress(config.serverAddress || '')
+      // Also check current connection status
+      const st = await api.teamGetStatus()
+      setConnStatus(st.status)
     } catch {}
   }
 
@@ -292,23 +295,28 @@ export default function Settings() {
 
               {/* Connection controls */}
               <div className="flex items-center gap-3 pt-2">
-                <button
-                  onClick={handleStart}
-                  disabled={!nickname || !role}
-                  className="px-4 py-2 rounded-lg bg-accent text-white text-[13px] font-medium hover:bg-accent-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {role === 'server' ? '启动服务端' : '连接'}
-                </button>
-                <button
-                  onClick={handleStop}
-                  className="px-4 py-2 rounded-lg bg-[rgba(255,255,255,0.04)] text-text-secondary text-[13px] font-medium border border-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.08)] transition-colors"
-                >
-                  断开
-                </button>
+                {connStatus === 'connected' ? (
+                  <button
+                    onClick={handleStop}
+                    className="px-4 py-2 rounded-lg bg-[rgba(239,68,68,0.12)] text-[rgba(239,68,68,0.9)] text-[13px] font-medium border border-[rgba(239,68,68,0.2)] hover:bg-[rgba(239,68,68,0.2)] transition-colors"
+                  >
+                    停止{role === 'server' ? '服务端' : '连接'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleStart}
+                    disabled={!nickname || !role}
+                    className="px-4 py-2 rounded-lg bg-accent text-white text-[13px] font-medium hover:bg-accent-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {role === 'server' ? '启动服务端' : '连接'}
+                  </button>
+                )}
                 {connStatus && (
-                  <span className="flex items-center gap-1.5 text-[12px] text-text-tertiary">
+                  <span className="flex items-center gap-1.5 text-[12px]">
                     <span className={`w-2 h-2 rounded-full ${connStatus === 'connected' ? 'bg-green-500' : connStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 'bg-red-500'}`} />
-                    {connStatus === 'connected' ? '已连接' : connStatus === 'connecting' ? '连接中...' : connStatus}
+                    <span className={connStatus === 'connected' ? 'text-green-400' : connStatus === 'connecting' ? 'text-yellow-400' : 'text-red-400'}>
+                      {connStatus === 'connected' ? '已连接' : connStatus === 'connecting' ? '连接中...' : connStatus}
+                    </span>
                   </span>
                 )}
               </div>

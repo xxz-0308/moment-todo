@@ -23,17 +23,21 @@ const presetViews = [
 export function Sidebar() {
   const currentView = useStore((s) => s.currentView)
   const setCurrentView = useStore((s) => s.setCurrentView)
-  const lists = useStore((s) => s.lists)
+  const scope = useStore((s) => s.scope)
+  const setScope = useStore((s) => s.setScope)
+  const personalLists = useStore((s) => s.lists)
+  const teamLists = useTeamStore((s) => s.lists)
   const addList = useStore((s) => s.addList)
   const removeList = useStore((s) => s.removeList)
+  const lists = scope === 'team' ? teamLists : personalLists
+  const connectionStatus = useTeamStore((s) => s.connectionStatus)
   const toggleSettings = useStore((s) => s.toggleSettings)
   const toggleStats = useStore((s) => s.toggleStats)
   const toggleCommandPalette = useStore((s) => s.toggleCommandPalette)
-  const tasks = useStore((s) => s.tasks)
-  const scope = useStore((s) => s.scope)
-  const setScope = useStore((s) => s.setScope)
-  const connectionStatus = useTeamStore((s) => s.connectionStatus)
+  const personalTasks = useStore((s) => s.tasks)
+  const teamTasks = useTeamStore((s) => s.tasks)
   const memberCount = useTeamStore((s) => s.members.length)
+  const tasks = scope === 'team' ? teamTasks : personalTasks
 
   const [showNewList, setShowNewList] = useState(false)
   const [newListName, setNewListName] = useState('')
@@ -180,7 +184,7 @@ export function Sidebar() {
       <div className="flex-1 overflow-y-auto p-3">
         <div className="flex items-center justify-between px-3 mb-1">
           <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.25)' }}>
-            列表
+            分类
           </span>
         </div>
 
@@ -273,7 +277,7 @@ export function Sidebar() {
                     setShowNewList(false)
                   }
                 }}
-                placeholder="列表名称..."
+                placeholder="分类名称..."
                 className="w-full px-3 py-2 rounded-lg bg-surface-tertiary text-[13px] text-text-primary placeholder-text-tertiary outline-none border border-border focus:border-accent transition-colors"
               />
             </motion.div>
@@ -285,7 +289,7 @@ export function Sidebar() {
               whileTap={{ scale: 0.98 }}
             >
               <Plus size={16} strokeWidth={1.8} />
-              <span>新建列表</span>
+              <span>新建分类</span>
             </motion.button>
           )}
         </AnimatePresence>
