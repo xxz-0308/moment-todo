@@ -12,6 +12,7 @@ import {
   Search,
 } from 'lucide-react'
 import { useStore } from '@/store'
+import { useTeamStore } from '@/lib/team-store'
 
 const presetViews = [
   { id: 'today', label: '今天', icon: Calendar },
@@ -29,6 +30,10 @@ export function Sidebar() {
   const toggleStats = useStore((s) => s.toggleStats)
   const toggleCommandPalette = useStore((s) => s.toggleCommandPalette)
   const tasks = useStore((s) => s.tasks)
+  const scope = useStore((s) => s.scope)
+  const setScope = useStore((s) => s.setScope)
+  const connectionStatus = useTeamStore((s) => s.connectionStatus)
+  const memberCount = useTeamStore((s) => s.members.length)
 
   const [showNewList, setShowNewList] = useState(false)
   const [newListName, setNewListName] = useState('')
@@ -87,6 +92,32 @@ export function Sidebar() {
         boxShadow: 'var(--glass-shadow)',
       }}
     >
+      {/* Scope tabs */}
+      <div className="px-4 pt-3 pb-2">
+        <div className="flex gap-1 p-1 rounded-lg bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.04)]">
+          <button
+            onClick={() => setScope('personal')}
+            className={`flex-1 px-3 py-1.5 rounded-md text-[12px] font-medium transition-all ${
+              scope === 'personal'
+                ? 'bg-[rgba(99,102,241,0.12)] text-accent shadow-[0_1px_3px_rgba(0,0,0,0.1)]'
+                : 'text-text-tertiary hover:text-text-secondary'
+            }`}
+          >
+            个人
+          </button>
+          <button
+            onClick={() => setScope('team')}
+            className={`flex-1 px-3 py-1.5 rounded-md text-[12px] font-medium transition-all ${
+              scope === 'team'
+                ? 'bg-[rgba(99,102,241,0.12)] text-accent shadow-[0_1px_3px_rgba(0,0,0,0.1)]'
+                : 'text-text-tertiary hover:text-text-secondary'
+            }`}
+          >
+            团队
+          </button>
+        </div>
+      </div>
+
       {/* Preset views */}
       <nav className="p-3 space-y-0.5">
         {presetViews.map((view) => {
@@ -290,6 +321,40 @@ export function Sidebar() {
           <span>设置</span>
         </motion.button>
       </div>
+
+      {/* Team connection status — only visible when team is configured */}
+      {connectionStatus !== 'disabled' && (
+        <div className="px-4 pb-3">
+          <div
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] transition-colors"
+            style={{
+              backgroundColor: connectionStatus === 'connected' ? 'rgba(16,185,129,0.08)' :
+                               connectionStatus === 'connecting' ? 'rgba(245,158,11,0.08)' :
+                               'rgba(239,68,68,0.08)',
+              border: connectionStatus === 'connected' ? '1px solid rgba(16,185,129,0.15)' :
+                      connectionStatus === 'connecting' ? '1px solid rgba(245,158,11,0.15)' :
+                      '1px solid rgba(239,68,68,0.15)',
+            }}
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                connectionStatus === 'connected' ? 'bg-green-500' :
+                connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' :
+                'bg-red-500'
+              }`}
+            />
+            <span className="flex-1 text-left" style={{
+              color: connectionStatus === 'connected' ? 'rgba(16,185,129,0.9)' :
+                     connectionStatus === 'connecting' ? 'rgba(245,158,11,0.9)' :
+                     'rgba(239,68,68,0.9)',
+            }}>
+              {connectionStatus === 'connected' ? `已连接 (${memberCount}人)` :
+               connectionStatus === 'connecting' ? '正在连接...' :
+               '已离线'}
+            </span>
+          </div>
+        </div>
+      )}
     </aside>
   )
 }
