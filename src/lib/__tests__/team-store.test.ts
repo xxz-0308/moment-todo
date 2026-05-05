@@ -13,53 +13,10 @@ const mockApi = vi.hoisted(() => ({
   onTeamEvent: vi.fn(),
 }))
 
-vi.stubGlobal('window', {
-  electronAPI: mockApi,
-})
+vi.stubGlobal('electronAPI', mockApi)
 
 import { useTeamStore, type TeamTask, type TeamList, type TeamMember } from '../team-store'
-
-function makeTeamTask(overrides: Partial<TeamTask> = {}): TeamTask {
-  return {
-    id: overrides.id || 't1',
-    title: overrides.title || 'Test Task',
-    completed: overrides.completed ?? 0,
-    priority: overrides.priority || 'medium',
-    due_date: overrides.due_date ?? null,
-    list_id: overrides.list_id || 'default',
-    notes: overrides.notes ?? '',
-    pinned: overrides.pinned ?? 0,
-    sort_order: overrides.sort_order ?? 0,
-    scope: 'team',
-    created_by: overrides.created_by || 'member1',
-    assigned_to: overrides.assigned_to ?? null,
-    created_at: overrides.created_at || new Date().toISOString(),
-    updated_at: overrides.updated_at || new Date().toISOString(),
-  }
-}
-
-function makeTeamList(overrides: Partial<TeamList> = {}): TeamList {
-  return {
-    id: overrides.id || 'l1',
-    name: overrides.name || '版本',
-    color: overrides.color ?? '#6366f1',
-    sort_order: overrides.sort_order ?? 0,
-    scope: 'team',
-    created_by: overrides.created_by ?? null,
-    created_at: overrides.created_at || new Date().toISOString(),
-  }
-}
-
-function makeMember(overrides: Partial<TeamMember> = {}): TeamMember {
-  return {
-    id: overrides.id || 'm1',
-    name: overrides.name || '张三',
-    color: overrides.color || '#6366f1',
-    is_server: overrides.is_server ?? 0,
-    last_seen: overrides.last_seen ?? null,
-    created_at: overrides.created_at || new Date().toISOString(),
-  }
-}
+import { makeTeamTask, makeTeamList, makeMember } from '@/__tests__/factories'
 
 beforeEach(() => {
   vi.clearAllMocks()

@@ -18,33 +18,9 @@ const mockDb = vi.hoisted(() => ({
 
 vi.mock('@/db', () => mockDb)
 
+import { makeTask, makeList } from '@/__tests__/factories'
 import { useStore, type Task, type List } from '@/store'
 
-function makeTask(overrides: Partial<Task> = {}): Task {
-  return {
-    id: overrides.id || crypto.randomUUID(),
-    title: overrides.title || 'Test Task',
-    completed: overrides.completed ?? 0,
-    priority: overrides.priority || 'medium',
-    due_date: overrides.due_date ?? null,
-    list_id: overrides.list_id || 'default',
-    notes: overrides.notes ?? '',
-    pinned: overrides.pinned ?? 0,
-    sort_order: overrides.sort_order ?? 0,
-    created_at: overrides.created_at || new Date().toISOString(),
-    updated_at: overrides.updated_at || new Date().toISOString(),
-  }
-}
-
-function makeList(overrides: Partial<List> = {}): List {
-  return {
-    id: overrides.id || 'default',
-    name: overrides.name || '收集箱',
-    color: overrides.color ?? '#6366f1',
-    sort_order: overrides.sort_order ?? 0,
-    created_at: overrides.created_at || new Date().toISOString(),
-  }
-}
 
 beforeEach(() => {
   vi.clearAllMocks()
