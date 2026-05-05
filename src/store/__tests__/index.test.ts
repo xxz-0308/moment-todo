@@ -8,6 +8,7 @@ const mockDb = vi.hoisted(() => ({
   updateTask: vi.fn(),
   deleteTask: vi.fn(),
   createList: vi.fn(),
+  updateList: vi.fn(),
   deleteList: vi.fn(),
   searchTasks: vi.fn(),
   reorderTasks: vi.fn(),
@@ -276,5 +277,89 @@ describe('scope', () => {
     useStore.getState().setScope('team')
     expect(useStore.getState().scope).toBe('team')
     expect(useStore.getState().selectedTaskId).toBeNull()
+  })
+})
+
+describe('togglePin', () => {
+  beforeEach(() => {
+    useStore.setState({ scope: 'personal' })
+  })
+
+  it('sets pinned from 0 to 1', async () => {
+    mockDb.updateTask.mockResolvedValue(undefined)
+    useStore.setState({ tasks: [makeTask({ id: 't1', pinned: 0 })] })
+    await useStore.getState().togglePin('t1')
+    expect(useStore.getState().tasks[0].pinned).toBe(1)
+    expect(mockDb.updateTask).toHaveBeenCalledWith('t1', { pinned: 1 })
+  })
+
+  it('sets pinned from 1 to 0', async () => {
+    mockDb.updateTask.mockResolvedValue(undefined)
+    useStore.setState({ tasks: [makeTask({ id: 't1', pinned: 1 })] })
+    await useStore.getState().togglePin('t1')
+    expect(useStore.getState().tasks[0].pinned).toBe(0)
+  })
+
+  it('does nothing for non-existent task', async () => {
+    await useStore.getState().togglePin('nonexistent')
+    expect(mockDb.updateTask).not.toHaveBeenCalled()
+  })
+})
+
+describe('addList supplements', () => {
+  beforeEach(() => {
+    useStore.setState({ scope: 'personal' })
+  })
+
+  it('creates list with provided color', async () => {
+    mockDb.createList.mockResolvedValue(makeList({ id: 'l2', name: '工作', color: '#ff0000' }))
+    await useStore.getState().addList('工作', '#ff0000')
+    expect(mockDb.createList).toHaveBeenCalledWith('工作', '#ff0000')
+    expect(useStore.getState().lists[0].color).toBe('#ff0000')
+  })
+})
+
+describe('updateList', () => {
+  beforeEach(() => {
+    useStore.setState({ scope: 'personal' })
+  })
+
+  it('renames list via db and updates local state', async () => {
+    mockDb.updateList.mockResolvedValue(undefined)
+    useStore.setState({ lists: [makeList({ id: 'l1', name: 'Old' })] })
+    await useStore.getState().updateList('l1', { name: 'New' })
+    expect(mockDb.updateList).toHaveBeenCalledWith('l1', { name: 'New' })
+    expect(useStore.getState().lists[0].name).toBe('New')
+  })
+
+  it('silently passes through for any list id', async () => {
+    mockDb.updateList.mockResolvedValue(undefined)
+    await useStore.getState().updateList('nope', { name: 'X' })
+    expect(mockDb.updateList).toHaveBeenCalled()
+  })
+})
+
+describe('removeList supplements', () => {
+  beforeEach(() => {
+    useStore.setState({ scope: 'personal' })
+  })
+
+  it('does nothing for non-existent list', async () => {
+    await useStore.getState().removeList('nonexistent')
+    expect(mockDb.deleteList).not.toHaveBeenCalled()
+  })
+
+  it('pushes undo action with correct type and list data', async () => {
+    mockDb.deleteList.mockResolvedValue(undefined)
+    useStore.setState({
+      lists: [makeList({ id: 'work', name: '工作' })],
+      tasks: [makeTask({ id: 't1', list_id: 'work' })],
+      currentView: 'work',
+    })
+    await useStore.getState().removeList('work')
+    const undoStack = useStore.getState().undoStack
+    expect(undoStack).toHaveLength(1)
+    expect(undoStack[0].type).toBe('deleteList')
+    expect(undoStack[0].list?.name).toBe('工作')
   })
 })
