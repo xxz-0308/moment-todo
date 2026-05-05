@@ -193,7 +193,7 @@ export async function getStats(fromDate?: string, toDate?: string): Promise<{
   const byList = (await api.dbQuery(
     `SELECT l.name, COUNT(t.id) as count
      FROM tasks t JOIN lists l ON t.list_id = l.id
-     WHERE (t.scope = 'personal' OR t.scope IS NULL)${dateFilter.replace(/updated_at/g, 't.updated_at').replace(/AND /g, 'AND ')}
+     WHERE t.completed = 0 AND (t.scope = 'personal' OR t.scope IS NULL)${dateFilter.replace(/updated_at/g, 't.updated_at').replace(/AND /g, 'AND ')}
      GROUP BY l.name ORDER BY count DESC`,
     byListParams
   )) as { name: string; count: number }[]

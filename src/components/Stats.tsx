@@ -61,7 +61,7 @@ function computeTeamStats(tasks: import('@/lib/team-store').TeamTask[], lists: i
   const overdue = filtered.filter(t => !t.completed && t.due_date && t.due_date < today).length
 
   const byListMap = new Map<string, number>()
-  for (const t of filtered) {
+  for (const t of filtered.filter(t => !t.completed)) {
     const list = lists.find(l => l.id === t.list_id)
     const name = list?.name || '默认'
     byListMap.set(name, (byListMap.get(name) || 0) + 1)

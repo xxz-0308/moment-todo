@@ -46,7 +46,7 @@ export function TeamPlanet({ onClose }: { onClose: () => void }) {
     planetsRef.current = clients.map((m, i) => ({
       member: m,
       orbit: orbitRadii[i] || 100,
-      speed: 0.4 + i * 0.06,
+      speed: 0.2 + i * 0.03,
       angle: i * 2.1,
       radius: planetSize,
     }))
