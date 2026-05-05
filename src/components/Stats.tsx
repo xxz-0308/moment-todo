@@ -110,7 +110,7 @@ export default function Stats() {
       setStats(computeTeamStats(teamTasks, teamLists, from, to))
     } else {
       getStats(from || undefined, to || undefined).then(s => setStats({
-        ...s, byListAll: s.byList, byListActive: s.byList, byListCompleted: s.byList,
+        ...s, byListAll: s.byList, byListActive: [], byListCompleted: [],
       }))
     }
   }, [timeRange, customFrom, customTo, scope, teamTasks, teamLists])
