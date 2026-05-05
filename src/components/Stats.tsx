@@ -289,7 +289,7 @@ export default function Stats() {
               const pieData = pieMode === 'completed' ? stats.byListCompleted : pieMode === 'active' ? stats.byListActive : stats.byListAll
               if (pieData.length === 0) return <div className="flex items-center justify-center h-[180px] text-[13px] text-text-tertiary">暂无数据</div>
               return (
-              <div className="flex items-center">
+              <div className="flex items-center" key={pieMode}>
                 <ResponsiveContainer width="55%" height={180}>
                   <RPieChart>
                     <Pie
