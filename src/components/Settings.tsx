@@ -45,7 +45,8 @@ export default function Settings() {
     try {
       const api = (window as any).electronAPI
       if (!api?.teamSaveConfig) return
-      const id = crypto.randomUUID()
+      const existingConfig = await api.teamGetConfig()
+      const id = existingConfig.member.id || crypto.randomUUID()
       await api.teamSaveConfig({
         member: { id, name: nickname, color },
         role,
@@ -57,11 +58,12 @@ export default function Settings() {
   }
 
   const handleStart = async () => {
+    // saveTeamConfig triggers stopTeam + startTeam in the IPC handler,
+    // no need to call teamStart again — that would double-bind the port.
     await saveTeamConfig()
     try {
       const api = (window as any).electronAPI
-      if (!api?.teamStart) return
-      await api.teamStart(role)
+      if (!api?.teamGetStatus) return
       const status = await api.teamGetStatus()
       setConnStatus(status.status)
     } catch {}
