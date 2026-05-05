@@ -147,8 +147,13 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         break
       }
       case 'member:left': {
+        // Keep member in list — tasks may still reference them as assignee
         const p = payload as { memberId: string }
-        set((s) => ({ members: s.members.filter((m) => m.id !== p.memberId) }))
+        set((s) => ({
+          members: s.members.map((m) =>
+            m.id === p.memberId ? { ...m, last_seen: new Date().toISOString() } : m
+          ),
+        }))
         break
       }
       case 'status': {

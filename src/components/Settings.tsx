@@ -376,6 +376,9 @@ export default function Settings() {
                     {role === 'server' ? '启动服务端' : '连接'}
                   </button>
                 )}
+                {role === 'server' && connStatus === 'connected' && (
+                  <span className="text-[11px] text-yellow-400">服务端已在线</span>
+                )}
                 {connStatus && (
                   <span className="flex items-center gap-1.5 text-[12px]">
                     <span className={`w-2 h-2 rounded-full ${connStatus === 'connected' ? 'bg-green-500' : connStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 'bg-red-500'}`} />

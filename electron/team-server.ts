@@ -104,6 +104,11 @@ export class TeamServer {
   }
 
   stop(): void {
+    // Force-close all client connections first
+    for (const client of this.clients.values()) {
+      try { client.ws.terminate() } catch {}
+    }
+    this.clients.clear()
     if (this.wss) {
       this.wss.close()
       this.wss = null
