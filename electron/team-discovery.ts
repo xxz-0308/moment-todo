@@ -2,7 +2,7 @@ import os from 'os'
 
 const SERVICE_NAME = '_moment-todo._ws._tcp.local'
 
-function getLocalIPs(): string[] {
+export function getLocalIPs(): string[] {
   const ips: string[] = []
   const interfaces = os.networkInterfaces()
   for (const name of Object.keys(interfaces)) {

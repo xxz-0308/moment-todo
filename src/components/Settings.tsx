@@ -29,6 +29,7 @@ export default function Settings() {
   const [role, setRole] = useState<'' | 'server' | 'client'>('')
   const [serverAddress, setServerAddress] = useState('')
   const [connStatus, setConnStatus] = useState<string>('')
+  const [serverInfo, setServerInfo] = useState<{ ip: string; port: number } | null>(null)
   const [confirm, setConfirm] = useState<{ title: string; message: string; onConfirm: () => void; danger?: boolean } | null>(null)
 
   const loadTeamConfig = async () => {
@@ -43,6 +44,7 @@ export default function Settings() {
       // Also check current connection status
       const st = await api.teamGetStatus()
       setConnStatus(st.status)
+      if (st.ip) setServerInfo({ ip: st.ip, port: st.port })
     } catch {}
   }
 
@@ -126,6 +128,7 @@ export default function Settings() {
       if (!api?.teamGetStatus) return
       const status = await api.teamGetStatus()
       setConnStatus(status.status)
+      if (status.ip) setServerInfo({ ip: status.ip, port: status.port })
     } catch {}
   }
 
@@ -349,7 +352,7 @@ export default function Settings() {
                     type="text"
                     value={serverAddress}
                     onChange={(e) => setServerAddress(e.target.value)}
-                    placeholder="192.168.1.100（留空自动发现）"
+                    placeholder="192.168.1.100（同机测试填 localhost）"
                     className="w-full px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] text-[13px] text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all"
                   />
                 </div>
@@ -382,6 +385,14 @@ export default function Settings() {
                   </span>
                 )}
               </div>
+
+              {/* Server info — show IP:port when running */}
+              {role === 'server' && connStatus === 'connected' && serverInfo && (
+                <div className="mt-3 px-3 py-2 rounded-lg bg-[rgba(16,185,129,0.06)] border border-[rgba(16,185,129,0.12)]">
+                  <p className="text-[11px] text-text-tertiary">服务端地址</p>
+                  <p className="text-[13px] font-mono font-medium text-green-400">{serverInfo.ip}:{serverInfo.port}</p>
+                </div>
+              )}
             </div>
           </section>
         )}

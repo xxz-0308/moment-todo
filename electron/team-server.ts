@@ -61,6 +61,7 @@ export class TeamServer {
                 [member.id, member.name, member.color, member.name, member.color]
               )
               this.broadcastToAll({ type: 'member:joined', payload: { member }, senderId: '' })
+              this.onEvent('member:joined', { member })
               break
             }
             case 'member:heartbeat': {
@@ -95,6 +96,7 @@ export class TeamServer {
           this.clients.delete(memberId)
           this.db.run("UPDATE team_members SET last_seen = datetime('now') WHERE id = ?", [memberId])
           this.broadcastToAll({ type: 'member:left', payload: { memberId }, senderId: '' })
+          this.onEvent('member:left', { memberId })
         }
       })
     })
@@ -122,6 +124,7 @@ export class TeamServer {
       )
       const task = this.queryOne('SELECT * FROM tasks WHERE id = ?', [id])
       this.broadcastToAll({ type: 'task:created', payload: { task, by: senderId }, senderId })
+      this.onEvent('task:created', { task, by: senderId })
     } else if (type === 'task:update') {
       const fields: string[] = []
       const values: unknown[] = []
@@ -138,9 +141,11 @@ export class TeamServer {
         this.db.run(`UPDATE tasks SET ${fields.join(', ')} WHERE id = ?`, values)
       }
       this.broadcastToAll({ type: 'task:updated', payload: { id: data.id, ...data, by: senderId }, senderId })
+      this.onEvent('task:updated', { id: data.id, ...data, by: senderId })
     } else if (type === 'task:delete') {
       this.db.run('DELETE FROM tasks WHERE id = ?', [data.id])
       this.broadcastToAll({ type: 'task:deleted', payload: { id: data.id, by: senderId }, senderId })
+      this.onEvent('task:deleted', { id: data.id, by: senderId })
     } else if (type === 'task:reorder') {
       const items = data.items as Array<{ id: string; sort_order: number; list_id: string }>
       for (const item of items) {
@@ -165,10 +170,12 @@ export class TeamServer {
       )
       const list = this.queryOne('SELECT * FROM lists WHERE id = ?', [id])
       this.broadcastToAll({ type: 'list:created', payload: { list, by: senderId }, senderId })
+      this.onEvent('list:created', { list, by: senderId })
     } else if (type === 'list:delete') {
       this.db.run("UPDATE tasks SET list_id = 'default' WHERE list_id = ?", [data.id])
       this.db.run('DELETE FROM lists WHERE id = ?', [data.id])
       this.broadcastToAll({ type: 'list:deleted', payload: { id: data.id, by: senderId }, senderId })
+      this.onEvent('list:deleted', { id: data.id, by: senderId })
     } else if (type === 'list:update') {
       if (data.name) {
         this.db.run('UPDATE lists SET name = ? WHERE id = ?', [data.name, data.id])
@@ -177,6 +184,7 @@ export class TeamServer {
         this.db.run('UPDATE lists SET color = ? WHERE id = ?', [data.color, data.id])
       }
       this.broadcastToAll({ type: 'list:updated', payload: { id: data.id, ...data, by: senderId }, senderId })
+      this.onEvent('list:updated', { id: data.id, ...data, by: senderId })
     }
   }
 

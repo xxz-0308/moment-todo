@@ -4,7 +4,7 @@ import fs from 'fs'
 import initSqlJs, { type Database, type SqlJsStatic } from 'sql.js'
 import { TeamServer } from './team-server'
 import { TeamClient } from './team-client'
-import { publishServer, discoverServer } from './team-discovery'
+import { publishServer, discoverServer, getLocalIPs } from './team-discovery'
 import { readTeamConfig, writeTeamConfig, type TeamConfig } from './team-config'
 
 const isDev = process.env.NODE_ENV === 'development'
@@ -573,7 +573,10 @@ function setupIPC() {
     return true
   })
   ipcMain.handle('team:get-status', () => {
-    if (teamServer) return { status: 'connected', memberCount: teamServer.memberCount }
+    if (teamServer) {
+      const ips = getLocalIPs()
+      return { status: 'connected', memberCount: teamServer.memberCount, ip: ips[0] || '', port: 5174 }
+    }
     if (teamClient) return { status: teamClient.status }
     return { status: 'disabled' }
   })
