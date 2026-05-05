@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react'
 import { motion, AnimatePresence, Reorder } from 'framer-motion'
 import { Plus, ArrowUpDown, Calendar, X, Filter, Trash2, Flag } from 'lucide-react'
 import { useStore, type Task } from '@/store'
+import { useTeamStore } from '@/lib/team-store'
 import { TaskItem, ReorderableTaskItem } from './TaskItem'
 import { EmptyState } from './EmptyState'
 import { parseDateHint } from '@/hooks/parseDate'
@@ -50,6 +51,15 @@ export function TaskList() {
   const selectTask = useStore((s) => s.selectTask)
   const restoredTaskId = useStore((s) => s.restoredTaskId)
 
+  const scope = useStore((s) => s.scope)
+  const teamTasks = useTeamStore((s) => s.tasks)
+  const teamLists = useTeamStore((s) => s.lists)
+  const connectionStatus = useTeamStore((s) => s.connectionStatus)
+
+  const isTeamMode = scope === 'team'
+  const activeTasks = isTeamMode ? teamTasks : tasks
+  const activeLists = isTeamMode ? teamLists : lists
+
   const [newTitle, setNewTitle] = useState('')
   const [sortManual, setSortManual] = useState(false)
   const [showDatePicker, setShowDatePicker] = useState(false)
@@ -67,8 +77,8 @@ export function TaskList() {
   const today = new Date().toISOString().split('T')[0]
 
   const getFilteredTasks = useCallback((): { todayTasks: Task[]; overdueTasks: Task[]; regularTasks: Task[] } => {
-    const active = tasks.filter((t) => !t.completed)
-    const completed = tasks.filter((t) => t.completed)
+    const active = activeTasks.filter((t) => !t.completed)
+    const completed = activeTasks.filter((t) => t.completed)
 
     switch (currentView) {
       case 'today': {
@@ -107,7 +117,7 @@ export function TaskList() {
         }
       }
     }
-  }, [tasks, currentView, activeFilter, today])
+  }, [activeTasks, currentView, activeFilter, today])
 
   const { todayTasks, overdueTasks, regularTasks } = getFilteredTasks()
 
@@ -173,7 +183,7 @@ export function TaskList() {
       case 'today': return '今天'
       case 'upcoming': return '计划日程'
       case 'completed': return '已完成'
-      default: return lists.find((l) => l.id === currentView)?.name || '任务'
+      default: return activeLists.find((l) => l.id === currentView)?.name || '任务'
     }
   }
 
@@ -286,8 +296,9 @@ export function TaskList() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleAddTask()
               }}
-              placeholder="添加任务，回车创建..."
-              className="flex-1 bg-transparent text-[14px] text-text-primary placeholder-text-tertiary outline-none"
+              placeholder={isTeamMode && connectionStatus !== 'connected' ? '需要连接团队服务端才能添加任务' : '快速添加...'}
+              disabled={isTeamMode && connectionStatus !== 'connected'}
+              className="flex-1 bg-transparent text-[14px] text-text-primary placeholder-text-tertiary outline-none disabled:opacity-40"
             />
             {isListView && (
               <div className="relative flex-shrink-0" ref={dateRef}>
@@ -419,6 +430,13 @@ export function TaskList() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Offline banner */}
+      {isTeamMode && connectionStatus !== 'connected' && (
+        <div className="flex-shrink-0 mx-4 mt-2 px-3 py-2 rounded-lg bg-[rgba(245,158,11,0.06)] border border-[rgba(245,158,11,0.12)] text-[12px] text-[rgba(245,158,11,0.85)] text-center">
+          团队服务已离线，当前为只读模式。数据保留在本地缓存中。
+        </div>
+      )}
 
       {/* Task list */}
       <div
