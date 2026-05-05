@@ -60,8 +60,9 @@ export class TeamServer {
                  ON CONFLICT(id) DO UPDATE SET name = ?, color = ?, last_seen = datetime('now')`,
                 [member.id, member.name, member.color, member.name, member.color]
               )
-              this.broadcastToAll({ type: 'member:connected', payload: { member }, senderId: '' })
-              this.onEvent('member:connected', { member })
+              const totalCount = this.clients.size + 1 // server + connected clients
+              this.broadcastToAll({ type: 'member:connected', payload: { member, totalCount }, senderId: '' })
+              this.onEvent('member:connected', { member, totalCount })
               break
             }
             case 'member:heartbeat': {
@@ -100,8 +101,9 @@ export class TeamServer {
         if (memberId) {
           this.clients.delete(memberId)
           this.db.run("UPDATE team_members SET last_seen = datetime('now') WHERE id = ?", [memberId])
-          this.broadcastToAll({ type: 'member:left', payload: { memberId }, senderId: '' })
-          this.onEvent('member:left', { memberId })
+          const totalCount = this.clients.size + 1
+          this.broadcastToAll({ type: 'member:left', payload: { memberId, totalCount }, senderId: '' })
+          this.onEvent('member:left', { memberId, totalCount })
         }
       })
     })

@@ -92,8 +92,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
     switch (type) {
       case 'sync:full': {
         const p = payload as { members: TeamMember[]; lists: TeamList[]; tasks: TeamTask[] }
-        const count = (p.members || []).length
-        set({ members: p.members || [], lists: p.lists || [], tasks: p.tasks || [], onlineMemberCount: Math.max(count, 1) })
+        set({ members: p.members || [], lists: p.lists || [], tasks: p.tasks || [], onlineMemberCount: (p.members || []).length })
         break
       }
       case 'task:created': {
@@ -153,16 +152,16 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         break
       }
       case 'member:connected': {
-        // Real WebSocket connection established — always increment count
-        const p = payload as { member: TeamMember }
+        // Server sends absolute totalCount — use it directly
+        const p = payload as { member: TeamMember; totalCount: number }
         set((s) => {
           const idx = s.members.findIndex((m) => m.id === p.member.id)
           if (idx >= 0) {
             const updated = [...s.members]
             updated[idx] = { ...updated[idx], ...p.member, last_seen: new Date().toISOString() }
-            return { members: updated, onlineMemberCount: s.onlineMemberCount + 1 }
+            return { members: updated, onlineMemberCount: p.totalCount }
           }
-          return { members: [...s.members, p.member], onlineMemberCount: s.onlineMemberCount + 1 }
+          return { members: [...s.members, p.member], onlineMemberCount: p.totalCount }
         })
         break
       }
@@ -183,12 +182,13 @@ export const useTeamStore = create<TeamState>((set, get) => ({
       }
       case 'member:left': {
         // Keep member in list — tasks may still reference them as assignee
-        const p = payload as { memberId: string }
+        // Server sends absolute totalCount — use it directly
+        const p = payload as { memberId: string; totalCount: number }
         set((s) => ({
           members: s.members.map((m) =>
             m.id === p.memberId ? { ...m, last_seen: new Date().toISOString() } : m
           ),
-          onlineMemberCount: Math.max(0, s.onlineMemberCount - 1),
+          onlineMemberCount: p.totalCount || Math.max(1, s.onlineMemberCount - 1),
         }))
         break
       }
