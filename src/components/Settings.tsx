@@ -11,6 +11,7 @@ import {
   Globe,
 } from 'lucide-react'
 import { useStore } from '@/store'
+import { GlassConfirm } from '@/components/GlassConfirm'
 import { exportJSON, backupDatabase } from '@/db'
 
 const PRESET_COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4']
@@ -28,6 +29,7 @@ export default function Settings() {
   const [role, setRole] = useState<'' | 'server' | 'client'>('')
   const [serverAddress, setServerAddress] = useState('')
   const [connStatus, setConnStatus] = useState<string>('')
+  const [confirm, setConfirm] = useState<{ title: string; message: string; onConfirm: () => void; danger?: boolean } | null>(null)
 
   const loadTeamConfig = async () => {
     try {
@@ -82,7 +84,13 @@ export default function Settings() {
 
   const handleRoleChange = (newRole: '' | 'server' | 'client') => {
     if (connStatus === 'connected' && newRole !== role) {
-      if (!window.confirm('切换运行模式将停止当前服务，确定要继续吗？')) return
+      setConfirm({
+        title: '切换运行模式',
+        message: '切换运行模式将停止当前服务，确定要继续吗？',
+        danger: true,
+        onConfirm: () => { setRole(newRole); setConnStatus(''); setConfirm(null) },
+      })
+      return
     }
     setRole(newRole)
     setConnStatus('')
@@ -95,7 +103,18 @@ export default function Settings() {
         const api = (window as any).electronAPI
         if (api?.teamDiscover) {
           const existing = await api.teamDiscover()
-          if (existing && !window.confirm('局域网内已检测到其他服务端，继续启动可能导致冲突。确定要继续吗？')) {
+          if (existing) {
+            setConfirm({
+              title: '检测到其他服务端',
+              message: '局域网内已检测到其他服务端，继续启动可能导致冲突。确定要继续吗？',
+              danger: true,
+              onConfirm: async () => {
+                setConfirm(null)
+                await saveTeamConfig()
+                const st = await api.teamGetStatus()
+                setConnStatus(st.status)
+              },
+            })
             return
           }
         }
@@ -136,6 +155,7 @@ export default function Settings() {
   }
 
   return (
+    <>
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -394,6 +414,24 @@ export default function Settings() {
           </section>
         )}
       </div>
+
+      <GlassConfirm
+        open={!!confirm}
+        title={confirm?.title || ''}
+        message={confirm?.message || ''}
+        onConfirm={() => confirm?.onConfirm()}
+        onCancel={() => setConfirm(null)}
+        danger={confirm?.danger}
+      />
     </motion.div>
+    <GlassConfirm
+      open={!!confirm}
+      title={confirm?.title || ''}
+      message={confirm?.message || ''}
+      onConfirm={() => confirm?.onConfirm()}
+      onCancel={() => setConfirm(null)}
+      danger={confirm?.danger}
+    />
+    </>
   )
 }

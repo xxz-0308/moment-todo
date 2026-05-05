@@ -268,14 +268,14 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
       {scope === 'team' && (task as any).assigned_to && (() => {
         const member = useTeamStore.getState().members.find((m) => m.id === (task as any).assigned_to)
         const memberColor = member?.color || '#6366f1'
-        const memberInitial = member?.name?.charAt(0) || (task as any).assigned_to.slice(0, 1).toUpperCase()
+        const memberName = member?.name || (task as any).assigned_to.slice(0, 2).toUpperCase()
         return (
           <span
             className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium flex-shrink-0"
             style={{ backgroundColor: memberColor + '18', color: memberColor }}
           >
-            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: memberColor }} />
-            {memberInitial}
+            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: memberColor }} />
+            <span className="truncate max-w-[48px]">{memberName}</span>
           </span>
         )
       })()}
