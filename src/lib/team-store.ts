@@ -92,7 +92,8 @@ export const useTeamStore = create<TeamState>((set, get) => ({
     switch (type) {
       case 'sync:full': {
         const p = payload as { members: TeamMember[]; lists: TeamList[]; tasks: TeamTask[] }
-        set({ members: p.members || [], lists: p.lists || [], tasks: p.tasks || [], onlineMemberCount: (p.members || []).length })
+        const count = (p.members || []).length
+        set({ members: p.members || [], lists: p.lists || [], tasks: p.tasks || [], onlineMemberCount: Math.max(count, 1) })
         break
       }
       case 'task:created': {
@@ -182,7 +183,11 @@ export const useTeamStore = create<TeamState>((set, get) => ({
       }
       case 'status': {
         const p = payload as unknown as string
-        set({ connectionStatus: p as ConnectionStatus })
+        const newStatus = p as ConnectionStatus
+        set({
+          connectionStatus: newStatus,
+          ...(newStatus === 'disabled' ? { onlineMemberCount: 0 } : {}),
+        })
         break
       }
     }
