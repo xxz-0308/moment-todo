@@ -548,13 +548,18 @@ function setupIPC() {
           const broadcast = { type: 'task:updated', payload: { id: data.id, ...data, by: senderId } }
           teamServer.broadcast(broadcast)
           mainWindow?.webContents.send('team:event', broadcast)
-          // If assigned_to changed, send notification to assignee
+          // If assigned_to actually changed, send notification to assignee
           if ('assigned_to' in data && data.assigned_to && teamServer) {
-            const task = queryAll('SELECT * FROM tasks WHERE id = ?', [data.id])[0] as Record<string, unknown> | undefined
-            if (task) {
+            const oldTask = queryAll('SELECT assigned_to, title FROM tasks WHERE id = ?', [data.id])[0] as Record<string, unknown> | undefined
+            if (oldTask && oldTask.assigned_to !== data.assigned_to) {
+              const config = readTeamConfig()
               teamServer.sendTo(data.assigned_to as string, {
                 type: 'notify:assigned',
-                payload: { taskId: data.id, taskTitle: task.title || '' },
+                payload: {
+                  taskId: data.id,
+                  taskTitle: oldTask.title || '',
+                  assignedBy: config.member.name || '未知',
+                },
               })
             }
           }

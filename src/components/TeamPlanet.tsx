@@ -159,8 +159,9 @@ export function TeamPlanet({ onClose }: { onClose: () => void }) {
         return
       }
     }
-    setHoveredMember(null)
-  }, [members])
+    // Clicked empty space — close
+    onClose()
+  }, [members, onClose])
 
   return (
     <motion.div
@@ -198,7 +199,7 @@ export function TeamPlanet({ onClose }: { onClose: () => void }) {
           </span>
         </div>
       )}
-      <div className="absolute top-6 right-6 text-[12px] text-text-tertiary">点击空白处关闭</div>
+
     </motion.div>
   )
 }

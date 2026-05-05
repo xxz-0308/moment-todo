@@ -237,6 +237,14 @@ export const useStore = create<AppState>((set, get) => ({
       if (!task) return
       const newCompleted = task.completed ? 0 : 1
       useTeamStore.getState().sendMessage('task:update', { id, completed: newCompleted })
+      if (newCompleted) {
+        playCompleteSound()
+        get().pushUndo({ type: 'complete', task: { ...task }, timestamp: Date.now() })
+        get().addToast(`已完成: ${task.title}`, {
+          label: '撤销',
+          onClick: async () => { await get().undo() },
+        })
+      }
       return
     }
     const task = get().tasks.find((t) => t.id === id)
@@ -274,7 +282,13 @@ export const useStore = create<AppState>((set, get) => ({
     if (get().scope === 'team') {
       const task = get().tasks.find((t) => t.id === id) || useTeamStore.getState().tasks.find((t) => t.id === id)
       if (!task) return
+      get().pushUndo({ type: 'delete', task: { ...task }, timestamp: Date.now() })
       useTeamStore.getState().sendMessage('task:delete', { id })
+      playDeleteSound()
+      get().addToast(`已删除: ${task.title}`, {
+        label: '撤销',
+        onClick: () => { get().undo() },
+      })
       return
     }
     const task = get().tasks.find((t) => t.id === id)

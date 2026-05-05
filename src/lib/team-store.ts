@@ -234,19 +234,31 @@ export const useTeamStore = create<TeamState>((set, get) => ({
       case 'status': {
         const p = payload as unknown as string
         const newStatus = p as ConnectionStatus
-        set({
-          connectionStatus: newStatus,
-          ...(newStatus === 'disabled' ? { onlineMemberCount: 0 } : {}),
-        })
+        const prevStatus = get().connectionStatus
+        if (newStatus === 'disconnected' && prevStatus === 'connected') {
+          // Save snapshot for reconnect summary
+          const tasks = get().tasks
+          set({
+            connectionStatus: newStatus,
+            _snapshot: {
+              taskIds: new Set(tasks.map(t => t.id)),
+              completedIds: new Set(tasks.filter(t => t.completed).map(t => t.id)),
+            },
+          } as any)
+        } else {
+          set({
+            connectionStatus: newStatus,
+            ...(newStatus === 'disabled' ? { onlineMemberCount: 0 } : {}),
+          })
+        }
         break
       }
       case 'notify:assigned': {
-        const p = payload as { taskId: string; taskTitle: string }
+        const p = payload as { taskId: string; taskTitle: string; assignedBy: string }
         if (typeof window !== 'undefined') {
-          // System notification
-          ;(window as any).electronAPI?.showNotification?.('新任务分配', `你被分配了任务：${p.taskTitle}`)
-          // In-app toast via custom event (avoids circular import)
-          window.dispatchEvent(new CustomEvent('moment:toast', { detail: { message: `新任务：${p.taskTitle}` } }))
+          const msg = `${p.assignedBy || '有人'}给你分配了任务：${p.taskTitle}`
+          ;(window as any).electronAPI?.showNotification?.('新任务分配', msg)
+          window.dispatchEvent(new CustomEvent('moment:toast', { detail: { message: msg } }))
         }
         break
       }

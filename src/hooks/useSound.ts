@@ -7,7 +7,7 @@ function getCtx(): AudioContext {
 
 export function getVolume(): number {
   const stored = localStorage.getItem('moment-sound-volume')
-  return stored !== null ? parseInt(stored) / 100 : 1.0
+  return stored !== null ? parseInt(stored) / 50 : 1.0  // 0-200% range
 }
 
 export function setVolume(percent: number): void {
