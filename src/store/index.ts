@@ -82,6 +82,7 @@ interface AppState {
   reorderTasks: (items: { id: string; sort_order: number; list_id: string }[]) => Promise<void>
 
   addList: (name: string, color?: string) => Promise<void>
+  updateList: (id: string, updates: { name?: string; color?: string }) => Promise<void>
   removeList: (id: string) => Promise<void>
 
   undo: () => Promise<void>
@@ -348,6 +349,17 @@ export const useStore = create<AppState>((set, get) => ({
     }
     const list = await db.createList(name, color)
     set((s) => ({ lists: [...s.lists, list] }))
+  },
+
+  updateList: async (id, updates: { name?: string; color?: string }) => {
+    if (get().scope === 'team') {
+      useTeamStore.getState().sendMessage('list:update', { id, ...updates })
+      return
+    }
+    await db.updateList(id, updates)
+    set((s) => ({
+      lists: s.lists.map((l) => l.id === id ? { ...l, ...updates } : l),
+    }))
   },
 
   removeList: async (id) => {

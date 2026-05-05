@@ -585,6 +585,12 @@ function setupIPC() {
           const broadcast = { type: 'list:created', payload: { list, by: senderId } }
           teamServer.broadcast(broadcast)
           mainWindow?.webContents.send('team:event', broadcast)
+        } else if (msg.type === 'list:update') {
+          if (data.name) db.run('UPDATE lists SET name = ? WHERE id = ?', [data.name, data.id])
+          if (data.color) db.run('UPDATE lists SET color = ? WHERE id = ?', [data.color, data.id])
+          const broadcast = { type: 'list:updated', payload: { id: data.id, name: data.name, color: data.color, by: senderId } }
+          teamServer.broadcast(broadcast)
+          mainWindow?.webContents.send('team:event', broadcast)
         } else if (msg.type === 'list:delete') {
           db.run("UPDATE tasks SET list_id = 'default' WHERE list_id = ?", [data.id])
           db.run('DELETE FROM lists WHERE id = ?', [data.id])

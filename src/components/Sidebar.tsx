@@ -50,6 +50,17 @@ export function Sidebar() {
 
   const [showNewList, setShowNewList] = useState(false)
   const [newListName, setNewListName] = useState('')
+  const [editingListId, setEditingListId] = useState<string | null>(null)
+  const [editListName, setEditListName] = useState('')
+  const updateList = useStore((s) => s.updateList)
+
+  const saveListRename = (id: string) => {
+    const trimmed = editListName.trim()
+    if (trimmed && trimmed !== lists.find(l => l.id === id)?.name) {
+      updateList(id, { name: trimmed })
+    }
+    setEditingListId(null)
+  }
 
   const handleAddList = () => {
     if (newListName.trim()) {
@@ -228,7 +239,28 @@ export function Sidebar() {
                       <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-accent" style={{ boxShadow: '0 0 6px rgba(99,102,241,0.4)' }} />
                     )}
                     <Hash size={16} strokeWidth={1.8} style={{ color: list.color || '#6366f1' }} />
-                    <span className="flex-1 text-left truncate">{list.name}</span>
+                    {editingListId === list.id ? (
+                      <input
+                        autoFocus
+                        value={editListName}
+                        onChange={(e) => setEditListName(e.target.value)}
+                        onBlur={() => saveListRename(list.id)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') saveListRename(list.id); if (e.key === 'Escape') setEditingListId(null) }}
+                        className="flex-1 bg-transparent text-[13px] text-text-primary outline-none border-b border-accent min-w-0"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    ) : (
+                      <span
+                        className="flex-1 text-left truncate cursor-text"
+                        onDoubleClick={(e) => {
+                          if (list.id === 'default') return // can't rename default
+                          e.stopPropagation()
+                          setEditingListId(list.id)
+                          setEditListName(list.name)
+                        }}
+                        title={list.id !== 'default' ? '双击改名' : undefined}
+                      >{list.name}</span>
+                    )}
                     {count > 0 && (
                       <span className={`
                         text-[11px] font-medium px-1.5 py-0.5 rounded-md min-w-[20px] text-center

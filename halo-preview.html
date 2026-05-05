@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>团队光环图 v2</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:#06060f;
+  font-family:Inter,system-ui,-apple-system,sans-serif;
+  height:100vh;display:flex;align-items:center;justify-content:center;
+  user-select:none;
+}
+.overlay{
+  position:fixed;inset:0;z-index:50;
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(16px) saturate(1.2);
+  -webkit-backdrop-filter:blur(16px) saturate(1.2);
+  display:flex;align-items:center;justify-content:center;
+}
+.card{
+  width:500px;max-width:94vw;
+  padding:44px 36px 32px;
+  border-radius:28px;
+  position:relative;
+  overflow:hidden;
+}
+/* Layered glass background */
+.card::before{
+  content:'';position:absolute;inset:0;border-radius:28px;
+  background:linear-gradient(160deg,rgba(20,20,45,.92),rgba(10,10,28,.96));
+  border:1px solid rgba(255,255,255,.06);
+  z-index:0;
+}
+/* Subtle inner glow */
+.card::after{
+  content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);
+  width:300px;height:120px;
+  background:radial-gradient(ellipse,rgba(99,102,241,.06),transparent 70%);
+  z-index:0;pointer-events:none;
+}
+.card>*{position:relative;z-index:1}
+
+.top-bar{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:28px;
+}
+.top-title{
+  font-size:11px;font-weight:600;letter-spacing:.8px;
+  color:rgba(255,255,255,.35);text-transform:uppercase;
+}
+.top-count{
+  font-size:11px;color:rgba(255,255,255,.25);
+}
+.top-count b{color:rgba(255,255,255,.5);font-weight:600}
+
+/* ── Server ── */
+.server-section{
+  display:flex;flex-direction:column;align-items:center;
+  margin-bottom:24px;
+}
+.server-core{
+  position:relative;
+  width:80px;height:80px;
+  display:flex;align-items:center;justify-content:center;
+}
+/* Outer rings */
+.server-core::before{
+  content:'';position:absolute;inset:-16px;border-radius:50%;
+  border:1.2px solid rgba(99,102,241,.08);
+  animation:ringPulse 3.5s ease-in-out infinite;
+}
+.server-core::after{
+  content:'';position:absolute;inset:-28px;border-radius:50%;
+  border:.8px solid rgba(99,102,241,.04);
+  animation:ringPulse 3.5s ease-in-out .6s infinite;
+}
+@keyframes ringPulse{
+  0%,100%{transform:scale(1);opacity:1}
+  50%{transform:scale(1.03);opacity:.6}
+}
+/* Glow */
+.server-glow{
+  position:absolute;inset:-20px;border-radius:50%;
+  background:radial-gradient(circle,rgba(99,102,241,.12) 30%,transparent 70%);
+}
+/* Avatar */
+.server-avatar{
+  width:80px;height:80px;border-radius:50%;
+  background:linear-gradient(145deg,#6366f1 0%,#4338ca 100%);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:
+    0 0 40px rgba(99,102,241,.2),
+    0 4px 24px rgba(0,0,0,.3),
+    inset 0 1px 0 rgba(255,255,255,.12);
+  position:relative;
+}
+/* Glass highlight on avatar */
+.server-avatar::after{
+  content:'';position:absolute;
+  top:12%;left:18%;right:18%;height:30%;
+  border-radius:50%;
+  background:linear-gradient(rgba(255,255,255,.15),transparent);
+}
+.server-initial{
+  color:#fff;font-size:26px;font-weight:700;
+  text-shadow:0 1px 2px rgba(0,0,0,.2);
+}
+.server-name{
+  margin-top:12px;color:#fff;font-size:15px;font-weight:600;
+  letter-spacing:.2px;
+}
+.server-role{
+  margin-top:2px;font-size:11px;color:rgba(16,185,129,.6);
+  display:flex;align-items:center;gap:5px;
+}
+.server-dot{width:6px;height:6px;border-radius:50%;background:#10b981;
+  box-shadow:0 0 6px rgba(16,185,129,.5);
+}
+
+/* ── Divider ── */
+.divider{
+  width:60px;height:1px;
+  background:linear-gradient(to right,transparent,rgba(255,255,255,.06),transparent);
+  margin:0 auto 20px;
+}
+
+/* ── Members ── */
+.members-title{
+  text-align:center;font-size:10px;font-weight:600;
+  color:rgba(255,255,255,.2);letter-spacing:1px;
+  margin-bottom:16px;
+}
+.members-grid{
+  display:flex;flex-wrap:wrap;justify-content:center;
+  gap:28px;padding:0 8px;
+}
+.member-item{
+  display:flex;flex-direction:column;align-items:center;
+  gap:8px;cursor:pointer;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+}
+.member-item:hover{transform:scale(1.1)}
+.member-item:active{transform:scale(.96)}
+.member-core{
+  position:relative;
+  width:56px;height:56px;
+  display:flex;align-items:center;justify-content:center;
+}
+/* Online ring */
+.member-core.online::before{
+  content:'';position:absolute;inset:-5px;border-radius:50%;
+  border:2px solid rgba(16,185,129,.25);
+  animation:memberPulse 2.2s ease-in-out infinite;
+}
+/* Offline ring */
+.member-core.offline::before{
+  content:'';position:absolute;inset:-5px;border-radius:50%;
+  border:1.5px dashed rgba(255,255,255,.06);
+}
+@keyframes memberPulse{
+  0%,100%{opacity:.5;transform:scale(1)}
+  50%{opacity:1;transform:scale(1.05)}
+}
+.member-avatar{
+  width:56px;height:56px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 16px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.1);
+  position:relative;overflow:hidden;
+}
+.member-avatar::after{
+  content:'';position:absolute;
+  top:10%;left:15%;right:15%;height:28%;
+  border-radius:50%;
+  background:linear-gradient(rgba(255,255,255,.12),transparent);
+}
+.member-avatar.online{}
+.member-avatar.offline{
+  filter:grayscale(.6) brightness(.4);
+}
+.member-initial{
+  color:#fff;font-size:18px;font-weight:600;
+  text-shadow:0 1px 1px rgba(0,0,0,.2);
+}
+.member-name{
+  font-size:12px;font-weight:500;
+  max-width:72px;text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.member-name.online{color:rgba(255,255,255,.75)}
+.member-name.offline{color:rgba(255,255,255,.2)}
+.member-badge{
+  font-size:10px;padding:1px 8px;border-radius:20px;
+}
+.member-badge.online{
+  background:rgba(16,185,129,.08);
+  color:rgba(16,185,129,.6);
+}
+.member-badge.offline{
+  background:rgba(255,255,255,.03);
+  color:rgba(255,255,255,.15);
+}
+
+/* ── Footer ── */
+.footer{
+  margin-top:24px;padding:10px 16px;
+  border-radius:14px;
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.04);
+  text-align:center;
+  min-height:40px;display:flex;align-items:center;justify-content:center;
+  gap:8px;
+}
+.footer-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.footer-text{font-size:12px;color:rgba(255,255,255,.4)}
+
+/* Close */
+.close{
+  position:absolute;top:18px;right:22px;z-index:2;
+  width:28px;height:28px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.04);
+  color:rgba(255,255,255,.25);font-size:12px;cursor:pointer;
+  transition:all .2s;
+}
+.close:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.5)}
+
+/* Buttons */
+.btns{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:60}
+.btns button{
+  padding:8px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.03);color:rgba(255,255,255,.5);
+  font-size:12px;cursor:pointer;transition:all .2s;
+}
+.btns button:hover{background:rgba(255,255,255,.06);color:#fff}
+.btns button.active{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.25);color:#a5b4fc}
+</style>
+</head>
+<body>
+<div class="overlay" id="overlay">
+<div class="card" onclick="resetInfo()">
+  <div class="close" onclick="document.getElementById('overlay').style.display='none'">✕</div>
+
+  <div class="top-bar">
+    <span class="top-title">团队成员</span>
+    <span class="top-count" id="topCount">已连接 <b>3</b> 人</span>
+  </div>
+
+  <div class="server-section" id="serverSection"></div>
+  <div class="divider"></div>
+  <div class="members-title">成员</div>
+  <div class="members-grid" id="membersGrid"></div>
+  <div class="footer" id="footer">
+    <div class="footer-dot" style="background:#6366f1"></div>
+    <span class="footer-text">点击成员查看详情 · 点击空白关闭</span>
+  </div>
+</div>
+</div>
+
+<div class="btns">
+  <button id="b3" class="active" onclick="setScene(3)">3 人</button>
+  <button id="b5" onclick="setScene(5)">5 人</button>
+  <button id="b7" onclick="setScene(7)">7 人</button>
+</div>
+
+<script>
+const COLORS=['#6366f1','#f59e0b','#10b981','#ef4444','#8b5cf6','#06b6d4','#ec4899','#14b8a6','#f97316'];
+const ALL=[
+  {name:'张三',color:COLORS[0],server:true,online:true},
+  {name:'李四',color:COLORS[1],server:false,online:true},
+  {name:'王五',color:COLORS[2],server:false,online:true},
+  {name:'赵六',color:COLORS[3],server:false,online:false},
+  {name:'孙七',color:COLORS[4],server:false,online:false},
+  {name:'周八',color:COLORS[5],server:false,online:true},
+  {name:'吴九',color:COLORS[6],server:false,online:false},
+];
+
+function resetInfo(e){
+  if(e&&e.target!==e.currentTarget&&e.target.closest('.member-item'))return;
+  const f=document.getElementById('footer');
+  f.innerHTML=`<div class="footer-dot" style="background:#6366f1"></div><span class="footer-text">点击成员查看详情 · 点击空白关闭</span>`;
+}
+
+function setScene(n){
+  document.querySelectorAll('.btns button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('b'+n).classList.add('active');
+
+  const server=ALL[0];
+  const members=ALL.filter(m=>!m.server).slice(0,n-1);
+  const online=members.filter(m=>m.online).length;
+
+  document.getElementById('topCount').innerHTML=`已连接 <b>${1+online}</b> 人`;
+
+  // Server
+  document.getElementById('serverSection').innerHTML=`
+    <div class="server-core">
+      <div class="server-glow"></div>
+      <div class="server-avatar">
+        <span class="server-initial">${server.name.charAt(0)}</span>
+      </div>
+    </div>
+    <div class="server-name">${server.name}</div>
+    <div class="server-role"><span class="server-dot"></span>服务端</div>
+  `;
+
+  // Members
+  const grid=document.getElementById('membersGrid');
+  grid.innerHTML=members.map(m=>{
+    const cls=m.online?'online':'offline';
+    return `
+    <div class="member-item" onclick="event.stopPropagation();showMember('${m.name}','${m.color}','${cls}')">
+      <div class="member-core ${cls}">
+        <div class="member-avatar ${cls}" style="background:linear-gradient(145deg,${m.color},${m.color}bb)">
+          <span class="member-initial">${m.name.charAt(0)}</span>
+        </div>
+      </div>
+      <div class="member-name ${cls}">${m.name}</div>
+      <div class="member-badge ${cls}">${m.online?'在线':'离线'}</div>
+    </div>`;
+  }).join('');
+}
+
+function showMember(name,color,status){
+  const sText=status==='online'?'在线':'离线';
+  const sColor=status==='online'?'rgba(16,185,129,.7)':'rgba(255,255,255,.25)';
+  document.getElementById('footer').innerHTML=`
+    <div class="footer-dot" style="background:${color}"></div>
+    <span class="footer-text" style="color:#fff;font-weight:600">${name}</span>
+    <span class="footer-text" style="color:${sColor}">${sText}</span>
+  `;
+}
+
+setScene(5);
+</script>
+</body>
+</html>

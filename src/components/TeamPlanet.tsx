@@ -1,277 +1,175 @@
-import { useRef, useEffect, useCallback, useState } from 'react'
-import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useTeamStore, type TeamMember } from '@/lib/team-store'
 
-const STAR_COUNT = 120
-
-interface PlanetData {
-  member: TeamMember
-  orbit: number
-  speed: number
-  angle: number
-  radius: number
-}
-
 export function TeamPlanet({ onClose }: { onClose: () => void }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   const members = useTeamStore((s) => s.members)
   const onlineMembers = useTeamStore((s) => s.onlineMembers)
   const [hoveredMember, setHoveredMember] = useState<TeamMember | null>(null)
-  const planetsRef = useRef<PlanetData[]>([])
-  const starsRef = useRef<Array<{ x: number; y: number; r: number; phase: number; speed: number }>>([])
-  const animRef = useRef<number>(0)
-  const timeRef = useRef(0)
+
   const serverMember = members.find(m => m.is_server)
-
-  // Init starfield once
-  useEffect(() => {
-    starsRef.current = Array.from({ length: STAR_COUNT }, () => ({
-      x: Math.random(),
-      y: Math.random(),
-      r: 0.3 + Math.random() * 1.2,
-      phase: Math.random() * Math.PI * 2,
-      speed: 0.3 + Math.random() * 0.7,
-    }))
-  }, [])
-
-  // Update planets when members change
-  useEffect(() => {
-    const clients = members.filter(m => !m.is_server)
-    const count = clients.length
-    let orbitRadii: number[], planetSize: number
-    if (count <= 3) { orbitRadii = [85, 125, 155].slice(0, count); planetSize = count <= 2 ? 16 : 14 }
-    else if (count <= 5) { orbitRadii = [75, 105, 135, 155, 175].slice(0, count); planetSize = 13 }
-    else { orbitRadii = [65, 85, 105, 125, 140, 155, 170].slice(0, count); planetSize = 11 }
-
-    planetsRef.current = clients.map((m, i) => ({
-      member: m,
-      orbit: orbitRadii[i] || 100,
-      speed: 0.2 + i * 0.03,
-      angle: i * 2.1,
-      radius: planetSize,
-    }))
-  }, [members])
-
-  const animate = useCallback(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    const dpr = window.devicePixelRatio || 1
-    const cw = canvas.offsetWidth
-    const ch = canvas.offsetHeight
-    if (canvas.width !== cw * dpr || canvas.height !== ch * dpr) {
-      canvas.width = cw * dpr
-      canvas.height = ch * dpr
-    }
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    const cx = cw / 2, cy = ch / 2
-    const t = timeRef.current
-
-    // Space background
-    const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(cw, ch) * 0.8)
-    bg.addColorStop(0, '#111128')
-    bg.addColorStop(1, '#050510')
-    ctx.fillStyle = bg
-    ctx.fillRect(0, 0, cw, ch)
-
-    // Starfield
-    const stars = starsRef.current
-    for (const s of stars) {
-      const sx = s.x * cw, sy = s.y * ch
-      const alpha = 0.2 + 0.4 * (0.5 + 0.5 * Math.sin(t * s.speed + s.phase))
-      ctx.fillStyle = `rgba(255,255,255,${alpha})`
-      ctx.beginPath()
-      ctx.arc(sx, sy, s.r, 0, Math.PI * 2)
-      ctx.fill()
-    }
-
-    const onlinePlanets = planetsRef.current.filter(p => onlineMembers.has(p.member.id))
-    const offlinePlanets = planetsRef.current.filter(p => !onlineMembers.has(p.member.id))
-
-    // Orbit rings (online only)
-    onlinePlanets.forEach(p => {
-      ctx.beginPath()
-      ctx.arc(cx, cy, p.orbit, 0, Math.PI * 2)
-      ctx.strokeStyle = 'rgba(255,255,255,0.03)'
-      ctx.lineWidth = 1
-      ctx.setLineDash([4, 8])
-      ctx.stroke()
-      ctx.setLineDash([])
-    })
-
-    // Server star
-    if (serverMember) {
-      const pulse = 1 + Math.sin(t * 1.8) * 0.05
-      const starColor = serverMember.color || '#6366f1'
-
-      for (let i = 3; i >= 0; i--) {
-        const halo = ctx.createRadialGradient(cx, cy, 10, cx, cy, 50 * pulse + i * 15)
-        halo.addColorStop(0, starColor + '40')
-        halo.addColorStop(0.5, starColor + '10')
-        halo.addColorStop(1, 'transparent')
-        ctx.beginPath()
-        ctx.arc(cx, cy, 50 * pulse + i * 15, 0, Math.PI * 2)
-        ctx.fillStyle = halo
-        ctx.fill()
-      }
-
-      const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, 22)
-      core.addColorStop(0, '#ffffff')
-      core.addColorStop(0.15, starColor)
-      core.addColorStop(0.5, starColor + '80')
-      core.addColorStop(1, starColor + '10')
-      ctx.beginPath()
-      ctx.arc(cx, cy, 22, 0, Math.PI * 2)
-      ctx.fillStyle = core
-      ctx.fill()
-
-      ctx.fillStyle = '#ffffff'
-      ctx.font = '600 14px Inter, system-ui, sans-serif'
-      ctx.textAlign = 'center'
-      ctx.fillText(serverMember.name || '服务端', cx, cy + 68)
-    }
-
-    // Online planets - orbit and glow
-    onlinePlanets.forEach(p => {
-      p.angle += p.speed * 0.016
-      const px = cx + Math.cos(p.angle) * p.orbit
-      const py = cy + Math.sin(p.angle) * p.orbit
-      const pr = p.radius
-      const color = p.member.color || '#6366f1'
-
-      const pglow = ctx.createRadialGradient(px, py, 0, px, py, pr * 2.8)
-      pglow.addColorStop(0, color + '35')
-      pglow.addColorStop(1, 'transparent')
-      ctx.beginPath()
-      ctx.arc(px, py, pr * 2.8, 0, Math.PI * 2)
-      ctx.fillStyle = pglow
-      ctx.fill()
-
-      const hlX = px - pr * 0.3, hlY = py - pr * 0.3
-      const pcore = ctx.createRadialGradient(hlX, hlY, 0, px, py, pr)
-      pcore.addColorStop(0, '#ffffff')
-      pcore.addColorStop(0.25, color)
-      pcore.addColorStop(1, color + '40')
-      ctx.beginPath()
-      ctx.arc(px, py, pr, 0, Math.PI * 2)
-      ctx.fillStyle = pcore
-      ctx.fill()
-
-      ctx.fillStyle = 'rgba(255,255,255,0.5)'
-      ctx.font = '11px Inter, system-ui, sans-serif'
-      ctx.textAlign = 'center'
-      ctx.fillText(p.member.name, px, py + pr + 16)
-    })
-
-    // Offline planets - dim, static, no orbit
-    offlinePlanets.forEach((p, i) => {
-      const angle = i * 1.8 + t * 0.1
-      const orbit = 210 + i * 40
-      const px = cx + Math.cos(angle) * orbit
-      const py = cy + Math.sin(angle) * orbit * 0.4 // elliptical
-      const pr = Math.max(8, p.radius * 0.6)
-
-      ctx.beginPath()
-      ctx.arc(px, py, pr, 0, Math.PI * 2)
-      ctx.fillStyle = 'rgba(255,255,255,0.06)'
-      ctx.fill()
-      ctx.strokeStyle = 'rgba(255,255,255,0.08)'
-      ctx.lineWidth = 1
-      ctx.stroke()
-
-      ctx.fillStyle = 'rgba(255,255,255,0.2)'
-      ctx.font = '10px Inter, system-ui, sans-serif'
-      ctx.textAlign = 'center'
-      ctx.fillText(p.member.name, px, py + pr + 14)
-    })
-
-    timeRef.current += 0.016
-    animRef.current = requestAnimationFrame(animate)
-  }, [members, onlineMembers, serverMember])
-
-  useEffect(() => {
-    animRef.current = requestAnimationFrame(animate)
-    return () => cancelAnimationFrame(animRef.current)
-  }, [animate])
-
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    const rect = canvasRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    const cx = rect.width / 2, cy = rect.height / 2
-
-    // Check server star
-    if (Math.hypot(x - cx, y - cy) < 55 && serverMember) {
-      setHoveredMember(serverMember)
-      return
-    }
-
-    // Check online planets
-    for (const p of planetsRef.current) {
-      if (!onlineMembers.has(p.member.id)) continue
-      const px = cx + Math.cos(p.angle) * p.orbit
-      const py = cy + Math.sin(p.angle) * p.orbit
-      if (Math.hypot(x - px, y - py) < p.radius * 3) {
-        setHoveredMember(p.member)
-        return
-      }
-    }
-
-    // Check offline planets
-    const offlinePlanets = planetsRef.current.filter(p => !onlineMembers.has(p.member.id))
-    for (let i = 0; i < offlinePlanets.length; i++) {
-      const p = offlinePlanets[i]
-      const angle = i * 1.8 + timeRef.current * 0.1
-      const orbit = 210 + i * 40
-      const px = cx + Math.cos(angle) * orbit
-      const py = cy + Math.sin(angle) * orbit * 0.4
-      if (Math.hypot(x - px, y - py) < 20) {
-        setHoveredMember(p.member)
-        return
-      }
-    }
-
-    onClose()
-  }, [serverMember, onlineMembers, onClose])
+  const clientMembers = members.filter(m => !m.is_server)
+  const onlineClients = clientMembers.filter(m => onlineMembers.has(m.id))
+  const totalOnline = 1 + onlineClients.length
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      className="fixed inset-0 z-50"
-      style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+      transition={{ duration: 0.25 }}
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(16px) saturate(1.2)', WebkitBackdropFilter: 'blur(16px) saturate(1.2)' }}
       onClick={onClose}
     >
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
-        onClick={(e) => { e.stopPropagation(); handleClick(e) }}
-      />
-      {hoveredMember && (
-        <div
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 px-5 py-3 rounded-2xl"
-          style={{
-            background: 'var(--glass-elevated-bg)',
-            backdropFilter: 'var(--glass-elevated-blur)',
-            WebkitBackdropFilter: 'var(--glass-elevated-blur)',
-            border: '1px solid var(--glass-border)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-          }}
-        >
-          <span className="flex items-center gap-3">
-            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: hoveredMember.color }} />
-            <span className="text-text-primary font-semibold text-[14px]">{hoveredMember.name}</span>
-            <span className="text-[12px]" style={{ color: onlineMembers.has(hoveredMember.id) ? 'rgba(16,185,129,0.85)' : 'var(--color-text-tertiary)' }}>
-              {hoveredMember.is_server ? '服务端' : onlineMembers.has(hoveredMember.id) ? '在线' : '离线'}
-            </span>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 12 }}
+        transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+        className="relative w-[440px] max-w-[94vw] rounded-[28px] px-9 py-10 overflow-hidden"
+        style={{
+          background: 'linear-gradient(160deg, rgba(20,20,45,0.92), rgba(10,10,28,0.96))',
+          border: '1px solid rgba(255,255,255,0.06)',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Top glow accent */}
+        <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[300px] h-[120px] rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse, rgba(99,102,241,0.06), transparent 70%)' }} />
+
+        {/* Close button */}
+        <button onClick={onClose}
+          className="absolute top-4 right-5 z-10 w-7 h-7 rounded-lg flex items-center justify-center text-[11px] transition-all"
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.25)' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.color = 'rgba(255,255,255,0.25)' }}
+        >✕</button>
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-7">
+          <span className="text-[11px] font-semibold tracking-wider uppercase" style={{ color: 'rgba(255,255,255,0.35)' }}>团队成员</span>
+          <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
+            已连接 <b style={{ color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>{totalOnline}</b> 人
           </span>
         </div>
-      )}
+
+        {/* Server star */}
+        {serverMember && (
+          <div className="flex flex-col items-center mb-6">
+            <div className="relative w-20 h-20 flex items-center justify-center">
+              {/* Rings */}
+              <div className="absolute -inset-4 rounded-full border animate-pulse"
+                style={{ borderColor: 'rgba(99,102,241,0.08)', animationDuration: '3.5s' }} />
+              <div className="absolute -inset-7 rounded-full border animate-pulse"
+                style={{ borderColor: 'rgba(99,102,241,0.04)', animationDuration: '3.5s', animationDelay: '0.6s' }} />
+              {/* Glow */}
+              <div className="absolute -inset-5 rounded-full"
+                style={{ background: `radial-gradient(circle, ${serverMember.color}1f 30%, transparent 70%)` }} />
+              {/* Avatar */}
+              <div
+                className="w-20 h-20 rounded-full flex items-center justify-center relative overflow-hidden"
+                style={{
+                  background: `linear-gradient(145deg, ${serverMember.color}, ${serverMember.color}cc)`,
+                  boxShadow: `0 0 40px ${serverMember.color}33, 0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.12)`,
+                }}
+              >
+                <div className="absolute top-[12%] left-[18%] right-[18%] h-[30%] rounded-full"
+                  style={{ background: 'linear-gradient(rgba(255,255,255,0.15), transparent)' }} />
+                <span className="text-white text-[26px] font-bold" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
+                  {serverMember.name.charAt(0)}
+                </span>
+              </div>
+            </div>
+            <div className="mt-3 text-white text-[15px] font-semibold tracking-wide">{serverMember.name}</div>
+            <div className="mt-0.5 text-[11px] flex items-center gap-1.5" style={{ color: 'rgba(16,185,129,0.6)' }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500" style={{ boxShadow: '0 0 6px rgba(16,185,129,0.5)' }} />服务端
+            </div>
+          </div>
+        )}
+
+        {/* Divider */}
+        {clientMembers.length > 0 && (
+          <div className="w-[60px] h-px mx-auto mb-5"
+            style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.06), transparent)' }} />
+        )}
+
+        {/* Members */}
+        {clientMembers.length > 0 && (
+          <>
+            <div className="text-center text-[10px] font-semibold tracking-wider mb-4" style={{ color: 'rgba(255,255,255,0.2)' }}>成员</div>
+            <div className="flex flex-wrap justify-center gap-7 px-2">
+              {clientMembers.map(m => {
+                const online = onlineMembers.has(m.id)
+                return (
+                  <motion.div
+                    key={m.id}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => setHoveredMember(m)}
+                    className="flex flex-col items-center gap-2 cursor-pointer"
+                  >
+                    <div className="relative w-14 h-14 flex items-center justify-center">
+                      {online ? (
+                        <div className="absolute -inset-[5px] rounded-full border-2 animate-pulse"
+                          style={{ borderColor: 'rgba(16,185,129,0.25)', animationDuration: '2.2s' }} />
+                      ) : (
+                        <div className="absolute -inset-[5px] rounded-full border-[1.5px] border-dashed"
+                          style={{ borderColor: 'rgba(255,255,255,0.06)' }} />
+                      )}
+                      <div
+                        className="w-14 h-14 rounded-full flex items-center justify-center relative overflow-hidden"
+                        style={{
+                          background: `linear-gradient(145deg, ${m.color}, ${m.color}bb)`,
+                          boxShadow: '0 3px 16px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.1)',
+                          filter: online ? 'none' : 'grayscale(0.6) brightness(0.4)',
+                        }}
+                      >
+                        <div className="absolute top-[10%] left-[15%] right-[15%] h-[28%] rounded-full"
+                          style={{ background: 'linear-gradient(rgba(255,255,255,0.12), transparent)' }} />
+                        <span className="text-white text-lg font-semibold" style={{ textShadow: '0 1px 1px rgba(0,0,0,0.2)' }}>
+                          {m.name.charAt(0)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-xs font-medium max-w-[72px] text-center truncate"
+                      style={{ color: online ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.2)' }}>
+                      {m.name}
+                    </div>
+                    <div className="text-[10px] px-2 py-0.5 rounded-[20px]"
+                      style={{
+                        background: online ? 'rgba(16,185,129,0.08)' : 'rgba(255,255,255,0.03)',
+                        color: online ? 'rgba(16,185,129,0.6)' : 'rgba(255,255,255,0.15)',
+                      }}>
+                      {online ? '在线' : '离线'}
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </div>
+          </>
+        )}
+
+        {/* Footer */}
+        <div className="mt-6 px-4 py-2.5 rounded-2xl flex items-center justify-center gap-2 min-h-[40px]"
+          style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+          {hoveredMember ? (
+            <>
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: hoveredMember.color }} />
+              <span className="text-[12px] text-white font-semibold">{hoveredMember.name}</span>
+              <span className="text-[12px]" style={{ color: onlineMembers.has(hoveredMember.id) ? 'rgba(16,185,129,0.7)' : 'rgba(255,255,255,0.25)' }}>
+                {hoveredMember.is_server ? '服务端' : onlineMembers.has(hoveredMember.id) ? '在线' : '离线'}
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#6366f1' }} />
+              <span className="text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>点击成员查看详情 · 点击空白关闭</span>
+            </>
+          )}
+        </div>
+      </motion.div>
     </motion.div>
   )
 }

@@ -126,6 +126,16 @@ export async function createList(name: string, color?: string): Promise<List> {
   return (await api.dbGet('SELECT * FROM lists WHERE id = ?', [id])) as List
 }
 
+export async function updateList(id: string, updates: { name?: string; color?: string }): Promise<void> {
+  const fields: string[] = []
+  const values: unknown[] = []
+  if (updates.name) { fields.push('name = ?'); values.push(updates.name) }
+  if (updates.color) { fields.push('color = ?'); values.push(updates.color) }
+  if (fields.length === 0) return
+  values.push(id)
+  await api.dbRun(`UPDATE lists SET ${fields.join(', ')} WHERE id = ?`, values)
+}
+
 export async function deleteList(id: string): Promise<void> {
   // Move tasks to default list first
   await api.dbRun("UPDATE tasks SET list_id = 'default' WHERE list_id = ?", [id])
