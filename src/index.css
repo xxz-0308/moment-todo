@@ -219,3 +219,9 @@ input::placeholder, textarea::placeholder {
 :root.light ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.2);
 }
+
+@keyframes completionPulse {
+  0% { background-color: transparent; }
+  30% { background-color: rgba(16, 185, 129, 0.12); }
+  100% { background-color: transparent; }
+}

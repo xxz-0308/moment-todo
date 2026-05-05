@@ -56,6 +56,11 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
   const removeTask = useStore((s) => s.removeTask)
   const [justCompleted, setJustCompleted] = useState(false)
 
+  // Team completion animation
+  const recentlyCompleted = useTeamStore((s) => s.recentlyCompleted)
+  const completionNotify = localStorage.getItem('moment-team-completion-notify') !== 'false'
+  const isCompleting = completionNotify && recentlyCompleted.has(task.id)
+
   // Track completion for celebration animation
   const prevCompleted = useRef(task.completed)
   useEffect(() => {
@@ -86,6 +91,9 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
           ? ['rgba(99,102,241,0.25)', 'rgba(99,102,241,0)']
           : undefined,
         transition: flashHighlight ? { duration: 0.8, ease: 'easeOut' } : undefined,
+      }}
+      style={{
+        ...(isCompleting ? { animation: 'completionPulse 1s ease-out' } : {}),
       }}
       {...(!disableNativeDrag ? { draggable: true } : {})}
       ref={(el) => {
