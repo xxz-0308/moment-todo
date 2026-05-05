@@ -198,7 +198,12 @@ function startTeam(mode: 'server' | 'client', config: TeamConfig): void {
     teamServer = new TeamServer(db, config.serverPort, (event, data) => {
       mainWindow?.webContents.send('team:event', { type: event, payload: data })
     })
-    teamServer.start()
+    const ok = teamServer.start()
+    if (!ok) {
+      teamServer = null
+      mainWindow?.webContents.send('team:event', { type: 'error', payload: '端口被占用，无法启动服务端' })
+      return
+    }
     stopDiscovery = publishServer(config.serverPort)
   } else if (mode === 'client') {
     const address = config.serverAddress || ''

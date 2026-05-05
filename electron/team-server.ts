@@ -30,8 +30,17 @@ export class TeamServer {
     this.onEvent = onEvent
   }
 
-  start(): void {
-    this.wss = new WebSocketServer({ port: this.port })
+  start(): boolean {
+    try {
+      this.wss = new WebSocketServer({ port: this.port })
+    } catch (err: any) {
+      console.error('[TeamServer] Failed to start:', err.message)
+      return false
+    }
+    this.wss.on('error', (err: Error) => {
+      console.error('[TeamServer] Server error:', err.message)
+      this.onEvent('error', err.message)
+    })
     console.log(`[TeamServer] Listening on port ${this.port}`)
 
     this.wss.on('connection', (ws: WebSocket, _req: IncomingMessage) => {
@@ -89,6 +98,7 @@ export class TeamServer {
         }
       })
     })
+    return true
   }
 
   stop(): void {
