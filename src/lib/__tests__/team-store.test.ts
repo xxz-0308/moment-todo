@@ -141,13 +141,15 @@ describe('sync handling', () => {
     expect(useTeamStore.getState().members[0].name).toBe('新的名')
   })
 
-  it('member:left removes member', () => {
-    useTeamStore.setState({ members: [makeMember({ id: 'm1' })] })
+  it('member:left keeps member for assignee display', () => {
+    useTeamStore.setState({ members: [makeMember({ id: 'm1', name: '张三' })] })
     useTeamStore.getState()._handleMessage({
       type: 'member:left',
       payload: { memberId: 'm1' },
     })
-    expect(useTeamStore.getState().members).toHaveLength(0)
+    // Member stays in list so task assignee badges still show names
+    expect(useTeamStore.getState().members).toHaveLength(1)
+    expect(useTeamStore.getState().members[0].name).toBe('张三')
   })
 })
 
