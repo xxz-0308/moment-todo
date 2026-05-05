@@ -1,10 +1,10 @@
 import { app, BrowserWindow, Tray, Menu, ipcMain, Notification, shell, nativeImage } from 'electron'
 import path from 'path'
 import fs from 'fs'
+import os from 'os'
 import initSqlJs, { type Database, type SqlJsStatic } from 'sql.js'
 import { TeamServer } from './team-server'
 import { TeamClient } from './team-client'
-import { publishServer, discoverServer, getLocalIPs } from './team-discovery'
 import { readTeamConfig, writeTeamConfig, type TeamConfig } from './team-config'
 
 const isDev = process.env.NODE_ENV === 'development'
@@ -23,8 +23,6 @@ let reminderInterval: ReturnType<typeof setInterval> | null = null
 const notifiedTasks = new Set<string>()
 let teamServer: TeamServer | null = null
 let teamClient: TeamClient | null = null
-let stopDiscovery: (() => void) | null = null
-
 const DB_PATH = path.join(app.getPath('userData'), 'moment.db')
 
 // ── Database ──────────────────────────────────────────────
@@ -211,7 +209,6 @@ function startTeam(mode: 'server' | 'client', config: TeamConfig): void {
       mainWindow?.webContents.send('team:event', { type: 'error', payload: '端口被占用，无法启动服务端' })
       return
     }
-    stopDiscovery = publishServer(config.serverPort)
     // Clean stale members from previous session, register server
     db.run("DELETE FROM team_members WHERE is_server != 1")
     db.run(
@@ -226,16 +223,8 @@ function startTeam(mode: 'server' | 'client', config: TeamConfig): void {
     const teamTasks = queryAll("SELECT * FROM tasks WHERE scope = 'team'")
     mainWindow?.webContents.send('team:event', { type: 'sync:full', payload: { members, lists: teamLists, tasks: teamTasks } })
   } else if (mode === 'client') {
-    const address = config.serverAddress || ''
-    if (!address) {
-      discoverServer().then((addr) => {
-        if (addr) {
-          connectClient(addr, config)
-        } else {
-          mainWindow?.webContents.send('team:event', { type: 'status', payload: 'disconnected' })
-        }
-      })
-    } else {
+    const address = config.serverAddress
+    if (address) {
       connectClient(`${address}:${config.serverPort}`, config)
     }
   }
@@ -257,12 +246,23 @@ function stopTeam(): void {
     teamClient.disconnect()
     teamClient = null
   }
-  if (stopDiscovery) {
-    stopDiscovery()
-    stopDiscovery = null
-  }
   // Notify renderer that team is now disabled
   mainWindow?.webContents.send('team:event', { type: 'status', payload: 'disabled' })
+}
+
+function getLocalIPs(): string[] {
+  const ips: string[] = []
+  const interfaces = os.networkInterfaces()
+  for (const name of Object.keys(interfaces)) {
+    const net = interfaces[name]
+    if (!net) continue
+    for (const iface of net) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        ips.push(iface.address)
+      }
+    }
+  }
+  return ips
 }
 
 // ── Window ────────────────────────────────────────────────
