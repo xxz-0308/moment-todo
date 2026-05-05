@@ -52,6 +52,7 @@ interface TeamState {
   serverUrl: string | null
   manualSort: boolean
   onlineMemberCount: number
+  onlineMembers: Set<string>
   reconnectSummary: string | null
   _snapshot: { taskIds: Set<string>; completedIds: Set<string> } | null
 
@@ -88,6 +89,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
   serverUrl: null,
   manualSort: false,
   onlineMemberCount: 0,
+  onlineMembers: new Set<string>(),
   reconnectSummary: null,
   _snapshot: null,
 
@@ -97,7 +99,9 @@ export const useTeamStore = create<TeamState>((set, get) => ({
       case 'sync:full': {
         const p = payload as { members: TeamMember[]; lists: TeamList[]; tasks: TeamTask[] }
         const snap = get()._snapshot
-        set({ members: p.members || [], lists: p.lists || [], tasks: p.tasks || [], onlineMemberCount: (p.members || []).length, _snapshot: null })
+        const memberList = p.members || []
+        const online = new Set<string>(memberList.map((m: TeamMember) => m.id))
+        set({ members: memberList, lists: p.lists || [], tasks: p.tasks || [], onlineMemberCount: memberList.length, onlineMembers: online, _snapshot: null })
         if (snap && (p.tasks || []).length > 0) {
           const newTasks = (p.tasks || []).filter(t => !snap.taskIds.has(t.id))
           const newCompleted = (p.tasks || []).filter(t => t.completed && !snap.completedIds.has(t.id))
@@ -167,16 +171,17 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         break
       }
       case 'member:connected': {
-        // Server sends absolute totalCount — use it directly
         const p = payload as { member: TeamMember; totalCount: number }
         set((s) => {
+          const online = new Set(s.onlineMembers)
+          online.add(p.member.id)
           const idx = s.members.findIndex((m) => m.id === p.member.id)
           if (idx >= 0) {
             const updated = [...s.members]
             updated[idx] = { ...updated[idx], ...p.member, last_seen: new Date().toISOString() }
-            return { members: updated, onlineMemberCount: p.totalCount }
+            return { members: updated, onlineMemberCount: p.totalCount, onlineMembers: online }
           }
-          return { members: [...s.members, p.member], onlineMemberCount: p.totalCount }
+          return { members: [...s.members, p.member], onlineMemberCount: p.totalCount, onlineMembers: online }
         })
         break
       }
@@ -196,15 +201,18 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         break
       }
       case 'member:left': {
-        // Keep member in list — tasks may still reference them as assignee
-        // Server sends absolute totalCount — use it directly
         const p = payload as { memberId: string; totalCount: number }
-        set((s) => ({
-          members: s.members.map((m) =>
-            m.id === p.memberId ? { ...m, last_seen: new Date().toISOString() } : m
-          ),
-          onlineMemberCount: p.totalCount || Math.max(1, s.onlineMemberCount - 1),
-        }))
+        set((s) => {
+          const online = new Set(s.onlineMembers)
+          online.delete(p.memberId)
+          return {
+            members: s.members.map((m) =>
+              m.id === p.memberId ? { ...m, last_seen: new Date().toISOString() } : m
+            ),
+            onlineMemberCount: p.totalCount || Math.max(1, s.onlineMemberCount - 1),
+            onlineMembers: online,
+          }
+        })
         break
       }
       case 'sort:mode': {
