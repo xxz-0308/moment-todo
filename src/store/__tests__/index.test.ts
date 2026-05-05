@@ -40,6 +40,7 @@ beforeEach(() => {
     undoStack: [],
     loading: false,
     searchResults: [],
+    scope: 'personal',
   })
   document.documentElement.classList.remove('light')
 })
@@ -361,5 +362,102 @@ describe('removeList supplements', () => {
     expect(undoStack).toHaveLength(1)
     expect(undoStack[0].type).toBe('deleteList')
     expect(undoStack[0].list?.name).toBe('工作')
+  })
+})
+
+describe('undo supplements', () => {
+  it('undoes task edit and restores previous values', async () => {
+    const oldTask = makeTask({ id: 't1', title: 'Old title' })
+    useStore.setState({
+      tasks: [makeTask({ id: 't1', title: 'New title' })],
+      undoStack: [{ type: 'update', task: oldTask, previousValues: { title: 'Old title' }, timestamp: Date.now() }],
+    })
+    mockDb.updateTask.mockResolvedValue(undefined)
+    mockDb.fetchTasks.mockResolvedValue([])
+    mockDb.fetchLists.mockResolvedValue([])
+
+    await useStore.getState().undo()
+    expect(mockDb.updateTask).toHaveBeenCalledWith('t1', { title: 'Old title' })
+  })
+
+  it('undoes deleteList by re-creating list', async () => {
+    const list = makeList({ id: 'l1', name: '工作', color: '#ff0000' })
+    useStore.setState({
+      undoStack: [{ type: 'deleteList', list, timestamp: Date.now() }],
+    })
+    mockDb.createList.mockResolvedValue(list)
+    mockDb.fetchTasks.mockResolvedValue([])
+    mockDb.fetchLists.mockResolvedValue([])
+
+    await useStore.getState().undo()
+    expect(mockDb.createList).toHaveBeenCalledWith('工作', '#ff0000')
+  })
+
+  it('drops oldest action when stack exceeds 20', () => {
+    useStore.setState({ scope: 'personal' })
+    for (let i = 0; i < 22; i++) {
+      useStore.getState().pushUndo({
+        type: 'delete', task: makeTask({ id: `t${i}` }), timestamp: Date.now(),
+      })
+    }
+    expect(useStore.getState().undoStack).toHaveLength(20)
+    expect(useStore.getState().undoStack[0].task!.id).toBe('t2')
+  })
+
+  it('skips local DB for team-scoped task undo', async () => {
+    const teamTask = { ...makeTask({ id: 'tt1' }), scope: 'team' } as any
+    useStore.setState({
+      undoStack: [{ type: 'delete', task: teamTask, timestamp: Date.now() }],
+    })
+
+    await useStore.getState().undo()
+    expect(mockDb.createTask).not.toHaveBeenCalled()
+  })
+})
+
+describe('scope supplements', () => {
+  it('setScope clears selection on personal→team', () => {
+    useStore.setState({ selectedTaskId: 't1', selectedTask: makeTask({ id: 't1' }), scope: 'personal' })
+    useStore.getState().setScope('team')
+    expect(useStore.getState().scope).toBe('team')
+    expect(useStore.getState().selectedTaskId).toBeNull()
+  })
+
+  it('setScope clears selection on team→personal', () => {
+    useStore.setState({ scope: 'team', selectedTaskId: 't2', selectedTask: makeTask({ id: 't2' }) })
+    useStore.getState().setScope('personal')
+    expect(useStore.getState().scope).toBe('personal')
+    expect(useStore.getState().selectedTaskId).toBeNull()
+  })
+
+  it('rapid scope switching keeps clean state', () => {
+    useStore.getState().setScope('team')
+    useStore.getState().setScope('personal')
+    useStore.getState().setScope('team')
+    expect(useStore.getState().scope).toBe('team')
+    expect(useStore.getState().selectedTaskId).toBeNull()
+  })
+})
+
+describe('search', () => {
+  it('clears results for blank query', async () => {
+    await useStore.getState().search('')
+    expect(useStore.getState().searchResults).toHaveLength(0)
+  })
+
+  it('searches personal tasks via db with scope filter', async () => {
+    const task = makeTask({ id: 't1', title: 'Buy groceries' })
+    mockDb.searchTasks.mockResolvedValue([task])
+
+    await useStore.getState().search('groceries')
+    expect(mockDb.searchTasks).toHaveBeenCalledWith('groceries', 'personal')
+    expect(useStore.getState().searchResults).toHaveLength(1)
+  })
+
+  it('clearSearch empties both results and query', () => {
+    useStore.setState({ searchResults: [makeTask()], searchQuery: 'test' })
+    useStore.getState().clearSearch()
+    expect(useStore.getState().searchResults).toHaveLength(0)
+    expect(useStore.getState().searchQuery).toBe('')
   })
 })
