@@ -12,7 +12,7 @@ await esbuild.build({
   bundle: true,
   platform: 'node',
   target: 'node24',
-  external: ['electron', 'sql.js'],
+  external: ['electron', 'sql.js', 'ws', 'multicast-dns'],
   format: 'cjs',
   sourcemap: true,
 })
