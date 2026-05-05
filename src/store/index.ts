@@ -54,6 +54,7 @@ interface AppState {
   currentView: ViewType
   selectedTaskId: string | null
   selectedTask: Task | null
+  scope: 'personal' | 'team'
 
   showCommandPalette: boolean
   showSettings: boolean
@@ -68,6 +69,7 @@ interface AppState {
 
   loadData: () => Promise<void>
   setCurrentView: (view: ViewType) => void
+  setScope: (scope: 'personal' | 'team') => void
   selectTask: (taskId: string | null) => void
 
   addTask: (title: string, priority?: string, dueDate?: string | null, listId?: string) => Promise<Task>
@@ -103,6 +105,7 @@ export const useStore = create<AppState>((set, get) => ({
   currentView: 'today',
   selectedTaskId: null,
   selectedTask: null,
+  scope: 'personal',
   showCommandPalette: false,
   showSettings: false,
   showStats: false,
@@ -139,6 +142,10 @@ export const useStore = create<AppState>((set, get) => ({
 
   setCurrentView: (view) => {
     set({ currentView: view, selectedTaskId: null, selectedTask: null })
+  },
+
+  setScope: (scope) => {
+    set({ scope, selectedTaskId: null, selectedTask: null })
   },
 
   selectTask: (taskId) => {

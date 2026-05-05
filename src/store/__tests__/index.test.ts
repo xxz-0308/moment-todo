@@ -289,3 +289,16 @@ describe('loadData', () => {
     expect(useStore.getState().toasts.some((t) => t.message.includes('加载数据失败'))).toBe(true)
   })
 })
+
+describe('scope', () => {
+  it('defaults to personal', () => {
+    expect(useStore.getState().scope).toBe('personal')
+  })
+
+  it('setScope clears selection', () => {
+    useStore.setState({ selectedTaskId: 'abc', selectedTask: makeTask() })
+    useStore.getState().setScope('team')
+    expect(useStore.getState().scope).toBe('team')
+    expect(useStore.getState().selectedTaskId).toBeNull()
+  })
+})

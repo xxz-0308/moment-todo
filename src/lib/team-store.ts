@@ -145,7 +145,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         break
       }
       case 'status': {
-        const p = payload as string
+        const p = payload as unknown as string
         set({ connectionStatus: p as ConnectionStatus })
         break
       }
