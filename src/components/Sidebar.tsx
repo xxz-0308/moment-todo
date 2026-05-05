@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useStore } from '@/store'
 import { useTeamStore } from '@/lib/team-store'
+import { TeamPlanet } from '@/components/TeamPlanet'
 
 const presetViews = [
   { id: 'today', label: '今天', icon: Calendar },
@@ -31,6 +32,7 @@ export function Sidebar() {
   const removeList = useStore((s) => s.removeList)
   const lists = scope === 'team' ? teamLists : personalLists
   const connectionStatus = useTeamStore((s) => s.connectionStatus)
+  const [showPlanet, setShowPlanet] = useState(false)
   const toggleSettings = useStore((s) => s.toggleSettings)
   const toggleStats = useStore((s) => s.toggleStats)
   const toggleCommandPalette = useStore((s) => s.toggleCommandPalette)
@@ -329,8 +331,9 @@ export function Sidebar() {
       {/* Team connection status — only visible when team is configured */}
       {connectionStatus !== 'disabled' && (
         <div className="px-4 pb-3">
-          <div
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] transition-colors"
+          <button
+            onClick={() => setShowPlanet(true)}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] transition-colors cursor-pointer hover:brightness-110"
             style={{
               backgroundColor: connectionStatus === 'connected' ? 'rgba(16,185,129,0.08)' :
                                connectionStatus === 'connecting' ? 'rgba(245,158,11,0.08)' :
@@ -356,9 +359,12 @@ export function Sidebar() {
                connectionStatus === 'connecting' ? '正在连接...' :
                '已离线'}
             </span>
-          </div>
+          </button>
         </div>
       )}
+      <AnimatePresence>
+        {showPlanet && <TeamPlanet onClose={() => setShowPlanet(false)} />}
+      </AnimatePresence>
     </aside>
   )
 }
