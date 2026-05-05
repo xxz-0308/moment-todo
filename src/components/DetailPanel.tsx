@@ -11,6 +11,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { useStore } from '@/store'
+import { useTeamStore } from '@/lib/team-store'
 import { DatePicker } from '@/components/DatePicker'
 
 export function DetailPanel() {
@@ -21,6 +22,8 @@ export function DetailPanel() {
   const removeTask = useStore((s) => s.removeTask)
   const lists = useStore((s) => s.lists)
   const theme = useStore((s) => s.theme)
+  const scope = useStore((s) => s.scope)
+  const teamMembers = useTeamStore((s) => s.members)
 
   const titleRef = useRef<HTMLInputElement>(null)
   const [title, setTitle] = useState('')
@@ -181,6 +184,28 @@ export function DetailPanel() {
             ))}
           </div>
         </div>
+
+        {/* Assignee (team only) */}
+        {scope === 'team' && (
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-medium text-text-tertiary">负责人</label>
+            <select
+              value={(selectedTask as any).assigned_to || 'none'}
+              onChange={(e) => {
+                const val = e.target.value === 'none' ? null : e.target.value
+                updateTask(selectedTask.id, { assigned_to: val } as any)
+              }}
+              className="w-full px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] text-[13px] text-text-primary focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all"
+            >
+              <option value="none">未分配</option>
+              {teamMembers.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Due date */}
         <div className="space-y-2">
