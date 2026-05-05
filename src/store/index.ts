@@ -458,10 +458,14 @@ export const useStore = create<AppState>((set, get) => ({
         break
     }
 
-    if (!isTeamTask) {
+    set({ undoStack: stack.slice(0, -1) })
+    if (!isTeamTask && lastAction.type !== 'deleteList') {
+      await get().loadData()
+    } else if (lastAction.type === 'deleteList' && (lastAction.list as any)?.scope === 'team') {
+      // Team list undo — data comes back via WebSocket broadcast, no local reload needed
+    } else {
       await get().loadData()
     }
-    set({ undoStack: stack.slice(0, -1) })
     playUndoSound()
     // Flash the restored task (only for task actions)
     if (lastAction.task) {

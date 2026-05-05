@@ -151,18 +151,23 @@ export function QuickAdd() {
 
               {/* List */}
               <div className="flex items-center gap-3">
-                <Hash size={14} strokeWidth={2} className="text-text-tertiary" />
-                <select
-                  value={listId}
-                  onChange={(e) => setListId(e.target.value)}
-                  className="px-2.5 py-1.5 rounded-lg bg-surface-tertiary text-[12px] text-text-primary outline-none border border-border focus:border-accent transition-colors appearance-none cursor-pointer"
-                >
+                <Hash size={14} strokeWidth={2} className="text-text-tertiary flex-shrink-0" />
+                <div className="flex gap-1.5 flex-wrap">
                   {lists.map((list) => (
-                    <option key={list.id} value={list.id}>
+                    <button
+                      key={list.id}
+                      type="button"
+                      onClick={() => setListId(list.id)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                        listId === list.id
+                          ? 'bg-[rgba(99,102,241,0.1)] text-accent border border-[rgba(99,102,241,0.2)]'
+                          : 'bg-[rgba(255,255,255,0.03)] text-text-tertiary hover:text-text-secondary border border-transparent'
+                      }`}
+                    >
                       {list.name}
-                    </option>
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
             </motion.div>
           )}

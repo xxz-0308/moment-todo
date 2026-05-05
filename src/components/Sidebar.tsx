@@ -30,7 +30,14 @@ export function Sidebar() {
   const teamLists = useTeamStore((s) => s.lists)
   const addList = useStore((s) => s.addList)
   const removeList = useStore((s) => s.removeList)
-  const lists = scope === 'team' ? teamLists : personalLists
+  const lists = (() => {
+    if (scope === 'team') {
+      // Add virtual default list if missing
+      if (teamLists.find(l => l.id === 'default')) return teamLists
+      return [{ id: 'default', name: '全部', color: '#6366f1', sort_order: -1, scope: 'team', created_by: null, created_at: '' }, ...teamLists]
+    }
+    return personalLists
+  })()
   const connectionStatus = useTeamStore((s) => s.connectionStatus)
   const [showPlanet, setShowPlanet] = useState(false)
   const toggleSettings = useStore((s) => s.toggleSettings)
@@ -232,19 +239,21 @@ export function Sidebar() {
                     )}
                   </button>
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      removeList(list.id)
-                    }}
-                    className={`
-                      absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center
-                      rounded-md text-text-tertiary hover:text-danger hover:bg-danger-muted
-                      opacity-0 group-hover:opacity-100 transition-all
-                    `}
-                  >
-                    <Trash2 size={13} strokeWidth={1.8} />
-                  </button>
+                  {list.id !== 'default' && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        removeList(list.id)
+                      }}
+                      className={`
+                        absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center
+                        rounded-md text-text-tertiary hover:text-danger hover:bg-danger-muted
+                        opacity-0 group-hover:opacity-100 transition-all
+                      `}
+                    >
+                      <Trash2 size={13} strokeWidth={1.8} />
+                    </button>
+                  )}
                 </motion.div>
               )
             })}
