@@ -212,6 +212,13 @@ export class TeamServer {
     ws.send(msg)
   }
 
+  sendTo(memberId: string, msg: { type: string; payload: unknown }): void {
+    const client = this.clients.get(memberId)
+    if (client && client.ws.readyState === WebSocket.OPEN) {
+      client.ws.send(JSON.stringify(msg))
+    }
+  }
+
   broadcast(msg: { type: string; payload: unknown; senderId?: string }): void {
     this.broadcastToAll({ ...msg, senderId: msg.senderId || '' })
   }

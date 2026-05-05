@@ -543,6 +543,16 @@ function setupIPC() {
           const broadcast = { type: 'task:updated', payload: { id: data.id, ...data, by: senderId } }
           teamServer.broadcast(broadcast)
           mainWindow?.webContents.send('team:event', broadcast)
+          // If assigned_to changed, send notification to assignee
+          if ('assigned_to' in data && data.assigned_to && teamServer) {
+            const task = queryAll('SELECT * FROM tasks WHERE id = ?', [data.id])[0] as Record<string, unknown> | undefined
+            if (task) {
+              teamServer.sendTo(data.assigned_to as string, {
+                type: 'notify:assigned',
+                payload: { taskId: data.id, taskTitle: task.title || '' },
+              })
+            }
+          }
         } else if (msg.type === 'task:delete') {
           db.run('DELETE FROM tasks WHERE id = ?', [data.id])
           const broadcast = { type: 'task:deleted', payload: { id: data.id, by: senderId } }

@@ -225,6 +225,13 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         })
         break
       }
+      case 'notify:assigned': {
+        const p = payload as { taskId: string; taskTitle: string }
+        if (typeof window !== 'undefined' && (window as any).electronAPI?.showNotification) {
+          (window as any).electronAPI.showNotification('新任务分配', `你被分配了任务：${p.taskTitle}`)
+        }
+        break
+      }
     }
   },
 
