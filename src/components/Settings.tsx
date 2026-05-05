@@ -365,7 +365,7 @@ export default function Settings() {
                     type="text"
                     value={serverAddress}
                     onChange={(e) => setServerAddress(e.target.value)}
-                    placeholder="192.168.1.100（同机测试填 localhost）"
+                    placeholder="192.168.1.100:5174"
                     className="w-full px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] text-[13px] text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all"
                   />
                 </div>
