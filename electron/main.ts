@@ -2,6 +2,10 @@ import { app, BrowserWindow, Tray, Menu, ipcMain, Notification, shell, nativeIma
 import path from 'path'
 import fs from 'fs'
 import initSqlJs, { type Database, type SqlJsStatic } from 'sql.js'
+import { TeamServer } from './team-server'
+import { TeamClient } from './team-client'
+import { publishServer, discoverServer } from './team-discovery'
+import { readTeamConfig, writeTeamConfig, type TeamConfig } from './team-config'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -11,6 +15,9 @@ let db: Database | null = null
 let SQL: SqlJsStatic | null = null
 let reminderInterval: ReturnType<typeof setInterval> | null = null
 const notifiedTasks = new Set<string>()
+let teamServer: TeamServer | null = null
+let teamClient: TeamClient | null = null
+let stopDiscovery: (() => void) | null = null
 
 const DB_PATH = path.join(app.getPath('userData'), 'moment.db')
 
@@ -180,6 +187,54 @@ function stopReminders() {
   if (reminderInterval) {
     clearInterval(reminderInterval)
     reminderInterval = null
+  }
+}
+
+// ── Team ────────────────────────────────────────────────────
+
+function startTeam(mode: 'server' | 'client', config: TeamConfig): void {
+  if (mode === 'server') {
+    if (!db) return
+    teamServer = new TeamServer(db, config.serverPort, (event, data) => {
+      mainWindow?.webContents.send('team:event', { type: event, payload: data })
+    })
+    teamServer.start()
+    stopDiscovery = publishServer(config.serverPort)
+  } else if (mode === 'client') {
+    const address = config.serverAddress || ''
+    if (!address) {
+      discoverServer().then((addr) => {
+        if (addr) {
+          connectClient(addr, config)
+        } else {
+          mainWindow?.webContents.send('team:event', { type: 'status', payload: 'disconnected' })
+        }
+      })
+    } else {
+      connectClient(`${address}:${config.serverPort}`, config)
+    }
+  }
+}
+
+function connectClient(url: string, config: TeamConfig): void {
+  teamClient = new TeamClient(url, config.member, (event, data) => {
+    mainWindow?.webContents.send('team:event', { type: event, payload: data })
+  })
+  teamClient.connect()
+}
+
+function stopTeam(): void {
+  if (teamServer) {
+    teamServer.stop()
+    teamServer = null
+  }
+  if (teamClient) {
+    teamClient.disconnect()
+    teamClient = null
+  }
+  if (stopDiscovery) {
+    stopDiscovery()
+    stopDiscovery = null
   }
 }
 
@@ -366,6 +421,62 @@ function setupIPC() {
   ipcMain.handle('window:close', () => { saveDatabase(); mainWindow?.close() })
   ipcMain.handle('window:isMaximized', () => mainWindow?.isMaximized())
   ipcMain.handle('shell:openExternal', (_e, url: string) => shell.openExternal(url))
+
+  // Team
+  ipcMain.handle('team:start', (_e, mode: 'server' | 'client') => {
+    const config = readTeamConfig()
+    config.role = mode
+    writeTeamConfig(config)
+    startTeam(mode, config)
+    return true
+  })
+  ipcMain.handle('team:stop', () => {
+    stopTeam()
+    const config = readTeamConfig()
+    config.role = ''
+    writeTeamConfig(config)
+    return true
+  })
+  ipcMain.handle('team:get-config', () => readTeamConfig())
+  ipcMain.handle('team:save-config', (_e, partial: Partial<TeamConfig>) => {
+    const config = readTeamConfig()
+    const merged = { ...config, ...partial }
+    writeTeamConfig(merged)
+    stopTeam()
+    if (merged.role && merged.member.id) {
+      startTeam(merged.role as 'server' | 'client', merged)
+    }
+    return readTeamConfig()
+  })
+  ipcMain.handle('team:discover', async () => {
+    const result = await discoverServer()
+    return result
+  })
+  ipcMain.handle('team:send', (_e, msg: { type: string; payload: unknown }) => {
+    if (teamClient) {
+      teamClient.send(msg)
+    }
+    return true
+  })
+  ipcMain.handle('team:get-status', () => {
+    if (teamServer) return { status: 'connected', memberCount: teamServer.memberCount }
+    if (teamClient) return { status: teamClient.status }
+    return { status: 'disabled' }
+  })
+  ipcMain.handle('team:get-members', () => {
+    if (!db) return []
+    const stmt = db.prepare('SELECT * FROM team_members ORDER BY name')
+    const cols = stmt.getColumnNames()
+    const rows: Record<string, unknown>[] = []
+    while (stmt.step()) {
+      const vals = stmt.get()
+      const row: Record<string, unknown> = {}
+      cols.forEach((c, i) => { row[c] = vals[i] })
+      rows.push(row)
+    }
+    stmt.free()
+    return rows
+  })
 }
 
 // ── Init ──────────────────────────────────────────────────
@@ -375,6 +486,11 @@ async function init() {
   loadDatabase()
   initSchema()
   setupIPC()
+  // Auto-start team if previously configured
+  const teamConfig = readTeamConfig()
+  if (teamConfig.role && teamConfig.member.id) {
+    startTeam(teamConfig.role as 'server' | 'client', teamConfig)
+  }
   createWindow()
   createTray()
   // Reminders disabled — not useful for this use case
@@ -384,6 +500,7 @@ async function init() {
 app.whenReady().then(init)
 
 app.on('before-quit', () => {
+  stopTeam()
   saveDatabase()
   backupDatabase()
   stopReminders()

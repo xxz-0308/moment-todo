@@ -25,4 +25,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onMaximizeChange: (callback: (maximized: boolean) => void) => {
     ipcRenderer.on('window:maximize-change', (_event, maximized) => callback(maximized))
   },
+
+  // Team
+  teamStart: (mode: string) => ipcRenderer.invoke('team:start', mode),
+  teamStop: () => ipcRenderer.invoke('team:stop'),
+  teamGetConfig: () => ipcRenderer.invoke('team:get-config'),
+  teamSaveConfig: (config: unknown) => ipcRenderer.invoke('team:save-config', config),
+  teamDiscover: () => ipcRenderer.invoke('team:discover'),
+  teamSend: (msg: { type: string; payload: unknown }) => ipcRenderer.invoke('team:send', msg),
+  teamGetStatus: () => ipcRenderer.invoke('team:get-status'),
+  teamGetMembers: () => ipcRenderer.invoke('team:get-members'),
+  onTeamEvent: (callback: (event: { type: string; payload: unknown }) => void) => {
+    ipcRenderer.on('team:event', (_e, event) => callback(event))
+  },
 })
