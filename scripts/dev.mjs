@@ -15,7 +15,8 @@ async function startDev() {
   // Start Electron
   const electronPath = execSync('node -e "console.log(require(\'electron\'))"', { encoding: 'utf-8' }).trim()
 
-  const electronProcess = spawn(electronPath, ['.', '--dev'], {
+  const extraArgs = process.argv.slice(2)
+  const electronProcess = spawn(electronPath, ['.', ...extraArgs], {
     env: {
       ...process.env,
       NODE_ENV: 'development',

@@ -9,6 +9,12 @@ import { readTeamConfig, writeTeamConfig, type TeamConfig } from './team-config'
 
 const isDev = process.env.NODE_ENV === 'development'
 
+// Support multi-instance testing: --data-suffix=client isolates userData
+const dataSuffix = process.argv.find(a => a.startsWith('--data-suffix='))?.split('=')[1]
+if (dataSuffix) {
+  app.setPath('userData', app.getPath('userData') + '-' + dataSuffix)
+}
+
 let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
 let db: Database | null = null
