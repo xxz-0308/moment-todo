@@ -64,3 +64,28 @@ scripts/
 - **Notifications**: Electron `Notification` API triggered from renderer via IPC.
 - **Icons**: Lucide React, strokeWidth 1.5-2 depending on context.
 - **Fonts**: Inter + Noto Sans SC loaded from Google Fonts in index.html.
+
+## LAN Team (multi-user)
+
+**Mode**: One machine runs as server (WebSocket on port 5174), others connect as clients. mDNS auto-discovery with manual IP fallback.
+
+**Data separation:**
+- Personal space → local sql.js (always functional, zero network dependency)
+- Team space → server's sql.js (real-time via WebSocket), client holds in-memory cache
+
+**New files:**
+```
+electron/
+  team-server.ts     # WS server (accepts connections, routes messages, broadcasts, DB ops)
+  team-client.ts     # WS client (auto-reconnect with exponential backoff, heartbeat)
+  team-config.ts     # Read/write team-config.json (member identity, role, server address)
+  team-discovery.ts  # mDNS publisher + discovery
+src/lib/
+  team-store.ts      # Separate Zustand store for team state (tasks, lists, members, connection)
+```
+
+**Message protocol:** Client → Server via WS for CRUD; server broadcasts to all clients. `sync:full` on connect. Server-authoritative, last-write-wins.
+
+**IPC bridge:** `electronAPI.teamStart/Stop/Send/GetConfig/SaveConfig/Discover/GetStatus/GetMembers` + `onTeamEvent` callback from main→renderer.
+
+**Scope toggle:** `scope: 'personal' | 'team'` in main Zustand store. Components check scope to decide data source (local store vs team-store).
