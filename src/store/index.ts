@@ -396,81 +396,34 @@ export const useStore = create<AppState>((set, get) => ({
       return
     }
 
-    const task = lastAction.task!
-    const isTeamTask = (task as any).scope === 'team'
+    const task = lastAction.task
+    const isTeamAction = (task && (task as any).scope === 'team') || (lastAction.type === 'deleteList' && (lastAction.list as any)?.scope === 'team')
 
-    switch (lastAction.type) {
-      case 'delete':
-        if (isTeamTask) {
-          useTeamStore.getState().sendMessage('task:create', {
-            title: task.title,
-            priority: task.priority,
-            dueDate: task.due_date,
-            listId: task.list_id,
-            notes: task.notes,
-            sortOrder: task.sort_order,
-          })
-        } else {
-          await db.createTask({
-            title: task.title,
-            priority: task.priority,
-            dueDate: task.due_date,
-            listId: task.list_id,
-            notes: task.notes,
-            sortOrder: task.sort_order,
-          })
-        }
-        break
-      case 'complete':
-        if (isTeamTask) {
-          useTeamStore.getState().sendMessage('task:update', { id: task.id, completed: 0 })
-        } else {
-          await db.updateTask(task.id, { completed: 0 })
-        }
-        break
-      case 'update':
-        if (lastAction.previousValues) {
-          const prev = lastAction.previousValues
-          const updates: Partial<Task> = {}
-          if (prev.title !== undefined) updates.title = prev.title
-          if (prev.priority !== undefined) updates.priority = prev.priority
-          if (prev.due_date !== undefined) updates.due_date = prev.due_date
-          if (prev.list_id !== undefined) updates.list_id = prev.list_id
-          if (prev.notes !== undefined) updates.notes = prev.notes
-          if (isTeamTask) {
-            useTeamStore.getState().sendMessage('task:update', { id: task.id, ...updates })
-          } else {
-            await db.updateTask(task.id, updates)
-          }
-        }
-        break
-      case 'deleteList':
-        if (lastAction.list) {
-          if ((lastAction.list as any).scope === 'team') {
-            useTeamStore.getState().sendMessage('list:create', {
-              name: lastAction.list.name,
-              color: lastAction.list.color || undefined,
-            })
-          } else {
-            await db.createList(lastAction.list.name, lastAction.list.color || undefined)
-          }
-        }
-        break
+    if (isTeamAction) {
+      // Team undo via WebSocket
+      switch (lastAction.type) {
+        case 'delete': if (task) useTeamStore.getState().sendMessage('task:create', { title: task.title, priority: task.priority, dueDate: task.due_date, listId: task.list_id, notes: task.notes, sortOrder: task.sort_order }); break
+        case 'complete': if (task) useTeamStore.getState().sendMessage('task:update', { id: task.id, completed: 0 }); break
+        case 'update': if (lastAction.previousValues && task) { const u: any = {}; const p = lastAction.previousValues; if (p.title !== undefined) u.title = p.title; if (p.priority !== undefined) u.priority = p.priority; if (p.due_date !== undefined) u.due_date = p.due_date; if (p.list_id !== undefined) u.list_id = p.list_id; if (p.notes !== undefined) u.notes = p.notes; useTeamStore.getState().sendMessage('task:update', { id: task.id, ...u }); } break
+        case 'deleteList': if (lastAction.list) useTeamStore.getState().sendMessage('list:create', { name: lastAction.list.name, color: lastAction.list.color || undefined }); break
+      }
+    } else {
+      // Personal undo via local DB
+      switch (lastAction.type) {
+        case 'delete': if (task) await db.createTask({ title: task.title, priority: task.priority, dueDate: task.due_date, listId: task.list_id, notes: task.notes, sortOrder: task.sort_order }); break
+        case 'complete': if (task) await db.updateTask(task.id, { completed: 0 }); break
+        case 'update': if (lastAction.previousValues && task) { const p = lastAction.previousValues; const u: any = {}; if (p.title !== undefined) u.title = p.title; if (p.priority !== undefined) u.priority = p.priority; if (p.due_date !== undefined) u.due_date = p.due_date; if (p.list_id !== undefined) u.list_id = p.list_id; if (p.notes !== undefined) u.notes = p.notes; await db.updateTask(task.id, u); } break
+        case 'deleteList': if (lastAction.list) await db.createList(lastAction.list.name, lastAction.list.color || undefined); break
+      }
+      await get().loadData()
     }
 
     set({ undoStack: stack.slice(0, -1) })
-    const isTeamUndo = isTeamTask || (lastAction.type === 'deleteList' && (lastAction.list as any)?.scope === 'team')
-    if (!isTeamUndo) {
-      await get().loadData()
-    }
     playUndoSound()
-    // Flash the restored task (only for task actions)
-    if (lastAction.task) {
-      const restoredId = lastAction.task.id
+    if (task) {
+      const restoredId = task.id
       set({ restoredTaskId: restoredId })
-      setTimeout(() => {
-        if (get().restoredTaskId === restoredId) set({ restoredTaskId: null })
-      }, 1000)
+      setTimeout(() => { if (get().restoredTaskId === restoredId) set({ restoredTaskId: null }) }, 1000)
     }
     get().addToast('已撤销')
   },

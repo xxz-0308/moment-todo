@@ -32,11 +32,11 @@ export function Sidebar() {
   const removeList = useStore((s) => s.removeList)
   const lists = (() => {
     if (scope === 'team') {
-      // Add virtual default list if missing
-      if (teamLists.find(l => l.id === 'default')) return teamLists
-      return [{ id: 'default', name: '全部', color: '#6366f1', sort_order: -1, scope: 'team', created_by: null, created_at: '' }, ...teamLists]
+      const sorted = [...teamLists].sort((a, b) => a.id === 'default' ? -1 : b.id === 'default' ? 1 : a.sort_order - b.sort_order)
+      if (sorted.find(l => l.id === 'default')) return sorted
+      return [{ id: 'default', name: '全部', color: '#6366f1', sort_order: -1, scope: 'team', created_by: null, created_at: '' }, ...sorted]
     }
-    return personalLists
+    return [...personalLists].sort((a, b) => a.id === 'default' ? -1 : b.id === 'default' ? 1 : a.sort_order - b.sort_order)
   })()
   const connectionStatus = useTeamStore((s) => s.connectionStatus)
   const [showPlanet, setShowPlanet] = useState(false)
