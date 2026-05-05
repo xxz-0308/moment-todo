@@ -246,6 +246,24 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
         {task.title}
       </span>
 
+      {/* Category badge */}
+      {(() => {
+        const listsForLookup = scope === 'team'
+          ? useTeamStore.getState().lists
+          : useStore.getState().lists
+        const list = listsForLookup.find((l) => l.id === task.list_id)
+        if (!list) return null
+        return (
+          <span
+            className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium flex-shrink-0"
+            style={{ backgroundColor: (list.color || '#6366f1') + '18', color: list.color || '#6366f1' }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: list.color || '#6366f1' }} />
+            <span className="truncate max-w-[60px]">{list.name}</span>
+          </span>
+        )
+      })()}
+
       {/* Assignee badge (team tasks) */}
       {scope === 'team' && (task as any).assigned_to && (() => {
         const member = useTeamStore.getState().members.find((m) => m.id === (task as any).assigned_to)

@@ -60,9 +60,47 @@ export default function Settings() {
     } catch {}
   }
 
+  const updateProfile = async () => {
+    // Instantly update nickname/color without restarting server
+    try {
+      const api = (window as any).electronAPI
+      if (!api?.teamUpdateProfile || !api?.teamGetConfig) return
+      const config = await api.teamGetConfig()
+      if (!config.member.id) return
+      await api.teamUpdateProfile({ id: config.member.id, name: nickname, color })
+    } catch {}
+  }
+
+  const handleColorChange = (c: string) => {
+    setColor(c)
+    if (connStatus === 'connected') updateProfile()
+  }
+
+  const handleNicknameBlur = () => {
+    if (connStatus === 'connected') updateProfile()
+  }
+
+  const handleRoleChange = (newRole: '' | 'server' | 'client') => {
+    if (connStatus === 'connected' && newRole !== role) {
+      if (!window.confirm('切换运行模式将停止当前服务，确定要继续吗？')) return
+    }
+    setRole(newRole)
+    setConnStatus('')
+  }
+
   const handleStart = async () => {
-    // saveTeamConfig triggers stopTeam + startTeam in the IPC handler,
-    // no need to call teamStart again — that would double-bind the port.
+    // For server mode, check for existing server on LAN first
+    if (role === 'server') {
+      try {
+        const api = (window as any).electronAPI
+        if (api?.teamDiscover) {
+          const existing = await api.teamDiscover()
+          if (existing && !window.confirm('局域网内已检测到其他服务端，继续启动可能导致冲突。确定要继续吗？')) {
+            return
+          }
+        }
+      } catch {}
+    }
     await saveTeamConfig()
     try {
       const api = (window as any).electronAPI
@@ -232,6 +270,7 @@ export default function Settings() {
                     type="text"
                     value={nickname}
                     onChange={(e) => setNickname(e.target.value)}
+                    onBlur={handleNicknameBlur}
                     placeholder="输入名字"
                     className="flex-1 px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] text-[13px] text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all"
                   />
@@ -245,7 +284,7 @@ export default function Settings() {
                   {PRESET_COLORS.map((c) => (
                     <button
                       key={c}
-                      onClick={() => setColor(c)}
+                      onClick={() => handleColorChange(c)}
                       className={`w-8 h-8 rounded-lg transition-all ${
                         color === c ? 'ring-2 ring-white scale-110' : 'opacity-60 hover:opacity-100'
                       }`}
@@ -260,7 +299,7 @@ export default function Settings() {
                 <label className="text-[12px] text-text-secondary mb-1.5 block">运行模式</label>
                 <div className="flex gap-3">
                   <button
-                    onClick={() => { setRole('server'); setConnStatus('') }}
+                    onClick={() => handleRoleChange('server')}
                     className={`flex-1 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all ${
                       role === 'server'
                         ? 'bg-[rgba(99,102,241,0.1)] text-accent border border-[rgba(99,102,241,0.2)]'
@@ -270,7 +309,7 @@ export default function Settings() {
                     服务端
                   </button>
                   <button
-                    onClick={() => { setRole('client'); setConnStatus('') }}
+                    onClick={() => handleRoleChange('client')}
                     className={`flex-1 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all ${
                       role === 'client'
                         ? 'bg-[rgba(99,102,241,0.1)] text-accent border border-[rgba(99,102,241,0.2)]'

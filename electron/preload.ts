@@ -31,6 +31,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   teamStop: () => ipcRenderer.invoke('team:stop'),
   teamGetConfig: () => ipcRenderer.invoke('team:get-config'),
   teamSaveConfig: (config: unknown) => ipcRenderer.invoke('team:save-config', config),
+  teamUpdateProfile: (member: { id: string; name: string; color: string }) => ipcRenderer.invoke('team:update-profile', member),
   teamDiscover: () => ipcRenderer.invoke('team:discover'),
   teamSend: (msg: { type: string; payload: unknown }) => ipcRenderer.invoke('team:send', msg),
   teamGetStatus: () => ipcRenderer.invoke('team:get-status'),

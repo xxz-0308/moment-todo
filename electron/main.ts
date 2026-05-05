@@ -466,6 +466,22 @@ function setupIPC() {
     }
     return readTeamConfig()
   })
+  ipcMain.handle('team:update-profile', (_e, member: { id: string; name: string; color: string }) => {
+    // Update member profile without restarting server/client
+    const config = readTeamConfig()
+    config.member = { ...config.member, ...member }
+    writeTeamConfig(config)
+    if (teamServer && db) {
+      db.run(
+        `UPDATE team_members SET name = ?, color = ?, last_seen = datetime('now') WHERE id = ?`,
+        [member.name, member.color, member.id]
+      )
+      const updated = queryAll('SELECT * FROM team_members WHERE id = ?', [member.id])[0]
+      teamServer.broadcast({ type: 'member:joined', payload: { member: updated } })
+      mainWindow?.webContents.send('team:event', { type: 'member:joined', payload: { member: updated } })
+    }
+    return true
+  })
   ipcMain.handle('team:discover', async () => {
     const result = await discoverServer()
     return result
