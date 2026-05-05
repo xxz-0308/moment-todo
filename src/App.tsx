@@ -1,6 +1,7 @@
 import { useEffect, useCallback, lazy, Suspense } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useStore } from '@/store'
+import { useTeamStore } from '@/lib/team-store'
 import { useKeyboard } from '@/hooks/useKeyboard'
 import { TitleBar } from '@/components/TitleBar'
 import { Sidebar } from '@/components/Sidebar'
@@ -56,6 +57,14 @@ export default function App() {
   useEffect(() => {
     persistTheme()
   }, [theme, persistTheme])
+
+  useEffect(() => {
+    const api = (window as any).electronAPI
+    if (!api?.onTeamEvent) return
+    api.onTeamEvent((event: { type: string; payload: unknown }) => {
+      useTeamStore.getState()._handleMessage(event as any)
+    })
+  }, [])
 
   if (loading) {
     return (
