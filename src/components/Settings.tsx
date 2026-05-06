@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   X,
@@ -11,19 +11,20 @@ import {
   Globe,
   Volume1,
   Volume2,
+  Info,
 } from 'lucide-react'
 import { useStore } from '@/store'
 import { GlassConfirm } from '@/components/GlassConfirm'
 import { exportJSON, backupDatabase } from '@/db'
 import { setVolume } from '@/hooks/useSound'
-import { PRESET_COLORS } from '@/constants'
+import { PRESET_COLORS, MIN_PROTOCOL_VERSION } from '@/constants'
 
 export default function Settings() {
   const toggleSettings = useStore((s) => s.toggleSettings)
   const theme = useStore((s) => s.theme)
   const setTheme = useStore((s) => s.setTheme)
 
-  const [settingsTab, setSettingsTab] = useState<'appearance' | 'network' | 'shortcuts'>('appearance')
+  const [settingsTab, setSettingsTab] = useState<'appearance' | 'network' | 'shortcuts' | 'about'>('appearance')
 
   // Network state
   const [nickname, setNickname] = useState('')
@@ -38,6 +39,11 @@ export default function Settings() {
     const v = localStorage.getItem('moment-sound-volume')
     return v ? parseInt(v) : 100
   })
+  const [appVersion, setAppVersion] = useState('...')
+
+  useEffect(() => {
+    ;(window as any).electronAPI?.getAppVersion?.().then((v: string) => setAppVersion(v)).catch(() => setAppVersion('未知'))
+  }, [])
 
   const loadTeamConfig = async () => {
     try {
@@ -203,6 +209,7 @@ export default function Settings() {
           { key: 'appearance' as const, label: '外观', icon: Monitor },
           { key: 'network' as const, label: '网络', icon: Globe },
           { key: 'shortcuts' as const, label: '快捷键', icon: Keyboard },
+          { key: 'about' as const, label: '关于', icon: Info },
         ]).map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -474,6 +481,24 @@ export default function Settings() {
                   </kbd>
                 </div>
               ))}
+            </div>
+          </section>
+        )}
+        {settingsTab === 'about' && (
+          <section>
+            <h3 className="flex items-center gap-2 text-[13px] font-semibold text-text-primary mb-4">
+              <Info size={16} strokeWidth={2} />
+              关于
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.04)]">
+                <span className="text-[13px] text-text-secondary">应用版本</span>
+                <span className="text-[13px] font-medium text-text-primary">v{appVersion}</span>
+              </div>
+              <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.04)]">
+                <span className="text-[13px] text-text-secondary">协议版本</span>
+                <span className="text-[13px] font-medium text-text-primary">{MIN_PROTOCOL_VERSION}</span>
+              </div>
             </div>
           </section>
         )}
