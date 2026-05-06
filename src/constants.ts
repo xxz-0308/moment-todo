@@ -1,3 +1,12 @@
+// ── Protocol Version ────────────────────────────────────────
+// MIN_PROTOCOL_VERSION only increments on BREAKING wire format changes.
+// Breaking: removing/renaming message types, changing field types,
+//   adding required fields to existing messages.
+// Non-breaking: new optional message types, new optional fields,
+//   UI changes, bug fixes.
+// See docs/superpowers/specs/2026-05-06-protocol-versioning-design.md
+export const MIN_PROTOCOL_VERSION = 1
+
 export const PRESET_COLORS = [
   '#6366f1', // indigo
   '#f59e0b', // amber

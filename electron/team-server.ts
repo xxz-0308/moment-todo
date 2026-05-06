@@ -2,6 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws'
 import type { IncomingMessage } from 'http'
 import type { Database } from 'sql.js'
 import type { TeamMember } from './team-config'
+import { MIN_PROTOCOL_VERSION } from '../src/constants'
 
 interface TeamClientConn {
   ws: WebSocket
@@ -15,7 +16,6 @@ interface WrappedMessage {
   messageId?: string
 }
 
-const PROTOCOL_VERSION = 1
 
 export type ServerEventHandler = (event: string, data: unknown) => void
 
@@ -27,10 +27,13 @@ export class TeamServer {
   private port: number
   private serverMemberId: string
 
-  constructor(db: Database, port: number, serverMemberId: string, onEvent: ServerEventHandler) {
+  private appVersion: string
+
+  constructor(db: Database, port: number, serverMemberId: string, appVersion: string, onEvent: ServerEventHandler) {
     this.db = db
     this.port = port
     this.serverMemberId = serverMemberId
+    this.appVersion = appVersion
     this.onEvent = onEvent
   }
 
@@ -56,11 +59,17 @@ export class TeamServer {
           switch (msg.type) {
             case 'member:handshake': {
               const member = (msg.payload.member as TeamMember)
-              const clientVersion = (msg.payload.protocolVersion as number) || 0
-              if (clientVersion !== PROTOCOL_VERSION) {
+              const clientVersion = (msg.payload.protocolVersion as number) || 1  // legacy clients default to 1
+              if (clientVersion < MIN_PROTOCOL_VERSION) {
                 ws.send(JSON.stringify({
                   type: 'protocol:rejected',
-                  payload: { serverVersion: PROTOCOL_VERSION, clientVersion, message: `协议版本不匹配：服务端 v${PROTOCOL_VERSION}，客户端 v${clientVersion}。请升级后重试。` },
+                  payload: {
+                    serverVersion: MIN_PROTOCOL_VERSION,
+                    clientVersion,
+                    appVersion: this.appVersion,
+                    message: `协议不兼容：服务端 v${this.appVersion}，你的版本太旧，请升级。`,
+                    downloadUrl: `http://${this.getLocalIP()}:5175/Moment-${this.appVersion}-setup.exe`,
+                  },
                 }))
                 ws.close()
                 return
@@ -76,6 +85,11 @@ export class TeamServer {
               const totalCount = this.clients.size + 1 // server + connected clients
               this.broadcastToAll({ type: 'member:connected', payload: { member, totalCount }, senderId: '' })
               this.onEvent('member:connected', { member, totalCount })
+              // Tell the client our app version for update check
+              ws.send(JSON.stringify({
+                type: 'handshake:ok',
+                payload: { appVersion: this.appVersion },
+              }))
               break
             }
             case 'member:heartbeat': {
@@ -263,6 +277,24 @@ export class TeamServer {
     const onlineIds = [this.serverMemberId, ...this.clients.keys()]
     const msg = JSON.stringify({ type: 'sync:full', payload: { members, lists, tasks, onlineIds }, senderId: '' })
     ws.send(msg)
+  }
+
+  private getLocalIP(): string {
+    const os = require('os') as typeof import('os')
+    const interfaces = os.networkInterfaces()
+    for (const name of Object.keys(interfaces)) {
+        const net = interfaces[name]
+        if (!net) continue
+        for (const iface of net) {
+            if (iface.family === 'IPv4' && !iface.internal &&
+                (iface.address.startsWith('192.168.') ||
+                 iface.address.startsWith('10.') ||
+                 /^172\.(1[6-9]|2\d|3[01])\./.test(iface.address))) {
+                return iface.address
+            }
+        }
+    }
+    return '127.0.0.1'
   }
 
   sendTo(memberId: string, msg: { type: string; payload: unknown }): void {
