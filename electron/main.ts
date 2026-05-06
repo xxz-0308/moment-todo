@@ -2,6 +2,7 @@ import { app, BrowserWindow, Tray, Menu, ipcMain, Notification, shell, nativeIma
 import path from 'path'
 import fs from 'fs'
 import os from 'os'
+import http from 'http'
 import initSqlJs, { type Database, type SqlJsStatic } from 'sql.js'
 import { TeamServer } from './team-server'
 import { TeamClient } from './team-client'
@@ -23,6 +24,7 @@ let reminderInterval: ReturnType<typeof setInterval> | null = null
 const notifiedTasks = new Set<string>()
 let teamServer: TeamServer | null = null
 let teamClient: TeamClient | null = null
+let updateServer: http.Server | null = null
 const DB_PATH = path.join(app.getPath('userData'), 'moment.db')
 
 // ── Database ──────────────────────────────────────────────
@@ -211,7 +213,8 @@ function stopReminders() {
 function startTeam(mode: 'server' | 'client', config: TeamConfig): void {
   if (mode === 'server') {
     if (!db) return
-    teamServer = new TeamServer(db, config.serverPort, config.member.id, (event, data) => {
+    const pkg = require('../package.json')
+    teamServer = new TeamServer(db, config.serverPort, config.member.id, pkg.version, (event, data) => {
       mainWindow?.webContents.send('team:event', { type: event, payload: data })
     })
     const ok = teamServer.start()
@@ -220,6 +223,7 @@ function startTeam(mode: 'server' | 'client', config: TeamConfig): void {
       mainWindow?.webContents.send('team:event', { type: 'error', payload: '端口被占用，无法启动服务端' })
       return
     }
+    startUpdateServer(5175)
     // Register server (keep existing members for assignee display)
     db.run(
       `INSERT INTO team_members (id, name, color, is_server, last_seen) VALUES (?, ?, ?, 1, datetime('now'))
@@ -253,7 +257,42 @@ function connectClient(url: string, config: TeamConfig): void {
   teamClient.connect()
 }
 
+function startUpdateServer(port: number): void {
+  try {
+    updateServer = http.createServer((_req, res) => {
+      const pkg = require('../package.json')
+      const installerName = `Moment-${pkg.version}-setup.exe`
+      const installerPath = path.join(__dirname, '..', '..', 'release', installerName)
+      if (fs.existsSync(installerPath)) {
+        const stat = fs.statSync(installerPath)
+        res.writeHead(200, {
+          'Content-Type': 'application/octet-stream',
+          'Content-Length': stat.size,
+          'Content-Disposition': `attachment; filename="${installerName}"`,
+        })
+        fs.createReadStream(installerPath).pipe(res)
+      } else {
+        res.writeHead(404)
+        res.end('Installer not found')
+      }
+    })
+    updateServer.listen(port, () => {
+      console.log(`[UpdateServer] Listening on port ${port}`)
+    })
+  } catch (e) {
+    console.error('[UpdateServer] Failed to start:', e)
+  }
+}
+
+function stopUpdateServer(): void {
+  if (updateServer) {
+    updateServer.close()
+    updateServer = null
+  }
+}
+
 function stopTeam(): void {
+  stopUpdateServer()
   if (teamServer) {
     teamServer.stop()
     teamServer = null
