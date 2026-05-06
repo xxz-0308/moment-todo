@@ -702,12 +702,13 @@ function setupIPC() {
 
 // ── Init ──────────────────────────────────────────────────
 
+app.setAppUserModelId('com.moment.todo')
+
 async function init() {
   SQL = await initSqlJs()
   loadDatabase()
   initSchema()
   setupIPC()
-  app.setAppUserModelId('com.moment.todo')
   // Auto-start team if previously configured
   const teamConfig = readTeamConfig()
   if (teamConfig.role && teamConfig.member.id) {
