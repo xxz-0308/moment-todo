@@ -295,10 +295,22 @@ function getLocalIPs(): string[] {
 
 // ── Window ────────────────────────────────────────────────
 
+function resolveIconPath(): string {
+  const candidates = [
+    path.join(__dirname, '../../public/icon.png'),
+    path.join(process.resourcesPath, 'public', 'icon.png'),
+    path.join(process.resourcesPath, 'public', 'icon-32.png'),
+    path.join(app.getAppPath(), 'public', 'icon.png'),
+    path.join(app.getAppPath(), 'public', 'icon-32.png'),
+  ]
+  for (const p of candidates) {
+    if (fs.existsSync(p)) return p
+  }
+  return ''
+}
+
 function createWindow() {
-  const iconPath = isDev
-    ? path.join(__dirname, '../../public/icon.png')
-    : path.join(process.resourcesPath, 'public', 'icon.png')
+  const iconPath = resolveIconPath()
 
   mainWindow = new BrowserWindow({
     width: 960,
