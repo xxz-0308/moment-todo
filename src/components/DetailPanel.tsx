@@ -36,12 +36,14 @@ export function DetailPanel() {
   const [dueDate, setDueDate] = useState('')
   const [listId, setListId] = useState('default')
   const [notes, setNotes] = useState('')
+  const [assignedIds, setAssignedIds] = useState<string[]>([])
 
   useEffect(() => {
     if (selectedTask) {
       setTitle(selectedTask.title)
       setPriority(selectedTask.priority || 'medium')
       setDueDate(selectedTask.due_date || '')
+      setAssignedIds(parseAssigneeIds((selectedTask as any).assigned_to || ''))
       setListId(selectedTask.list_id || 'default')
       setNotes(selectedTask.notes || '')
     }
@@ -191,27 +193,26 @@ export function DetailPanel() {
         </div>
 
         {/* Assignee (team only) */}
-        {scope === 'team' && (() => {
-          const assignedIds = parseAssigneeIds((selectedTask as any).assigned_to)
-          return (
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[12px] font-medium text-text-tertiary">
-                <Users size={13} strokeWidth={2} />
-                负责人
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                {teamMembers.map((m) => {
-                  const isSelected = assignedIds.includes(m.id)
-                  return (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => {
-                        const next = isSelected
-                          ? assignedIds.filter((id) => id !== m.id)
-                          : [...assignedIds, m.id]
-                        updateTask(selectedTask.id, { assigned_to: next.length > 0 ? joinAssigneeIds(next) : null } as any)
-                      }}
+        {scope === 'team' && (
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-[12px] font-medium text-text-tertiary">
+              <Users size={13} strokeWidth={2} />
+              负责人
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {teamMembers.map((m) => {
+                const isSelected = assignedIds.includes(m.id)
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => {
+                      const next = isSelected
+                        ? assignedIds.filter((id) => id !== m.id)
+                        : [...assignedIds, m.id]
+                      setAssignedIds(next)
+                      updateTask(selectedTask.id, { assigned_to: next.length > 0 ? joinAssigneeIds(next) : null } as any)
+                    }}
                       className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
                         isSelected
                           ? 'ring-1 ring-inset'
@@ -230,8 +231,7 @@ export function DetailPanel() {
                 })}
               </div>
             </div>
-          )
-        })()}
+        )}
 
         {/* Due date */}
         <div className="space-y-2">

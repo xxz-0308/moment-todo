@@ -237,7 +237,7 @@ function startTeam(mode: 'server' | 'client', config: TeamConfig): void {
     const members = queryAll('SELECT * FROM team_members')
     const teamLists = queryAll("SELECT * FROM lists WHERE scope = 'team'")
     const teamTasks = queryAll("SELECT * FROM tasks WHERE scope = 'team'")
-    mainWindow?.webContents.send('team:event', { type: 'sync:full', payload: { members, lists: teamLists, tasks: teamTasks } })
+    mainWindow?.webContents.send('team:event', { type: 'sync:full', payload: { members, lists: teamLists, tasks: teamTasks, onlineIds: [config.member.id] } })
   } else if (mode === 'client') {
     const address = config.serverAddress
     if (address) {
@@ -542,7 +542,8 @@ function setupIPC() {
       const members = queryAll('SELECT * FROM team_members')
       const teamLists = queryAll("SELECT * FROM lists WHERE scope = 'team'")
       const teamTasks = queryAll("SELECT * FROM tasks WHERE scope = 'team'")
-      mainWindow?.webContents.send('team:event', { type: 'sync:full', payload: { members, lists: teamLists, tasks: teamTasks } })
+      const config = readTeamConfig()
+      mainWindow?.webContents.send('team:event', { type: 'sync:full', payload: { members, lists: teamLists, tasks: teamTasks, onlineIds: [config.member.id] } })
     } else if (teamClient && teamClient.status === 'connected') {
       // Client mode: re-request sync from server
       teamClient.send({ type: 'sync:request', payload: {} })

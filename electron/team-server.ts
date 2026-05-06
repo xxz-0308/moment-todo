@@ -260,7 +260,8 @@ export class TeamServer {
     const members = this.queryAll('SELECT * FROM team_members')
     const lists = this.queryAll("SELECT * FROM lists WHERE scope = 'team'")
     const tasks = this.queryAll("SELECT * FROM tasks WHERE scope = 'team'")
-    const msg = JSON.stringify({ type: 'sync:full', payload: { members, lists, tasks }, senderId: '' })
+    const onlineIds = [this.serverMemberId, ...this.clients.keys()]
+    const msg = JSON.stringify({ type: 'sync:full', payload: { members, lists, tasks, onlineIds }, senderId: '' })
     ws.send(msg)
   }
 

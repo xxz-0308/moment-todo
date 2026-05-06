@@ -97,11 +97,12 @@ export const useTeamStore = create<TeamState>((set, get) => ({
     const { type, payload } = event
     switch (type) {
       case 'sync:full': {
-        const p = payload as { members: TeamMember[]; lists: TeamList[]; tasks: TeamTask[] }
+        const p = payload as { members: TeamMember[]; lists: TeamList[]; tasks: TeamTask[]; onlineIds?: string[] }
         const snap = get()._snapshot
         const memberList = p.members || []
-        const online = new Set<string>(memberList.map((m: TeamMember) => m.id))
-        set({ members: memberList, lists: p.lists || [], tasks: p.tasks || [], onlineMemberCount: memberList.length, onlineMembers: online, _snapshot: null })
+        const onlineIds = p.onlineIds || []
+        const online = new Set<string>(onlineIds)
+        set({ members: memberList, lists: p.lists || [], tasks: p.tasks || [], onlineMemberCount: onlineIds.length, onlineMembers: online, _snapshot: null })
         if (snap && (p.tasks || []).length > 0) {
           const newTasks = (p.tasks || []).filter(t => !snap.taskIds.has(t.id))
           const newCompleted = (p.tasks || []).filter(t => t.completed && !snap.completedIds.has(t.id))
@@ -254,6 +255,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         const p = payload as { taskId: string; taskTitle: string; assignedBy: string }
         if (typeof window !== 'undefined') {
           const msg = `${p.assignedBy || '有人'}给你分配了任务：${p.taskTitle}`
+          ;(window as any).electronAPI?.showNotification?.('新任务分配', msg)
           window.dispatchEvent(new CustomEvent('moment:toast', { detail: { message: msg } }))
         }
         break
