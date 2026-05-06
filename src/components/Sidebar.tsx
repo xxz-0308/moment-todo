@@ -238,15 +238,14 @@ export function Sidebar() {
                       }
                       ${dragOverList === list.id ? 'scale-[1.02]' : ''}
                     `}
-                    style={{
-                      border: '1px solid transparent',
-                      ...(isActive ? {
+                    style={isActive ? {
+                        border: `1px solid ${(list.color || '#6366f1')}40`,
                         backgroundColor: (list.color || '#6366f1') + '16',
-                        borderColor: (list.color || '#6366f1') + '40',
                       } : dragOverList === list.id ? {
-                        borderColor: (list.color || '#6366f1') + '30',
-                      } : {}),
-                    }}
+                        border: `1px solid ${(list.color || '#6366f1')}30`,
+                      } : {
+                        border: '1px solid transparent',
+                      }}
                   >
                     {isActive && (
                       <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full"
