@@ -91,6 +91,19 @@ export class TeamServer {
               this.handleListMessage(msg, memberId)
               break
             }
+            case 'member:update': {
+              const m = msg.payload.member as TeamMember
+              this.db.run(
+                `UPDATE team_members SET name = ?, color = ?, last_seen = datetime('now') WHERE id = ?`,
+                [m.name, m.color, m.id]
+              )
+              const updated = this.queryOne('SELECT * FROM team_members WHERE id = ?', [m.id])
+              if (updated) {
+                this.broadcastToAll({ type: 'member:updated', payload: { member: updated }, senderId: memberId })
+                this.onEvent('member:updated', { member: updated })
+              }
+              break
+            }
           }
         } catch (e) {
           console.error('[TeamServer] Message error:', e)
@@ -161,14 +174,17 @@ export class TeamServer {
       // Notify assignee if assigned_to changed (client→server→other-client path)
       if (oldForNotify && (oldForNotify.assigned_to as string) !== (data.assigned_to as string) && data.assigned_to) {
         const member = this.queryOne('SELECT name FROM team_members WHERE id = ?', [senderId])
+        const notifyPayload = {
+          taskId: data.id,
+          taskTitle: (oldForNotify.title as string) || '',
+          assignedBy: (member?.name as string) || senderId,
+        }
         this.sendTo(data.assigned_to as string, {
           type: 'notify:assigned',
-          payload: {
-            taskId: data.id,
-            taskTitle: (oldForNotify.title as string) || '',
-            assignedBy: (member?.name as string) || senderId,
-          },
+          payload: notifyPayload,
         })
+        // Also notify server's own renderer
+        this.onEvent('notify:assigned', notifyPayload)
       }
     } else if (type === 'task:delete') {
       this.db.run('DELETE FROM tasks WHERE id = ?', [data.id])

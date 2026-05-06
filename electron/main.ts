@@ -511,6 +511,14 @@ function setupIPC() {
       const updated = queryAll('SELECT * FROM team_members WHERE id = ?', [member.id])[0]
       teamServer.broadcast({ type: 'member:updated', payload: { member: updated } })
       mainWindow?.webContents.send('team:event', { type: 'member:updated', payload: { member: updated } })
+    } else if (teamClient) {
+      // Client mode: send profile update to server via WebSocket
+      teamClient.send({ type: 'member:update', payload: { member } })
+      // Apply optimistically to local team-store
+      mainWindow?.webContents.send('team:event', {
+        type: 'member:updated',
+        payload: { member: { ...member, is_server: 0 } }
+      })
     }
     return true
   })
@@ -573,13 +581,19 @@ function setupIPC() {
           // If assigned_to actually changed, send notification to assignee
           if (oldForNotify && oldForNotify.assigned_to !== data.assigned_to && teamServer) {
             const config = readTeamConfig()
+            const notifyPayload = {
+              taskId: data.id,
+              taskTitle: oldForNotify.title || '',
+              assignedBy: config.member.name || '未知',
+            }
             teamServer.sendTo(data.assigned_to as string, {
               type: 'notify:assigned',
-              payload: {
-                taskId: data.id,
-                taskTitle: oldForNotify.title || '',
-                assignedBy: config.member.name || '未知',
-              },
+              payload: notifyPayload,
+            })
+            // Also notify server's own renderer
+            mainWindow?.webContents.send('team:event', {
+              type: 'notify:assigned',
+              payload: notifyPayload,
             })
           }
         } else if (msg.type === 'task:delete') {

@@ -16,7 +16,8 @@ export function ToastContainer() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-            className="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl"
+            className="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer"
+            onClick={() => removeToast(toast.id)}
             style={{
               background: 'var(--glass-elevated-bg)',
               backdropFilter: 'var(--glass-elevated-blur)',
