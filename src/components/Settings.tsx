@@ -71,24 +71,24 @@ export default function Settings() {
     } catch {}
   }
 
-  const updateProfile = async () => {
+  const updateProfile = async (newColor?: string, newName?: string) => {
     // Instantly update nickname/color without restarting server
     try {
       const api = (window as any).electronAPI
       if (!api?.teamUpdateProfile || !api?.teamGetConfig) return
       const config = await api.teamGetConfig()
       if (!config.member.id) return
-      await api.teamUpdateProfile({ id: config.member.id, name: nickname, color })
+      await api.teamUpdateProfile({ id: config.member.id, name: newName ?? nickname, color: newColor ?? color })
     } catch {}
   }
 
   const handleColorChange = (c: string) => {
     setColor(c)
-    if (connStatus === 'connected') updateProfile()
+    if (connStatus === 'connected') updateProfile(c)
   }
 
   const handleNicknameBlur = () => {
-    if (connStatus === 'connected') updateProfile()
+    if (connStatus === 'connected') updateProfile(undefined, nickname)
   }
 
   const handleRoleChange = (newRole: '' | 'server' | 'client') => {

@@ -239,6 +239,7 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
 
       {/* Title */}
       <span
+        title={task.title}
         className={`
           flex-1 min-w-0 text-[14px] leading-snug truncate
           ${task.completed ? 'text-text-tertiary line-through' : 'text-text-primary'}

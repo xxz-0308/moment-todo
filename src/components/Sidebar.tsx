@@ -233,14 +233,20 @@ export function Sidebar() {
                       w-full flex items-center gap-3 pl-2.5 pr-3 py-2 rounded-lg text-[13px] font-medium
                       transition-all duration-150 relative overflow-hidden
                       ${isActive || dragOverList === list.id
-                        ? 'text-text-primary bg-[rgba(99,102,241,0.1)] border border-[rgba(99,102,241,0.2)] shadow-[0_0_16px_rgba(99,102,241,0.08)]'
+                        ? 'text-text-primary border border-transparent'
                         : 'text-text-secondary hover:text-text-primary hover:bg-[rgba(255,255,255,0.03)] border border-transparent'
                       }
-                      ${dragOverList === list.id ? 'ring-1 ring-accent scale-[1.02]' : ''}
+                      ${dragOverList === list.id ? 'ring-1 scale-[1.02]' : ''}
                     `}
+                    style={isActive ? {
+                      backgroundColor: (list.color || '#6366f1') + '15',
+                      borderColor: (list.color || '#6366f1') + '30',
+                      boxShadow: `0 0 16px ${(list.color || '#6366f1')}14`,
+                    } : dragOverList === list.id ? { borderColor: (list.color || '#6366f1') + '40' } : undefined}
                   >
                     {isActive && (
-                      <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-accent" style={{ boxShadow: '0 0 6px rgba(99,102,241,0.4)' }} />
+                      <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full"
+                        style={{ backgroundColor: list.color || '#6366f1', boxShadow: `0 0 6px ${list.color || '#6366f1'}66` }} />
                     )}
                     <Hash size={16} strokeWidth={1.8} style={{ color: list.color || '#6366f1' }} />
                     {editingListId === list.id ? (
