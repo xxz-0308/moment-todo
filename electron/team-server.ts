@@ -25,10 +25,12 @@ export class TeamServer {
   private db: Database
   private onEvent: ServerEventHandler
   private port: number
+  private serverMemberId: string
 
-  constructor(db: Database, port: number, onEvent: ServerEventHandler) {
+  constructor(db: Database, port: number, serverMemberId: string, onEvent: ServerEventHandler) {
     this.db = db
     this.port = port
+    this.serverMemberId = serverMemberId
     this.onEvent = onEvent
   }
 
@@ -199,8 +201,8 @@ export class TeamServer {
         for (const assigneeId of addedIds) {
           this.sendTo(assigneeId, { type: 'notify:assigned', payload: notifyPayload })
         }
-        // Notify server's own renderer if server member is among new assignees
-        if (addedIds.length > 0) {
+        // Notify server's own renderer only if server member is among new assignees
+        if (addedIds.length > 0 && addedIds.includes(this.serverMemberId)) {
           this.onEvent('notify:assigned', notifyPayload)
         }
       }

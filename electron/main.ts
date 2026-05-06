@@ -211,7 +211,7 @@ function stopReminders() {
 function startTeam(mode: 'server' | 'client', config: TeamConfig): void {
   if (mode === 'server') {
     if (!db) return
-    teamServer = new TeamServer(db, config.serverPort, (event, data) => {
+    teamServer = new TeamServer(db, config.serverPort, config.member.id, (event, data) => {
       mainWindow?.webContents.send('team:event', { type: event, payload: data })
     })
     const ok = teamServer.start()
@@ -605,8 +605,8 @@ function setupIPC() {
             for (const assigneeId of addedIds) {
               teamServer.sendTo(assigneeId, { type: 'notify:assigned', payload: notifyPayload })
             }
-            // Also notify server's own renderer
-            if (addedIds.length > 0) {
+            // Only notify server's own renderer if server member is among new assignees
+            if (addedIds.includes(config.member.id)) {
               mainWindow?.webContents.send('team:event', {
                 type: 'notify:assigned',
                 payload: notifyPayload,
