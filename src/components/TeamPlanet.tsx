@@ -27,7 +27,7 @@ export function TeamPlanet({ onClose }: { onClose: () => void }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 12 }}
         transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-        className="relative w-[440px] max-w-[94vw] rounded-[28px] px-9 py-10 overflow-hidden"
+        className="relative w-[440px] max-w-[94vw] rounded-[28px] px-9 py-10 overflow-y-auto max-h-[90vh]"
         style={{
           background: 'linear-gradient(160deg, rgba(20,20,45,0.92), rgba(10,10,28,0.96))',
           border: '1px solid rgba(255,255,255,0.06)',
@@ -165,7 +165,7 @@ export function TeamPlanet({ onClose }: { onClose: () => void }) {
           ) : (
             <>
               <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#6366f1' }} />
-              <span className="text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>点击成员查看详情 · 点击空白关闭</span>
+              <span className="text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>点击成员查看详情 · 点击外部区域关闭</span>
             </>
           )}
         </div>

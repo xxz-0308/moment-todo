@@ -17,8 +17,9 @@ export interface TeamConfig {
   serverPort: number
 }
 
+const INITIAL_COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899', '#14b8a6', '#84cc16', '#3b82f6', '#a855f7']
 const DEFAULT_CONFIG: TeamConfig = {
-  member: { id: '', name: '', color: '#6366f1' },
+  member: { id: '', name: '', color: INITIAL_COLORS[Math.floor(Math.random() * INITIAL_COLORS.length)] },
   role: '',
   serverAddress: '',
   serverPort: 5174,

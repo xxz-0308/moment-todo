@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useStore } from '@/store'
 import { useTeamStore } from '@/lib/team-store'
+import { PRESET_COLORS } from '@/constants'
 import { TeamPlanet } from '@/components/TeamPlanet'
 
 const presetViews = [
@@ -52,6 +53,7 @@ export function Sidebar() {
   const [newListName, setNewListName] = useState('')
   const [editingListId, setEditingListId] = useState<string | null>(null)
   const [editListName, setEditListName] = useState('')
+  const [colorIndex, setColorIndex] = useState(0)
   const updateList = useStore((s) => s.updateList)
 
   const saveListRename = (id: string) => {
@@ -64,7 +66,9 @@ export function Sidebar() {
 
   const handleAddList = () => {
     if (newListName.trim()) {
-      addList(newListName.trim())
+      const color = PRESET_COLORS[colorIndex % PRESET_COLORS.length]
+      addList(newListName.trim(), color)
+      setColorIndex((c) => c + 1)
       setNewListName('')
       setShowNewList(false)
     }

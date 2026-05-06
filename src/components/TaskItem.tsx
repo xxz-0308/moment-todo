@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Circle, CheckCircle2, GripVertical, Calendar, Flag, Trash2, Pin } from 'lucide-react'
+import { Circle, CheckCircle2, GripVertical, Calendar, Flag, Trash2, Pin, FileText } from 'lucide-react'
 import { useStore, type Task } from '@/store'
 import { useTeamStore } from '@/lib/team-store'
 import { Reorder } from 'framer-motion'
@@ -239,13 +239,18 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
       {/* Title */}
       <span
         className={`
-          flex-1 text-[14px] leading-snug truncate
+          flex-1 min-w-0 text-[14px] leading-snug truncate
           ${task.completed ? 'text-text-tertiary line-through' : 'text-text-primary'}
           ${overdue ? '!text-danger font-medium' : ''}
         `}
       >
         {task.title}
       </span>
+
+      {/* Notes indicator */}
+      {task.notes && (
+        <FileText size={11} strokeWidth={1.8} className="flex-shrink-0 text-text-tertiary opacity-50" title="有备注" />
+      )}
 
       {/* Category badge */}
       {(() => {

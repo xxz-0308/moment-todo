@@ -16,8 +16,7 @@ import { useStore } from '@/store'
 import { GlassConfirm } from '@/components/GlassConfirm'
 import { exportJSON, backupDatabase } from '@/db'
 import { setVolume } from '@/hooks/useSound'
-
-const PRESET_COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4']
+import { PRESET_COLORS } from '@/constants'
 
 export default function Settings() {
   const toggleSettings = useStore((s) => s.toggleSettings)
@@ -191,7 +190,7 @@ export default function Settings() {
       <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-[rgba(255,255,255,0.05)]">
         <h2 className="text-[16px] font-semibold text-text-primary">设置</h2>
         <button
-          onClick={toggleSettings}
+          onClick={(e) => { e.stopPropagation(); toggleSettings() }}
           className="w-8 h-8 flex items-center justify-center rounded-lg text-text-tertiary hover:text-text-primary hover:bg-surface-hover transition-colors"
         >
           <X size={17} strokeWidth={2} />
@@ -400,7 +399,7 @@ export default function Settings() {
                     type="text"
                     value={serverAddress}
                     onChange={(e) => setServerAddress(e.target.value)}
-                    placeholder="192.168.1.100:5174"
+                    placeholder="192.168.1.100"
                     className="w-full px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] text-[13px] text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all"
                   />
                 </div>

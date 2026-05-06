@@ -264,10 +264,22 @@ function getLocalIPs(): string[] {
     if (!net) continue
     for (const iface of net) {
       if (iface.family === 'IPv4' && !iface.internal) {
-        ips.push(iface.address)
+        const addr = iface.address
+        if (
+          addr.startsWith('192.168.') ||
+          addr.startsWith('10.') ||
+          /^172\.(1[6-9]|2\d|3[01])\./.test(addr)
+        ) {
+          ips.push(addr)
+        }
       }
     }
   }
+  ips.sort((a, b) => {
+    const a192 = a.startsWith('192.168.') ? 0 : 1
+    const b192 = b.startsWith('192.168.') ? 0 : 1
+    return a192 - b192
+  })
   return ips
 }
 
@@ -664,6 +676,7 @@ async function init() {
   loadDatabase()
   initSchema()
   setupIPC()
+  app.setAppUserModelId('com.moment.todo')
   // Auto-start team if previously configured
   const teamConfig = readTeamConfig()
   if (teamConfig.role && teamConfig.member.id) {
