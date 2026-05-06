@@ -248,14 +248,14 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
         >
           {task.title}
         </span>
-        {/* Glass tooltip on hover for truncated titles */}
-        <span className="absolute left-0 -top-7 max-w-[320px] px-2 py-1 rounded-lg text-[12px] text-text-primary whitespace-nowrap pointer-events-none opacity-0 group-hover/title:opacity-100 transition-opacity duration-150 z-10"
+        {/* Glass tooltip below the title on hover */}
+        <span className="absolute left-0 top-full mt-0.5 max-w-[380px] px-2.5 py-1.5 rounded-lg text-[12px] text-text-primary break-words pointer-events-none opacity-0 group-hover/title:opacity-100 transition-opacity duration-150 z-[100]"
           style={{
-            background: 'var(--glass-elevated-bg)',
-            backdropFilter: 'var(--glass-elevated-blur)',
-            WebkitBackdropFilter: 'var(--glass-elevated-blur)',
-            border: '1px solid var(--glass-elevated-border)',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+            background: 'rgba(15,15,30,0.96)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04) inset',
           }}
         >
           {task.title}

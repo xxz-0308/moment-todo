@@ -104,7 +104,18 @@ function initSchema() {
   // Migrations
   db.run("UPDATE lists SET name = '全部' WHERE id = 'default' AND name = '收集箱'")
   db.run("UPDATE lists SET name = '生活' WHERE id = 'personal' AND name = '个人'")
-  // Add pinned column if missing
+  // Diversify default-colored lists that are all #6366f1
+  try {
+    const PRESET_COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899', '#14b8a6', '#84cc16', '#3b82f6', '#a855f7']
+    const plain = db.exec("SELECT id FROM lists WHERE color = '#6366f1' AND id != 'default'")
+    if (plain.length > 0) {
+      const ids = plain[0].values.map((r: unknown[]) => r[0] as string)
+      ids.forEach((id: string, i: number) => {
+        const color = PRESET_COLORS[(i + 1) % PRESET_COLORS.length]
+        db.run('UPDATE lists SET color = ? WHERE id = ?', [color, id])
+      })
+    }
+  } catch {}
   // Add pinned column if missing (for pre-existing databases)
   const cols = db.exec("PRAGMA table_info(tasks)")
   const hasPinned = cols.length > 0 && cols[0].values.some((row: unknown[]) => row[1] === 'pinned')
