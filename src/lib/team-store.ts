@@ -254,7 +254,6 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         const p = payload as { taskId: string; taskTitle: string; assignedBy: string }
         if (typeof window !== 'undefined') {
           const msg = `${p.assignedBy || '有人'}给你分配了任务：${p.taskTitle}`
-          ;(window as any).electronAPI?.showNotification?.('新任务分配', msg)
           window.dispatchEvent(new CustomEvent('moment:toast', { detail: { message: msg } }))
         }
         break

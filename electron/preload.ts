@@ -37,6 +37,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   teamGetStatus: () => ipcRenderer.invoke('team:get-status'),
   teamGetMembers: () => ipcRenderer.invoke('team:get-members'),
   onTeamEvent: (callback: (event: { type: string; payload: unknown }) => void) => {
+    ipcRenderer.removeAllListeners('team:event')
     ipcRenderer.on('team:event', (_e, event) => callback(event))
   },
   onTeamQuitWarning: (callback: (data: { memberCount: number }) => void) => {
