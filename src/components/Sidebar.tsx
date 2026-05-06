@@ -159,7 +159,7 @@ export function Sidebar() {
               onClick={() => setCurrentView(view.id)}
               className={`
                 w-full flex items-center gap-3 pl-2.5 pr-3 py-2 rounded-lg text-[13px] font-medium
-                transition-all duration-150 relative overflow-hidden
+                transition-all duration-150 relative overflow-hidden outline-none
                 ${isActive
                   ? 'text-text-primary bg-[rgba(99,102,241,0.1)] border border-[rgba(99,102,241,0.2)] shadow-[0_0_16px_rgba(99,102,241,0.08)]'
                   : 'text-text-secondary hover:text-text-primary hover:bg-[rgba(255,255,255,0.03)] border border-transparent'
@@ -231,7 +231,7 @@ export function Sidebar() {
                     onDrop={(e) => handleDrop(e, list.id)}
                     className={`
                       w-full flex items-center gap-3 pl-2.5 pr-3 py-2 rounded-lg text-[13px] font-medium
-                      transition-all duration-150 relative overflow-hidden
+                      transition-all duration-150 relative overflow-hidden outline-none
                       ${isActive || dragOverList === list.id
                         ? 'text-text-primary'
                         : 'text-text-secondary hover:text-text-primary hover:bg-[rgba(255,255,255,0.03)]'
