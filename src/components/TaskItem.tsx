@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Circle, CheckCircle2, GripVertical, Calendar, Flag, Trash2, Pin, FileText } from 'lucide-react'
 import { useStore, type Task } from '@/store'
 import { useTeamStore } from '@/lib/team-store'
+import { parseAssigneeIds } from '@/constants'
 import { Reorder } from 'framer-motion'
 import { playPinSound, playDragPickupSound, playDragDropSound } from '@/hooks/useSound'
 
@@ -249,7 +250,9 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
 
       {/* Notes indicator */}
       {task.notes && (
-        <FileText size={11} strokeWidth={1.8} className="flex-shrink-0 text-text-tertiary opacity-50" title="有备注" />
+        <span title="有备注" className="flex-shrink-0 text-text-tertiary opacity-50">
+          <FileText size={11} strokeWidth={1.8} />
+        </span>
       )}
 
       {/* Category badge */}
@@ -270,19 +273,28 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
         )
       })()}
 
-      {/* Assignee badge (team tasks) */}
+      {/* Assignee badges (team tasks, multi) */}
       {scope === 'team' && (task as any).assigned_to && (() => {
-        const member = useTeamStore.getState().members.find((m) => m.id === (task as any).assigned_to)
-        const memberColor = member?.color || '#6366f1'
-        const memberName = member?.name || (task as any).assigned_to.slice(0, 2).toUpperCase()
+        const assignedIds = parseAssigneeIds((task as any).assigned_to)
+        if (assignedIds.length === 0) return null
         return (
-          <span
-            className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium flex-shrink-0"
-            style={{ backgroundColor: memberColor + '18', color: memberColor }}
-          >
-            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: memberColor }} />
-            <span className="truncate max-w-[48px]">{memberName}</span>
-          </span>
+          <>
+            {assignedIds.map((memberId) => {
+              const member = useTeamStore.getState().members.find((m) => m.id === memberId)
+              const memberColor = member?.color || '#6366f1'
+              const initials = member?.name?.charAt(0)?.toUpperCase() || memberId.slice(0, 1).toUpperCase()
+              return (
+                <span
+                  key={memberId}
+                  className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0"
+                  style={{ backgroundColor: memberColor }}
+                  title={member?.name || memberId}
+                >
+                  {initials}
+                </span>
+              )
+            })}
+          </>
         )
       })()}
 

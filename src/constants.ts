@@ -12,3 +12,12 @@ export const PRESET_COLORS = [
   '#3b82f6', // blue
   '#a855f7', // purple
 ]
+
+export function parseAssigneeIds(assignedTo: string | null | undefined): string[] {
+  if (!assignedTo) return []
+  return assignedTo.split(',').map(s => s.trim()).filter(Boolean)
+}
+
+export function joinAssigneeIds(ids: string[]): string {
+  return ids.join(',')
+}

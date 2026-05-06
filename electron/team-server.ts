@@ -172,19 +172,26 @@ export class TeamServer {
       this.broadcastToAll({ type: 'task:updated', payload: { id: data.id, ...data, by: senderId }, senderId })
       this.onEvent('task:updated', { id: data.id, ...data, by: senderId })
       // Notify assignee if assigned_to changed (client→server→other-client path)
+      // Notify assignees if assigned_to changed (multi-assignee)
       if (oldForNotify && (oldForNotify.assigned_to as string) !== (data.assigned_to as string) && data.assigned_to) {
         const member = this.queryOne('SELECT name FROM team_members WHERE id = ?', [senderId])
+        const newIds = (data.assigned_to as string).split(',').map((s: string) => s.trim()).filter(Boolean)
+        const oldIds = oldForNotify.assigned_to
+          ? (oldForNotify.assigned_to as string).split(',').map((s: string) => s.trim()).filter(Boolean)
+          : [] as string[]
+        const addedIds = newIds.filter((id: string) => !oldIds.includes(id))
         const notifyPayload = {
           taskId: data.id,
           taskTitle: (oldForNotify.title as string) || '',
           assignedBy: (member?.name as string) || senderId,
         }
-        this.sendTo(data.assigned_to as string, {
-          type: 'notify:assigned',
-          payload: notifyPayload,
-        })
-        // Also notify server's own renderer
-        this.onEvent('notify:assigned', notifyPayload)
+        for (const assigneeId of addedIds) {
+          this.sendTo(assigneeId, { type: 'notify:assigned', payload: notifyPayload })
+        }
+        // Notify server's own renderer if server member is among new assignees
+        if (addedIds.length > 0) {
+          this.onEvent('notify:assigned', notifyPayload)
+        }
       }
     } else if (type === 'task:delete') {
       this.db.run('DELETE FROM tasks WHERE id = ?', [data.id])

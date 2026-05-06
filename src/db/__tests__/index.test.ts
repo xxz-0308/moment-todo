@@ -12,7 +12,7 @@ const mockApi = vi.hoisted(() => {
     dbBackup: vi.fn().mockResolvedValue(undefined),
     dbExportJSON: vi.fn().mockResolvedValue('[]'),
   }
-  window.electronAPI = api
+  ;(window as any).electronAPI = api
   return api
 })
 

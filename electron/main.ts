@@ -579,22 +579,28 @@ function setupIPC() {
           teamServer.broadcast(broadcast)
           mainWindow?.webContents.send('team:event', broadcast)
           // If assigned_to actually changed, send notification to assignee
+          // Notify assignees if assigned_to changed (multi-assignee)
           if (oldForNotify && oldForNotify.assigned_to !== data.assigned_to && teamServer) {
             const config = readTeamConfig()
+            const newIds = (data.assigned_to as string).split(',').map((s: string) => s.trim()).filter(Boolean)
+            const oldAssigned = oldForNotify.assigned_to as string || ''
+            const oldIds = oldAssigned ? oldAssigned.split(',').map((s: string) => s.trim()).filter(Boolean) : [] as string[]
+            const addedIds = newIds.filter((id: string) => !oldIds.includes(id))
             const notifyPayload = {
               taskId: data.id,
               taskTitle: oldForNotify.title || '',
               assignedBy: config.member.name || '未知',
             }
-            teamServer.sendTo(data.assigned_to as string, {
-              type: 'notify:assigned',
-              payload: notifyPayload,
-            })
+            for (const assigneeId of addedIds) {
+              teamServer.sendTo(assigneeId, { type: 'notify:assigned', payload: notifyPayload })
+            }
             // Also notify server's own renderer
-            mainWindow?.webContents.send('team:event', {
-              type: 'notify:assigned',
-              payload: notifyPayload,
-            })
+            if (addedIds.length > 0) {
+              mainWindow?.webContents.send('team:event', {
+                type: 'notify:assigned',
+                payload: notifyPayload,
+              })
+            }
           }
         } else if (msg.type === 'task:delete') {
           db.run('DELETE FROM tasks WHERE id = ?', [data.id])
