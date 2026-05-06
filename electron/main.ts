@@ -532,6 +532,7 @@ function setupIPC() {
   ipcMain.handle('window:close', () => { saveDatabase(); mainWindow?.close() })
   ipcMain.handle('window:isMaximized', () => mainWindow?.isMaximized())
   ipcMain.handle('shell:openExternal', (_e, url: string) => shell.openExternal(url))
+  ipcMain.handle('get-app-version', () => app.getVersion())
 
   // Team
   ipcMain.handle('team:start', (_e, mode: 'server' | 'client') => {

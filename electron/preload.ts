@@ -44,4 +44,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('team:quit-warning', (_e, data) => callback(data))
   },
   teamConfirmQuit: () => ipcRenderer.invoke('team:confirm-quit'),
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
 })
