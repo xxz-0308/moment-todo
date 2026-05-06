@@ -215,6 +215,14 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         })
         break
       }
+      case 'protocol:rejected': {
+        const p = payload as { serverVersion: number; clientVersion: number; message: string }
+        set({ connectionStatus: 'disconnected' })
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('moment:toast', { detail: { message: p.message || '协议版本不匹配，请升级应用后重试' } }))
+        }
+        break
+      }
       case 'sort:mode': {
         const p = payload as { manualSort: boolean }
         set({ manualSort: p.manualSort })

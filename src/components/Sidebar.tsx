@@ -233,16 +233,21 @@ export function Sidebar() {
                       w-full flex items-center gap-3 pl-2.5 pr-3 py-2 rounded-lg text-[13px] font-medium
                       transition-all duration-150 relative overflow-hidden
                       ${isActive || dragOverList === list.id
-                        ? 'text-text-primary border border-transparent'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-[rgba(255,255,255,0.03)] border border-transparent'
+                        ? 'text-text-primary'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-[rgba(255,255,255,0.03)]'
                       }
-                      ${dragOverList === list.id ? 'ring-1 scale-[1.02]' : ''}
+                      ${dragOverList === list.id ? 'scale-[1.02]' : ''}
                     `}
-                    style={isActive ? {
-                      backgroundColor: (list.color || '#6366f1') + '15',
-                      borderColor: (list.color || '#6366f1') + '30',
-                      boxShadow: `0 0 16px ${(list.color || '#6366f1')}14`,
-                    } : dragOverList === list.id ? { borderColor: (list.color || '#6366f1') + '40' } : undefined}
+                    style={{
+                      border: '1px solid transparent',
+                      ...(isActive ? {
+                        backgroundColor: (list.color || '#6366f1') + '18',
+                        borderColor: (list.color || '#6366f1') + '30',
+                        boxShadow: `0 0 16px ${(list.color || '#6366f1')}14`,
+                      } : dragOverList === list.id ? {
+                        borderColor: (list.color || '#6366f1') + '40',
+                      } : {}),
+                    }}
                   >
                     {isActive && (
                       <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full"

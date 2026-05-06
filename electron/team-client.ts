@@ -1,6 +1,8 @@
 import WebSocket from 'ws'
 import type { TeamMember } from './team-config'
 
+const PROTOCOL_VERSION = 1
+
 export type ClientStatus = 'disconnected' | 'connecting' | 'connected'
 
 export type ClientEventHandler = (event: string, data: unknown) => void
@@ -40,8 +42,8 @@ export class TeamClient {
         this._status = 'connected'
         this.reconnectDelay = 1000
         this.onEvent('status', 'connected')
-        // Handshake
-        this.send({ type: 'member:handshake', payload: { member: this.member } })
+        // Handshake with protocol version
+        this.send({ type: 'member:handshake', payload: { member: this.member, protocolVersion: PROTOCOL_VERSION } })
         // Request full sync
         this.send({ type: 'sync:request', payload: {} })
         // Start heartbeat

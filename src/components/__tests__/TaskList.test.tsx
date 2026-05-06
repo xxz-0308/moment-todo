@@ -58,8 +58,8 @@ describe('TaskList', () => {
       ],
     })
     render(<TaskList />)
-    expect(screen.getByText('Task A')).toBeInTheDocument()
-    expect(screen.getByText('Task B')).toBeInTheDocument()
+    expect(screen.getAllByText('Task A').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Task B').length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders empty state when no tasks', () => {

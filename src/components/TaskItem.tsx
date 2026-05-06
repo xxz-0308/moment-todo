@@ -238,15 +238,28 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
       </button>
 
       {/* Title */}
-      <span
-        title={task.title}
-        className={`
-          flex-1 min-w-0 text-[14px] leading-snug truncate
-          ${task.completed ? 'text-text-tertiary line-through' : 'text-text-primary'}
-          ${overdue ? '!text-danger font-medium' : ''}
-        `}
-      >
-        {task.title}
+      <span className="relative flex-1 min-w-0 group/title">
+        <span
+          className={`
+            block text-[14px] leading-snug truncate
+            ${task.completed ? 'text-text-tertiary line-through' : 'text-text-primary'}
+            ${overdue ? '!text-danger font-medium' : ''}
+          `}
+        >
+          {task.title}
+        </span>
+        {/* Glass tooltip on hover for truncated titles */}
+        <span className="absolute left-0 -top-7 max-w-[320px] px-2 py-1 rounded-lg text-[12px] text-text-primary whitespace-nowrap pointer-events-none opacity-0 group-hover/title:opacity-100 transition-opacity duration-150 z-10"
+          style={{
+            background: 'var(--glass-elevated-bg)',
+            backdropFilter: 'var(--glass-elevated-blur)',
+            WebkitBackdropFilter: 'var(--glass-elevated-blur)',
+            border: '1px solid var(--glass-elevated-border)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+          }}
+        >
+          {task.title}
+        </span>
       </span>
 
       {/* Notes indicator */}

@@ -15,6 +15,8 @@ interface WrappedMessage {
   messageId?: string
 }
 
+const PROTOCOL_VERSION = 1
+
 export type ServerEventHandler = (event: string, data: unknown) => void
 
 export class TeamServer {
@@ -52,6 +54,15 @@ export class TeamServer {
           switch (msg.type) {
             case 'member:handshake': {
               const member = (msg.payload.member as TeamMember)
+              const clientVersion = (msg.payload.protocolVersion as number) || 0
+              if (clientVersion !== PROTOCOL_VERSION) {
+                ws.send(JSON.stringify({
+                  type: 'protocol:rejected',
+                  payload: { serverVersion: PROTOCOL_VERSION, clientVersion, message: `协议版本不匹配：服务端 v${PROTOCOL_VERSION}，客户端 v${clientVersion}。请升级后重试。` },
+                }))
+                ws.close()
+                return
+              }
               memberId = member.id
               this.clients.set(memberId, { ws, memberId })
               // Upsert member
