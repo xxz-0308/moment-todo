@@ -55,6 +55,8 @@ interface TeamState {
   onlineMembers: Set<string>
   reconnectSummary: string | null
   _snapshot: { taskIds: Set<string>; completedIds: Set<string> } | null
+  appVersion: string
+  updateAvailable: { serverVersion: string } | null
 
   _handleMessage: (event: TeamEvent) => void
   _updateStatus: (status: ConnectionStatus) => void
@@ -78,6 +80,7 @@ const api = () => {
     teamDiscover: () => Promise<string | null>
     teamGetStatus: () => Promise<{ status: string; memberCount?: number }>
     onTeamEvent: (cb: (event: TeamEvent) => void) => void
+    getAppVersion: () => Promise<string>
   }
 }
 
@@ -92,6 +95,8 @@ export const useTeamStore = create<TeamState>((set, get) => ({
   onlineMembers: new Set<string>(),
   reconnectSummary: null,
   _snapshot: null,
+  appVersion: '',
+  updateAvailable: null,
 
   _handleMessage: (event: TeamEvent) => {
     const { type, payload } = event
@@ -216,11 +221,24 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         })
         break
       }
+      case 'handshake:ok': {
+        const p = payload as { appVersion: string }
+        if (p.appVersion && get().appVersion && p.appVersion !== get().appVersion) {
+          set({ updateAvailable: { serverVersion: p.appVersion } })
+        }
+        break
+      }
       case 'protocol:rejected': {
-        const p = payload as { serverVersion: number; clientVersion: number; message: string }
+        const p = payload as { serverVersion: number; clientVersion: number; message: string; downloadUrl?: string }
         set({ connectionStatus: 'disconnected' })
         if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('moment:toast', { detail: { message: p.message || '协议版本不匹配，请升级应用后重试' } }))
+          if (p.downloadUrl) {
+            window.dispatchEvent(new CustomEvent('moment:update-available', {
+              detail: { serverVersion: String(p.serverVersion), downloadUrl: p.downloadUrl, required: true },
+            }))
+          } else {
+            window.dispatchEvent(new CustomEvent('moment:toast', { detail: { message: p.message || '协议版本不匹配' } }))
+          }
         }
         break
       }
@@ -285,6 +303,9 @@ export const useTeamStore = create<TeamState>((set, get) => ({
     a.onTeamEvent((event: TeamEvent) => {
       get()._handleMessage(event)
     })
+    if (a.getAppVersion) {
+      a.getAppVersion().then((v: string) => set({ appVersion: v }))
+    }
     await a.teamStart('client')
   },
 
@@ -301,6 +322,9 @@ export const useTeamStore = create<TeamState>((set, get) => ({
     a.onTeamEvent((event: TeamEvent) => {
       get()._handleMessage(event)
     })
+    if (a.getAppVersion) {
+      a.getAppVersion().then((v: string) => set({ appVersion: v }))
+    }
     await a.teamStart(mode)
   },
 

@@ -97,10 +97,31 @@ export default function App() {
       const detail = (e as CustomEvent).detail
       useStore.getState().addToast(detail.message)
     }
+    const updateHandler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as {
+        serverVersion: string
+        downloadUrl?: string
+        required?: boolean
+      }
+      const msg = detail.required
+        ? `协议不兼容，需要升级到 v${detail.serverVersion}`
+        : `服务端版本 v${detail.serverVersion} 与当前版本不同。是否下载更新？`
+
+      useStore.getState().addToast(msg, {
+        label: '下载更新',
+        onClick: () => {
+          if (detail.downloadUrl) {
+            window.open(detail.downloadUrl, '_blank')
+          }
+        },
+      })
+    }
     window.addEventListener('moment:toast', toastHandler)
+    window.addEventListener('moment:update-available', updateHandler)
     return () => {
       unsub()
       window.removeEventListener('moment:toast', toastHandler)
+      window.removeEventListener('moment:update-available', updateHandler)
     }
   }, [])
 
