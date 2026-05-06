@@ -241,9 +241,9 @@ export function Sidebar() {
                     style={{
                       border: '1px solid transparent',
                       ...(isActive ? {
-                        backgroundColor: (list.color || '#6366f1') + '18',
-                        borderColor: (list.color || '#6366f1') + '30',
-                        boxShadow: `0 0 16px ${(list.color || '#6366f1')}14`,
+                        backgroundColor: (list.color || '#6366f1') + '22',
+                        borderColor: (list.color || '#6366f1') + '50',
+                        boxShadow: `0 0 20px ${(list.color || '#6366f1')}20`,
                       } : dragOverList === list.id ? {
                         borderColor: (list.color || '#6366f1') + '40',
                       } : {}),
