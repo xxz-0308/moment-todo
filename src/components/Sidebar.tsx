@@ -241,11 +241,10 @@ export function Sidebar() {
                     style={{
                       border: '1px solid transparent',
                       ...(isActive ? {
-                        backgroundColor: (list.color || '#6366f1') + '22',
-                        borderColor: (list.color || '#6366f1') + '50',
-                        boxShadow: `0 0 20px ${(list.color || '#6366f1')}20`,
-                      } : dragOverList === list.id ? {
+                        backgroundColor: (list.color || '#6366f1') + '16',
                         borderColor: (list.color || '#6366f1') + '40',
+                      } : dragOverList === list.id ? {
+                        borderColor: (list.color || '#6366f1') + '30',
                       } : {}),
                     }}
                   >

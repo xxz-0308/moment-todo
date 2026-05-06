@@ -147,7 +147,7 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   setScope: (scope) => {
-    set({ scope, selectedTaskId: null, selectedTask: null })
+    set({ scope, currentView: 'today', selectedTaskId: null, selectedTask: null })
   },
 
   selectTask: (taskId) => {
