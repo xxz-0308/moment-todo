@@ -247,24 +247,26 @@ export async function upsertTeamTask(task: {
   pinned: number
   sort_order: number
   team_task_id: string
+  completed_at?: string | null
 }): Promise<void> {
   const existing = await api.dbGet(
     'SELECT id FROM tasks WHERE team_task_id = ?',
     [task.team_task_id]
   )
   const row = existing as { id: string } | null
+  const completedAt = task.completed_at ?? (task.completed ? new Date().toISOString() : null)
   if (row) {
     await api.dbRun(
-      `UPDATE tasks SET title=?, completed=?, priority=?, due_date=?, list_id=?, notes=?, pinned=?, sort_order=? WHERE id=?`,
-      [task.title, task.completed, task.priority, task.due_date, 'default', task.notes, task.pinned, task.sort_order, row.id]
+      `UPDATE tasks SET title=?, completed=?, priority=?, due_date=?, list_id=?, notes=?, pinned=?, sort_order=?, completed_at=? WHERE id=?`,
+      [task.title, task.completed, task.priority, task.due_date, 'default', task.notes, task.pinned, task.sort_order, completedAt, row.id]
     )
   } else {
     const id = generateId()
     const now = new Date().toISOString()
     await api.dbRun(
-      `INSERT INTO tasks (id, title, completed, priority, due_date, list_id, notes, pinned, sort_order, team_task_id, is_team_assigned, scope, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, 'default', ?, ?, ?, ?, 1, 'personal', ?, ?)`,
-      [id, task.title, task.completed, task.priority, task.due_date, task.notes, task.pinned, task.sort_order, task.team_task_id, now, now]
+      `INSERT INTO tasks (id, title, completed, priority, due_date, list_id, notes, pinned, sort_order, team_task_id, is_team_assigned, scope, completed_at, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, 'default', ?, ?, ?, ?, 1, 'personal', ?, ?, ?)`,
+      [id, task.title, task.completed, task.priority, task.due_date, task.notes, task.pinned, task.sort_order, task.team_task_id, completedAt, now, now]
     )
   }
 }

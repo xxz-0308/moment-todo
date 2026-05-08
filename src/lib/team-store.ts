@@ -171,6 +171,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
                 id: t.id, title: t.title, completed: t.completed, priority: t.priority,
                 due_date: t.due_date, list_id: t.list_id, notes: t.notes,
                 pinned: t.pinned, sort_order: t.sort_order, team_task_id: t.id,
+                completed_at: (t as any).completed_at,
               }).then(() => {
                 // Reload main store to show task in personal view
                 import('@/store').then((store) => {
@@ -201,6 +202,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
                 id: t.id, title: t.title, completed: t.completed, priority: t.priority,
                 due_date: t.due_date, list_id: t.list_id, notes: t.notes,
                 pinned: t.pinned, sort_order: t.sort_order, team_task_id: t.id,
+                completed_at: (t as any).completed_at,
               }).then(() => {
                 // Reload main store to show task in personal view
                 import('@/store').then((store) => {

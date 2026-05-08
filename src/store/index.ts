@@ -190,9 +190,13 @@ export const useStore = create<AppState>((set, get) => ({
     if (get().scope === 'personal') {
       const task = get().tasks.find((t) => t.id === id)
       if (task && (task as any).is_team_assigned && (task as any).team_task_id) {
+        // Don't sync category changes — assigned tasks stay in '全部' in personal,
+        // and personal list IDs don't exist in team scope
+        const { list_id: _lid, ...teamUpdates } = updates as any
+        const filtered = _lid !== undefined ? teamUpdates : updates
         useTeamStore.getState().sendMessage('task:update', {
           id: (task as any).team_task_id,
-          ...updates
+          ...filtered
         })
         // Optimistically update local state
         set((s) => ({
@@ -257,10 +261,10 @@ export const useStore = create<AppState>((set, get) => ({
       if (task && (task as any).is_team_assigned && (task as any).team_task_id) {
         const newCompleted = task.completed ? 0 : 1
         const now = new Date().toISOString()
+        const selfId = useTeamStore.getState().selfMemberId || ''
         useTeamStore.getState().sendMessage('task:update', {
           id: (task as any).team_task_id,
-          completed: newCompleted,
-          completed_at: newCompleted ? now : null,
+          assignee_status: { [selfId]: newCompleted },
         })
         // Optimistically update local
         set((s) => ({
