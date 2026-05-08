@@ -100,7 +100,7 @@ export function TaskList() {
         const todayActive = active.filter((t) => t.due_date === today)
         const overdue = active.filter((t) => t.due_date && t.due_date < today)
         const completedToday = activeTasks.filter((t) =>
-          t.completed && t.due_date === today
+          t.completed && (t as any).completed_at && (t as any).completed_at.startsWith(today)
         )
         return {
           todayTasks: applyFilters([...todayActive, ...completedToday], activeFilters),

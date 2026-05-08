@@ -245,9 +245,14 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
         ref={titleRef}
         className={`
           flex-1 min-w-0 text-[14px] leading-snug truncate
-          ${task.completed ? 'text-text-tertiary line-through' : 'text-text-primary'}
+          ${task.completed ? 'text-text-secondary' : 'text-text-primary'}
           ${overdue ? '!text-danger font-medium' : ''}
         `}
+        style={task.completed ? {
+          textDecoration: 'line-through',
+          textDecorationColor: 'rgba(255,255,255,0.35)',
+          textDecorationThickness: '2px',
+        } : undefined}
         onMouseEnter={() => {
           const rect = titleRef.current?.getBoundingClientRect()
           if (rect && titleRef.current && titleRef.current.scrollWidth > titleRef.current.clientWidth) {

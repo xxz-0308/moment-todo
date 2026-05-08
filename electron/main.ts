@@ -824,6 +824,12 @@ function setupIPC() {
           teamServer.broadcast(broadcast)
           mainWindow?.webContents.send('team:event', broadcast)
         } else if (msg.type === 'list:create') {
+          // Check duplicate name
+          const dupCheck = queryAll("SELECT id FROM lists WHERE scope = 'team' AND LOWER(name) = LOWER(?)", [String(data.name)])
+          if (dupCheck.length > 0) {
+            mainWindow?.webContents.send('team:event', { type: 'error', payload: { message: '分类名称已存在' } })
+            return
+          }
           const id = (data.id as string) || crypto.randomUUID()
           const r = db.exec("SELECT COALESCE(MAX(sort_order), -1) as m FROM lists WHERE scope = 'team'")
           const maxOrder = (r.length > 0 && r[0].values.length > 0) ? (r[0].values[0][0] as number) : -1

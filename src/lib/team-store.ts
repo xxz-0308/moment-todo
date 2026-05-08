@@ -140,6 +140,11 @@ export const useTeamStore = create<TeamState>((set, get) => ({
                 id: t.id, title: t.title, completed: t.completed, priority: t.priority,
                 due_date: t.due_date, list_id: t.list_id, notes: t.notes,
                 pinned: t.pinned, sort_order: t.sort_order, team_task_id: t.id,
+              }).then(() => {
+                // Reload main store to show task in personal view
+                import('@/store').then((store) => {
+                  store.useStore.getState().loadData()
+                }).catch(() => {})
               })
             }).catch(() => {})
           }
@@ -165,6 +170,11 @@ export const useTeamStore = create<TeamState>((set, get) => ({
                 id: t.id, title: t.title, completed: t.completed, priority: t.priority,
                 due_date: t.due_date, list_id: t.list_id, notes: t.notes,
                 pinned: t.pinned, sort_order: t.sort_order, team_task_id: t.id,
+              }).then(() => {
+                // Reload main store to show task in personal view
+                import('@/store').then((store) => {
+                  store.useStore.getState().loadData()
+                }).catch(() => {})
               })
             }).catch(() => {})
           } else if ('assigned_to' in p && !newAssigned.includes(selfId)) {
@@ -351,11 +361,11 @@ export const useTeamStore = create<TeamState>((set, get) => ({
     set({ connectionStatus: 'connecting' })
     const a = api()
     if (!a) return
+    // Get config BEFORE registering event listener so selfMemberId is set
+    const cfg = await a.teamGetConfig()
+    if (cfg?.member?.id) set({ selfMemberId: cfg.member.id })
     a.onTeamEvent((event: TeamEvent) => {
       get()._handleMessage(event)
-    })
-    a.teamGetConfig().then((cfg: any) => {
-      if (cfg?.member?.id) set({ selfMemberId: cfg.member.id })
     })
     if (a.getAppVersion) {
       a.getAppVersion().then((v: string) => set({ appVersion: v }))
@@ -373,11 +383,11 @@ export const useTeamStore = create<TeamState>((set, get) => ({
   startTeam: async (mode: 'server' | 'client') => {
     const a = api()
     if (!a) return
+    // Get config BEFORE registering event listener so selfMemberId is set
+    const cfg = await a.teamGetConfig()
+    if (cfg?.member?.id) set({ selfMemberId: cfg.member.id })
     a.onTeamEvent((event: TeamEvent) => {
       get()._handleMessage(event)
-    })
-    a.teamGetConfig().then((cfg: any) => {
-      if (cfg?.member?.id) set({ selfMemberId: cfg.member.id })
     })
     if (a.getAppVersion) {
       a.getAppVersion().then((v: string) => set({ appVersion: v }))
