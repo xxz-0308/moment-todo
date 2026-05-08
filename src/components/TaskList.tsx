@@ -142,13 +142,9 @@ export function TaskList() {
     ? todayTasks
     : autoSort(todayTasks)
 
-  const sortedOverdue = sortManual
+  const sortedOverdue = effectiveSortManual
     ? overdueTasks
-    : [...overdueTasks].sort((a, b) => {
-        // Most overdue first
-        if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date)
-        return 0
-      })
+    : autoSort(overdueTasks)
 
   const sortedRegular = sortManual
     ? regularTasks
