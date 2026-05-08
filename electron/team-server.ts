@@ -245,12 +245,21 @@ export class TeamServer {
       if (data.assignee_status) {
         const statuses = data.assignee_status as Record<string, number>
         for (const [assigneeId, completed] of Object.entries(statuses)) {
-          this.db.run(
-            `INSERT INTO task_assignee_status (id, task_id, assignee_id, completed, completed_at)
-             VALUES (?, ?, ?, ?, datetime('now'))
-             ON CONFLICT(id) DO UPDATE SET completed = ?, completed_at = datetime('now')`,
-            [crypto.randomUUID(), data.id, assigneeId, completed, completed]
+          const existing = this.queryAll(
+            'SELECT id FROM task_assignee_status WHERE task_id = ? AND assignee_id = ?',
+            [data.id, assigneeId]
           )
+          if (existing.length > 0) {
+            this.db.run(
+              "UPDATE task_assignee_status SET completed = ?, completed_at = datetime('now') WHERE task_id = ? AND assignee_id = ?",
+              [completed, data.id, assigneeId]
+            )
+          } else {
+            this.db.run(
+              "INSERT INTO task_assignee_status (id, task_id, assignee_id, completed, completed_at) VALUES (?, ?, ?, ?, datetime('now'))",
+              [crypto.randomUUID(), data.id, assigneeId, completed]
+            )
+          }
         }
         // Check if ALL assignees completed
         const task = this.queryOne('SELECT assigned_to FROM tasks WHERE id = ?', [data.id])
