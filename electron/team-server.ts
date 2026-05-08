@@ -252,6 +252,19 @@ export class TeamServer {
     const now = new Date().toISOString()
 
     if (type === 'list:create') {
+      // Check duplicate name
+      const existing = this.queryOne("SELECT id FROM lists WHERE scope = 'team' AND LOWER(name) = LOWER(?)", [String(data.name)])
+      if (existing) {
+        // Send error back to sender only
+        const senderConn = this.clients.get(senderId)
+        if (senderConn && senderConn.ws.readyState === WebSocket.OPEN) {
+          senderConn.ws.send(JSON.stringify({
+            type: 'error',
+            payload: { message: '分类名称已存在' }
+          }))
+        }
+        return
+      }
       const id = (data.id as string) || crypto.randomUUID()
       const r = this.db.exec("SELECT COALESCE(MAX(sort_order), -1) as m FROM lists WHERE scope = 'team'")
       const maxOrder = (r.length > 0 && r[0].values.length > 0) ? (r[0].values[0][0] as number) : -1

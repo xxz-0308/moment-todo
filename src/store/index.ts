@@ -351,15 +351,30 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   addList: async (name, color) => {
+    const trimmed = name.trim()
+    // Check duplicate in personal mode
+    if (get().scope === 'personal') {
+      if (get().lists.some(l => l.name.toLowerCase() === trimmed.toLowerCase())) {
+        get().addToast('分类名称已存在')
+        return
+      }
+    }
     if (get().scope === 'team') {
-      useTeamStore.getState().sendMessage('list:create', { name, color })
+      useTeamStore.getState().sendMessage('list:create', { name: trimmed, color })
       return
     }
-    const list = await db.createList(name, color)
+    const list = await db.createList(trimmed, color)
     set((s) => ({ lists: [...s.lists, list] }))
   },
 
   updateList: async (id, updates: { name?: string; color?: string }) => {
+    if (updates.name) {
+      const trimmed = updates.name.trim()
+      if (get().lists.some(l => l.id !== id && l.name.toLowerCase() === trimmed.toLowerCase())) {
+        get().addToast('分类名称已存在')
+        return
+      }
+    }
     if (get().scope === 'team') {
       useTeamStore.getState().sendMessage('list:update', { id, ...updates })
       return
