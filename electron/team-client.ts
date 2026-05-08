@@ -13,6 +13,7 @@ export class TeamClient {
   private appVersion: string
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
   private reconnectDelay = 1000
+  private connectTimeout: ReturnType<typeof setTimeout> | null = null
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null
   private onEvent: ClientEventHandler
   private _status: ClientStatus = 'disconnected'
@@ -38,7 +39,18 @@ export class TeamClient {
     try {
       this.ws = new WebSocket(`ws://${this.url}`)
 
+      // Connection timeout: if not connected in 10s, force close and retry
+      this.connectTimeout = setTimeout(() => {
+        if (this._status === 'connecting' && this.ws) {
+          console.log('[TeamClient] Connection timeout, force closing')
+          try { this.ws.terminate() } catch {}
+          this.ws = null
+          this.scheduleReconnect()
+        }
+      }, 10000)
+
       this.ws.on('open', () => {
+        if (this.connectTimeout) { clearTimeout(this.connectTimeout); this.connectTimeout = null }
         console.log('[TeamClient] Connected')
         this._status = 'connected'
         this.reconnectDelay = 1000
@@ -116,6 +128,10 @@ export class TeamClient {
   }
 
   private cleanup(): void {
+    if (this.connectTimeout) {
+      clearTimeout(this.connectTimeout)
+      this.connectTimeout = null
+    }
     if (this.heartbeatTimer) {
       clearInterval(this.heartbeatTimer)
       this.heartbeatTimer = null
