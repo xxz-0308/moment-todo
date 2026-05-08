@@ -20,6 +20,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   closeWindow: () => ipcRenderer.invoke('window:close'),
   isMaximized: () => ipcRenderer.invoke('window:isMaximized'),
   flashWindow: () => ipcRenderer.invoke('window:flash'),
+  downloadUpdate: (url: string) => ipcRenderer.invoke('update:download-install', url),
 
   // Shell
   openExternal: (url: string) => ipcRenderer.invoke('shell:openExternal', url),

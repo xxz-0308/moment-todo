@@ -112,10 +112,17 @@ export default function App() {
         : `发现新版本 v${detail.serverVersion}，是否下载更新？`
 
       useStore.getState().addToast(msg, {
-        label: detail.required ? '下载更新' : '下载',
+        label: detail.required ? '下载更新' : '下载并安装',
         onClick: () => {
           if (detail.downloadUrl) {
-            window.open(detail.downloadUrl, '_blank')
+            const api = (window as any).electronAPI
+            api?.downloadUpdate?.(detail.downloadUrl).then((ok: boolean) => {
+              if (ok) {
+                useStore.getState().addToast('下载完成，安装程序已启动')
+              } else {
+                useStore.getState().addToast('下载失败，请手动更新')
+              }
+            })
           }
         },
       })

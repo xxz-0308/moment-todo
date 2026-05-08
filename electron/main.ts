@@ -667,6 +667,28 @@ function setupIPC() {
     return true
   })
   ipcMain.handle('shell:openExternal', (_e, url: string) => shell.openExternal(url))
+  ipcMain.handle('update:download-install', async (_e, downloadUrl: string) => {
+    try {
+      const http = require('http') as typeof import('http')
+      const tmpDir = path.join(app.getPath('temp'), 'moment-update')
+      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true })
+      const installerPath = path.join(tmpDir, 'Moment-setup.exe')
+
+      await new Promise<void>((resolve, reject) => {
+        http.get(downloadUrl, { headers: { 'User-Agent': 'Moment-App' } }, (res) => {
+          const file = fs.createWriteStream(installerPath)
+          res.pipe(file)
+          file.on('finish', () => { file.close(); resolve() })
+        }).on('error', reject)
+      })
+
+      shell.openPath(installerPath)
+      return true
+    } catch (e: any) {
+      console.error('[Update] Download failed:', e.message)
+      return false
+    }
+  })
   ipcMain.handle('get-app-version', () => app.getVersion())
 
   // Team
