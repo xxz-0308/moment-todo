@@ -26,8 +26,8 @@ let teamServer: TeamServer | null = null
 let teamClient: TeamClient | null = null
 let updateServer: http.Server | null = null
 const DB_PATH = path.join(app.getPath('userData'), 'moment.db')
-const UPDATE_REPO_OWNER = ''
-const UPDATE_REPO_NAME = ''
+const UPDATE_REPO_OWNER = 'xxz-0308'
+const UPDATE_REPO_NAME = 'moment-todo'
 const UPDATES_DIR = path.join(app.getPath('userData'), 'updates')
 
 // ── Database ──────────────────────────────────────────────
