@@ -2,7 +2,6 @@ import { create } from 'zustand'
 import * as db from '@/db'
 import { playCompleteSound, playDeleteSound, playUndoSound } from '@/hooks/useSound'
 import { useTeamStore } from '@/lib/team-store'
-import { parseAssigneeIds, joinAssigneeIds } from '@/constants'
 
 // Types
 export interface Task {
@@ -186,27 +185,6 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   updateTask: async (id, updates) => {
-    // If in personal scope and task is team-assigned, route via WebSocket
-    if (get().scope === 'personal') {
-      const task = get().tasks.find((t) => t.id === id)
-      if (task && (task as any).is_team_assigned && (task as any).team_task_id) {
-        // Don't sync category changes — assigned tasks stay in '全部' in personal,
-        // and personal list IDs don't exist in team scope
-        const { list_id: _lid, ...teamUpdates } = updates as any
-        const filtered = _lid !== undefined ? teamUpdates : updates
-        useTeamStore.getState().sendMessage('task:update', {
-          id: (task as any).team_task_id,
-          ...filtered
-        })
-        // Optimistically update local state
-        set((s) => ({
-          tasks: s.tasks.map((t) =>
-            t.id === id ? { ...t, ...updates } : t
-          ),
-        }))
-        return
-      }
-    }
     if (get().scope === 'team') {
       useTeamStore.getState().sendMessage('task:update', { id, ...updates })
       // Optimistically refresh selected task from team store
@@ -256,26 +234,6 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   toggleComplete: async (id) => {
-    if (get().scope === 'personal') {
-      const task = get().tasks.find((t) => t.id === id)
-      if (task && (task as any).is_team_assigned && (task as any).team_task_id) {
-        const newCompleted = task.completed ? 0 : 1
-        const now = new Date().toISOString()
-        const selfId = useTeamStore.getState().selfMemberId || ''
-        useTeamStore.getState().sendMessage('task:update', {
-          id: (task as any).team_task_id,
-          assignee_status: { [selfId]: newCompleted },
-        })
-        // Optimistically update local
-        set((s) => ({
-          tasks: s.tasks.map((t) =>
-            t.id === id ? { ...t, completed: newCompleted, completed_at: newCompleted ? now : null } : t
-          ),
-        }))
-        if (newCompleted) { playCompleteSound() }
-        return
-      }
-    }
     if (get().scope === 'team') {
       const task = get().tasks.find((t) => t.id === id) || useTeamStore.getState().tasks.find((t) => t.id === id)
       if (!task) return
@@ -330,26 +288,6 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   removeTask: async (id) => {
-    if (get().scope === 'personal') {
-      const task = get().tasks.find((t) => t.id === id)
-      if (task && (task as any).is_team_assigned && (task as any).team_task_id) {
-        // Remove self from assigned_to instead of deleting the task
-        const currentAssigned = parseAssigneeIds((task as any).assigned_to || '')
-        const selfId = useTeamStore.getState().selfMemberId || ''
-        const newAssigned = currentAssigned.filter((a: string) => a !== selfId)
-        useTeamStore.getState().sendMessage('task:update', {
-          id: (task as any).team_task_id,
-          assigned_to: joinAssigneeIds(newAssigned),
-        })
-        // Remove from personal local DB and state
-        import('@/db').then((db) => {
-          db.removeTeamTask((task as any).team_task_id)
-        }).catch(() => {})
-        set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) }))
-        get().addToast('已取消指派')
-        return
-      }
-    }
     if (get().scope === 'team') {
       const task = get().tasks.find((t) => t.id === id) || useTeamStore.getState().tasks.find((t) => t.id === id)
       if (!task) return

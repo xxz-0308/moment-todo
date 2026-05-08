@@ -64,10 +64,6 @@ export default function App() {
   useEffect(() => {
     const api = (window as any).electronAPI
     if (!api?.onTeamEvent) return
-    // Set self member ID for team task sync — needed for auto-start
-    api.teamGetConfig?.().then((cfg: any) => {
-      if (cfg?.member?.id) useTeamStore.setState({ selfMemberId: cfg.member.id })
-    })
     api.onTeamEvent((event: { type: string; payload: unknown }) => {
       if (event.type === 'data:reloaded') {
         useStore.getState().loadData()

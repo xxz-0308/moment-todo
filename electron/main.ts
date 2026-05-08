@@ -102,22 +102,6 @@ function initSchema() {
   // A3: completed_at for tracking when task was completed today
   try { db.run("ALTER TABLE tasks ADD COLUMN completed_at TEXT") } catch {}
 
-  // B: team task sync columns
-  try { db.run("ALTER TABLE tasks ADD COLUMN team_task_id TEXT") } catch {}
-  try { db.run("ALTER TABLE tasks ADD COLUMN is_team_assigned INTEGER DEFAULT 0") } catch {}
-  try { db.run("ALTER TABLE tasks ADD COLUMN completed_at TEXT") } catch {}
-
-  // B: task_assignee_status table — per-assignee completion tracking
-  db.run(`
-    CREATE TABLE IF NOT EXISTS task_assignee_status (
-      id TEXT PRIMARY KEY,
-      task_id TEXT NOT NULL,
-      assignee_id TEXT NOT NULL,
-      completed INTEGER DEFAULT 0,
-      completed_at TEXT
-    )
-  `)
-
   const result = db.exec('SELECT COUNT(*) as count FROM lists')
   const count = result.length > 0 ? (result[0].values[0][0] as number) : 0
   if (count === 0) {
@@ -816,46 +800,6 @@ function setupIPC() {
                 payload: notifyPayload,
               })
               mainWindow?.flashFrame(true)  // Flash taskbar icon
-            }
-          }
-          // Per-assignee completion status handling
-          if (data.assignee_status) {
-            const statuses = data.assignee_status as Record<string, number>
-            for (const [assigneeId, completed] of Object.entries(statuses)) {
-              const existing = queryAll(
-                'SELECT id FROM task_assignee_status WHERE task_id = ? AND assignee_id = ?',
-                [data.id, assigneeId]
-              )
-              if (existing.length > 0) {
-                db.run(
-                  'UPDATE task_assignee_status SET completed = ?, completed_at = datetime(\'now\') WHERE task_id = ? AND assignee_id = ?',
-                  [completed, data.id, assigneeId]
-                )
-              } else {
-                db.run(
-                  'INSERT INTO task_assignee_status (id, task_id, assignee_id, completed, completed_at) VALUES (?, ?, ?, ?, datetime(\'now\'))',
-                  [crypto.randomUUID(), data.id, assigneeId, completed]
-                )
-              }
-            }
-            const task = queryAll('SELECT assigned_to FROM tasks WHERE id = ?', [data.id])[0]
-            const assignedTo = (task?.assigned_to as string) || ''
-            const assigneeIds = assignedTo.split(',').map((s: string) => s.trim()).filter(Boolean)
-            if (assigneeIds.length > 0) {
-              const placeholders = assigneeIds.map(() => '?').join(',')
-              const statusRows = queryAll(
-                `SELECT assignee_id, completed FROM task_assignee_status WHERE task_id = ? AND assignee_id IN (${placeholders})`,
-                [data.id, ...assigneeIds]
-              )
-              const allCompleted = assigneeIds.every((aid: string) =>
-                statusRows.some((r: Record<string, unknown>) => r.assignee_id === aid && r.completed === 1)
-              )
-              if (allCompleted) {
-                db.run('UPDATE tasks SET completed = 1, updated_at = ? WHERE id = ?', [now, data.id])
-                const bc = { type: 'task:updated', payload: { id: data.id, completed: 1, by: 'system' } }
-                teamServer.broadcast(bc as any)
-                mainWindow?.webContents.send('team:event', bc as any)
-              }
             }
           }
         } else if (msg.type === 'task:delete') {

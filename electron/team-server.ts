@@ -241,47 +241,6 @@ export class TeamServer {
           this.onEvent('notify:assigned', notifyPayload)
         }
       }
-      // Handle per-assignee completion status
-      if (data.assignee_status) {
-        const statuses = data.assignee_status as Record<string, number>
-        for (const [assigneeId, completed] of Object.entries(statuses)) {
-          const existing = this.queryAll(
-            'SELECT id FROM task_assignee_status WHERE task_id = ? AND assignee_id = ?',
-            [data.id, assigneeId]
-          )
-          if (existing.length > 0) {
-            this.db.run(
-              "UPDATE task_assignee_status SET completed = ?, completed_at = datetime('now') WHERE task_id = ? AND assignee_id = ?",
-              [completed, data.id, assigneeId]
-            )
-          } else {
-            this.db.run(
-              "INSERT INTO task_assignee_status (id, task_id, assignee_id, completed, completed_at) VALUES (?, ?, ?, ?, datetime('now'))",
-              [crypto.randomUUID(), data.id, assigneeId, completed]
-            )
-          }
-        }
-        // Check if ALL assignees completed
-        const task = this.queryOne('SELECT assigned_to FROM tasks WHERE id = ?', [data.id])
-        const assignedTo = (task?.assigned_to as string) || ''
-        const assigneeIds = assignedTo.split(',').map((s: string) => s.trim()).filter(Boolean)
-        if (assigneeIds.length > 0) {
-          const placeholders = assigneeIds.map(() => '?').join(',')
-          const statusRows = this.queryAll(
-            `SELECT assignee_id, completed FROM task_assignee_status WHERE task_id = ? AND assignee_id IN (${placeholders})`,
-            [data.id, ...assigneeIds]
-          )
-          const allCompleted = assigneeIds.every((aid: string) =>
-            statusRows.some((r: Record<string, unknown>) => r.assignee_id === aid && r.completed === 1)
-          )
-          if (allCompleted) {
-            const now = new Date().toISOString()
-            this.db.run('UPDATE tasks SET completed = 1, updated_at = ? WHERE id = ?', [now, data.id])
-            this.broadcastToAll({ type: 'task:updated', payload: { id: data.id, completed: 1, by: 'system' }, senderId: '' })
-            this.onEvent('task:updated', { id: data.id, completed: 1, by: 'system' })
-          }
-        }
-      }
     } else if (type === 'task:delete') {
       this.db.run('DELETE FROM tasks WHERE id = ?', [data.id])
       this.broadcastToAll({ type: 'task:deleted', payload: { id: data.id, by: senderId }, senderId })
@@ -350,8 +309,7 @@ export class TeamServer {
     const lists = this.queryAll("SELECT * FROM lists WHERE scope = 'team'")
     const tasks = this.queryAll("SELECT * FROM tasks WHERE scope = 'team'")
     const onlineIds = [this.serverMemberId, ...this.clients.keys()]
-    const assigneeStatuses = this.queryAll('SELECT * FROM task_assignee_status')
-    const msg = JSON.stringify({ type: 'sync:full', payload: { members, lists, tasks, onlineIds, assigneeStatuses }, senderId: '' })
+    const msg = JSON.stringify({ type: 'sync:full', payload: { members, lists, tasks, onlineIds }, senderId: '' })
     ws.send(msg)
   }
 
