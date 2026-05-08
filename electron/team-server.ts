@@ -146,6 +146,15 @@ export class TeamServer {
           this.onEvent('member:left', { memberId, totalCount })
         }
       })
+
+      ws.on('error', () => {
+        if (memberId) {
+          this.clients.delete(memberId)
+          const totalCount = this.clients.size + 1
+          this.broadcastToAll({ type: 'member:left', payload: { memberId, totalCount }, senderId: '' })
+          this.onEvent('member:left', { memberId, totalCount })
+        }
+      })
     })
     return true
   }
@@ -340,5 +349,9 @@ export class TeamServer {
 
   get memberCount(): number {
     return this.clients.size
+  }
+
+  getClientIds(): string[] {
+    return [...this.clients.keys()]
   }
 }

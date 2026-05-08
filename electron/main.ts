@@ -595,7 +595,8 @@ function setupIPC() {
       const teamLists = queryAll("SELECT * FROM lists WHERE scope = 'team'")
       const teamTasks = queryAll("SELECT * FROM tasks WHERE scope = 'team'")
       const config = readTeamConfig()
-      mainWindow?.webContents.send('team:event', { type: 'sync:full', payload: { members, lists: teamLists, tasks: teamTasks, onlineIds: [config.member.id] } })
+      const onlineIds = [config.member.id, ...teamServer.getClientIds()]
+      mainWindow?.webContents.send('team:event', { type: 'sync:full', payload: { members, lists: teamLists, tasks: teamTasks, onlineIds } })
     } else if (teamClient && teamClient.status === 'connected') {
       // Client mode: re-request sync from server
       teamClient.send({ type: 'sync:request', payload: {} })
