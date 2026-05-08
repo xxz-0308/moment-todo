@@ -85,9 +85,14 @@ export class TeamServer {
               const totalCount = this.clients.size + 1 // server + connected clients
               this.broadcastToAll({ type: 'member:connected', payload: { member, totalCount }, senderId: '' })
               this.onEvent('member:connected', { member, totalCount })
-              // Check if client needs an update
+              // Check if client is older than server → offer update
               const clientAppVersion = (msg.payload.appVersion as string) || '0.0.0'
-              if (clientAppVersion !== this.appVersion) {
+              const clientParts = clientAppVersion.split('.').map(Number)
+              const serverParts = this.appVersion.split('.').map(Number)
+              const clientOlder = clientParts[0] < serverParts[0] ||
+                (clientParts[0] === serverParts[0] && clientParts[1] < serverParts[1]) ||
+                (clientParts[0] === serverParts[0] && clientParts[1] === serverParts[1] && clientParts[2] < serverParts[2])
+              if (clientOlder) {
                 ws.send(JSON.stringify({
                   type: 'update:available',
                   payload: {

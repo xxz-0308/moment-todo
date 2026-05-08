@@ -274,37 +274,46 @@ async function checkForUpdate(): Promise<void> {
     const https = require('https') as typeof import('https')
     const pkg = require('../package.json')
     const currentVersion = pkg.version as string
+    const installerName = `Moment-${currentVersion}-setup.exe`
 
-    const releasesUrl = `https://api.github.com/repos/${UPDATE_REPO_OWNER}/${UPDATE_REPO_NAME}/releases/latest`
+    // Ensure updates directory exists
+    if (!fs.existsSync(UPDATES_DIR)) fs.mkdirSync(UPDATES_DIR, { recursive: true })
+
+    // Skip if installer already cached locally
+    const destPath = path.join(UPDATES_DIR, installerName)
+    if (fs.existsSync(destPath)) {
+      console.log(`[Updater] ${installerName} already cached`)
+      return
+    }
+
+    // Find the asset matching THIS server's version from GitHub Releases
+    const releasesUrl = `https://api.github.com/repos/${UPDATE_REPO_OWNER}/${UPDATE_REPO_NAME}/releases/tags/v${currentVersion}`
 
     const releasesData = await new Promise<string>((resolve, reject) => {
       https.get(releasesUrl, { headers: { 'User-Agent': 'Moment-App' } }, (res) => {
         let body = ''
         res.on('data', (chunk: string) => body += chunk)
-        res.on('end', () => resolve(body))
+        res.on('end', () => {
+          if (res.statusCode === 404) reject(new Error('Release not found'))
+          else resolve(body)
+        })
       }).on('error', reject)
     })
 
     const release = JSON.parse(releasesData)
-    const latestVersion = (release.tag_name || '').replace(/^v/, '')
-    if (!latestVersion || latestVersion === currentVersion) {
-      console.log('[Updater] Already at latest version')
-      return
-    }
-
     const asset = release.assets?.find((a: any) =>
       a.name && a.name.endsWith('.exe') && a.browser_download_url
     )
     if (!asset) {
-      console.log('[Updater] No .exe asset found in latest release')
+      console.log('[Updater] No .exe asset found in release')
+      mainWindow?.webContents.send('team:event', {
+        type: 'update:download-failed',
+        payload: { message: `GitHub Release 中未找到安装包，请手动下载后放到 ${UPDATES_DIR}` }
+      })
       return
     }
 
-    const installerName = `Moment-${latestVersion}-setup.exe`
-    const destPath = path.join(UPDATES_DIR, installerName)
-    if (!fs.existsSync(UPDATES_DIR)) fs.mkdirSync(UPDATES_DIR, { recursive: true })
-
-    console.log(`[Updater] Downloading ${installerName}...`)
+    console.log(`[Updater] Downloading ${installerName} for client distribution...`)
     const file = fs.createWriteStream(destPath)
 
     await new Promise<void>((resolve, reject) => {
@@ -316,7 +325,7 @@ async function checkForUpdate(): Promise<void> {
 
     console.log(`[Updater] Downloaded ${installerName}`)
   } catch (e: any) {
-    console.error('[Updater] Failed to check/download update:', e.message)
+    console.error('[Updater] Failed to download installer:', e.message)
     mainWindow?.webContents.send('team:event', {
       type: 'update:download-failed',
       payload: { message: `从 GitHub 下载安装包失败: ${e.message}。请重试或手动下载后放到 ${UPDATES_DIR}` }
