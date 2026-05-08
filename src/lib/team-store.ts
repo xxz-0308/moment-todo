@@ -104,6 +104,13 @@ export const useTeamStore = create<TeamState>((set, get) => ({
   _handleMessage: (event: TeamEvent) => {
     const { type, payload } = event
     switch (type) {
+      case 'error': {
+        const p = payload as { message: string }
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('moment:toast', { detail: { message: p.message } }))
+        }
+        break
+      }
       case 'sync:full': {
         const p = payload as { members: TeamMember[]; lists: TeamList[]; tasks: TeamTask[]; onlineIds?: string[] }
         const snap = get()._snapshot
@@ -111,6 +118,30 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         const onlineIds = p.onlineIds || []
         const online = new Set<string>(onlineIds)
         set({ members: memberList, lists: p.lists || [], tasks: p.tasks || [], onlineMemberCount: onlineIds.length, onlineMembers: online, _snapshot: null })
+        // Sync assigned tasks to personal DB
+        const selfId = get().selfMemberId
+        if (selfId && (p.tasks || []).length > 0 && typeof window !== 'undefined') {
+          const myTasks = (p.tasks || []).filter((t) => {
+            if (!t.assigned_to) return false
+            const ids = t.assigned_to.split(',').map((s: string) => s.trim()).filter(Boolean)
+            return ids.includes(selfId)
+          })
+          if (myTasks.length > 0) {
+            import('@/db').then(async (db) => {
+              for (const t of myTasks) {
+                await db.upsertTeamTask({
+                  id: t.id, title: t.title, completed: t.completed, priority: t.priority,
+                  due_date: t.due_date, list_id: t.list_id, notes: t.notes,
+                  pinned: t.pinned, sort_order: t.sort_order, team_task_id: t.id,
+                })
+              }
+              // Reload main store to show tasks in personal view
+              import('@/store').then((store) => {
+                store.useStore.getState().loadData()
+              }).catch(() => {})
+            }).catch(() => {})
+          }
+        }
         if (snap && (p.tasks || []).length > 0) {
           const newTasks = (p.tasks || []).filter(t => !snap.taskIds.has(t.id))
           const newCompleted = (p.tasks || []).filter(t => t.completed && !snap.completedIds.has(t.id))
