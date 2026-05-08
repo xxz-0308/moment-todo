@@ -16,6 +16,7 @@ export interface TeamTask {
   assigned_to: string | null
   created_at: string
   updated_at: string
+  completed_at: string | null
 }
 
 export interface TeamList {

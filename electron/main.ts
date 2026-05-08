@@ -96,6 +96,9 @@ function initSchema() {
   try { db.run("ALTER TABLE lists ADD COLUMN scope TEXT NOT NULL DEFAULT 'personal'") } catch {}
   try { db.run("ALTER TABLE lists ADD COLUMN created_by TEXT") } catch {}
 
+  // A3: completed_at for tracking when task was completed today
+  try { db.run("ALTER TABLE tasks ADD COLUMN completed_at TEXT") } catch {}
+
   const result = db.exec('SELECT COUNT(*) as count FROM lists')
   const count = result.length > 0 ? (result[0].values[0][0] as number) : 0
   if (count === 0) {

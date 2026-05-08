@@ -15,6 +15,7 @@ export function makeTask(overrides: Partial<Task> = {}): Task {
     sort_order: overrides.sort_order ?? 0,
     created_at: overrides.created_at || new Date().toISOString(),
     updated_at: overrides.updated_at || new Date().toISOString(),
+    completed_at: overrides.completed_at ?? null,
   }
 }
 
@@ -44,6 +45,7 @@ export function makeTeamTask(overrides: Partial<TeamTask> = {}): TeamTask {
     assigned_to: overrides.assigned_to ?? null,
     created_at: overrides.created_at || new Date().toISOString(),
     updated_at: overrides.updated_at || new Date().toISOString(),
+    completed_at: overrides.completed_at ?? null,
   }
 }
 

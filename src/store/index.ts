@@ -16,6 +16,7 @@ export interface Task {
   sort_order: number
   created_at: string
   updated_at: string
+  completed_at: string | null
 }
 
 export interface List {
@@ -237,7 +238,11 @@ export const useStore = create<AppState>((set, get) => ({
       const task = get().tasks.find((t) => t.id === id) || useTeamStore.getState().tasks.find((t) => t.id === id)
       if (!task) return
       const newCompleted = task.completed ? 0 : 1
-      useTeamStore.getState().sendMessage('task:update', { id, completed: newCompleted })
+      useTeamStore.getState().sendMessage('task:update', {
+        id,
+        completed: newCompleted,
+        completed_at: newCompleted ? new Date().toISOString() : null
+      })
       if (newCompleted) {
         playCompleteSound()
         get().pushUndo({ type: 'complete', task: { ...task }, timestamp: Date.now() })
@@ -253,7 +258,11 @@ export const useStore = create<AppState>((set, get) => ({
 
     const newCompleted = task.completed ? 0 : 1
     try {
-      await db.updateTask(id, { completed: newCompleted })
+      const now = new Date().toISOString()
+      await db.updateTask(id, {
+        completed: newCompleted,
+        completed_at: newCompleted ? now : null
+      })
 
       if (newCompleted) {
         playCompleteSound()
@@ -264,10 +273,9 @@ export const useStore = create<AppState>((set, get) => ({
         })
       }
 
-      const now = new Date().toISOString()
       set((s) => ({
         tasks: s.tasks.map((t) =>
-          t.id === id ? { ...t, completed: newCompleted, updated_at: now } : t
+          t.id === id ? { ...t, completed: newCompleted, completed_at: newCompleted ? now : null, updated_at: now } : t
         ),
       }))
 

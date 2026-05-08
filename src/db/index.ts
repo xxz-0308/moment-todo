@@ -77,7 +77,7 @@ export async function createTask(task: {
 
 export async function updateTask(
   id: string,
-  updates: Partial<Pick<Task, 'title' | 'completed' | 'priority' | 'due_date' | 'list_id' | 'notes' | 'sort_order' | 'pinned'>>
+  updates: Partial<Pick<Task, 'title' | 'completed' | 'priority' | 'due_date' | 'list_id' | 'notes' | 'sort_order' | 'pinned' | 'completed_at'>>
 ): Promise<void> {
   const fields: string[] = []
   const values: unknown[] = []

@@ -115,7 +115,7 @@ export function TaskItem({ task, isSelected, onSelect, showCompletedState, flash
           ? '!bg-[rgba(99,102,241,0.08)] !border-[rgba(99,102,241,0.2)]'
           : ''
         }
-        ${task.completed ? 'opacity-40' : ''}
+        ${(task.completed && showCompletedState) ? 'opacity-40' : ''}
         ${isMultiSelected ? 'ring-1 ring-accent bg-[rgba(99,102,241,0.08)]' : ''}
       `}
       onClick={(e) => {
