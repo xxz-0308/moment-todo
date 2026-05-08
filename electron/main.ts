@@ -26,6 +26,9 @@ let teamServer: TeamServer | null = null
 let teamClient: TeamClient | null = null
 let updateServer: http.Server | null = null
 const DB_PATH = path.join(app.getPath('userData'), 'moment.db')
+const UPDATE_REPO_OWNER = ''
+const UPDATE_REPO_NAME = ''
+const UPDATES_DIR = path.join(app.getPath('userData'), 'updates')
 
 // ── Database ──────────────────────────────────────────────
 
@@ -227,6 +230,7 @@ function startTeam(mode: 'server' | 'client', config: TeamConfig): void {
       return
     }
     startUpdateServer(5175)
+    checkForUpdate()  // async, don't block
     // Register server (keep existing members for assignee display)
     db.run(
       `INSERT INTO team_members (id, name, color, is_server, last_seen) VALUES (?, ?, ?, 1, datetime('now'))
@@ -260,12 +264,71 @@ function connectClient(url: string, config: TeamConfig): void {
   teamClient.connect()
 }
 
+async function checkForUpdate(): Promise<void> {
+  if (!UPDATE_REPO_OWNER || !UPDATE_REPO_NAME) {
+    console.log('[Updater] Repo not configured, skipping')
+    return
+  }
+  try {
+    const https = require('https') as typeof import('https')
+    const pkg = require('../package.json')
+    const currentVersion = pkg.version as string
+
+    const releasesUrl = `https://api.github.com/repos/${UPDATE_REPO_OWNER}/${UPDATE_REPO_NAME}/releases/latest`
+
+    const releasesData = await new Promise<string>((resolve, reject) => {
+      https.get(releasesUrl, { headers: { 'User-Agent': 'Moment-App' } }, (res) => {
+        let body = ''
+        res.on('data', (chunk: string) => body += chunk)
+        res.on('end', () => resolve(body))
+      }).on('error', reject)
+    })
+
+    const release = JSON.parse(releasesData)
+    const latestVersion = (release.tag_name || '').replace(/^v/, '')
+    if (!latestVersion || latestVersion === currentVersion) {
+      console.log('[Updater] Already at latest version')
+      return
+    }
+
+    const asset = release.assets?.find((a: any) =>
+      a.name && a.name.endsWith('.exe') && a.browser_download_url
+    )
+    if (!asset) {
+      console.log('[Updater] No .exe asset found in latest release')
+      return
+    }
+
+    const installerName = `Moment-${latestVersion}-setup.exe`
+    const destPath = path.join(UPDATES_DIR, installerName)
+    if (!fs.existsSync(UPDATES_DIR)) fs.mkdirSync(UPDATES_DIR, { recursive: true })
+
+    console.log(`[Updater] Downloading ${installerName}...`)
+    const file = fs.createWriteStream(destPath)
+
+    await new Promise<void>((resolve, reject) => {
+      https.get(asset.browser_download_url, { headers: { 'User-Agent': 'Moment-App' } }, (res) => {
+        res.pipe(file)
+        file.on('finish', () => { file.close(); resolve() })
+      }).on('error', reject)
+    })
+
+    console.log(`[Updater] Downloaded ${installerName}`)
+  } catch (e: any) {
+    console.error('[Updater] Failed to check/download update:', e.message)
+    mainWindow?.webContents.send('team:event', {
+      type: 'update:download-failed',
+      payload: { message: `从 GitHub 下载安装包失败: ${e.message}。请重试或手动下载后放到 ${UPDATES_DIR}` }
+    })
+  }
+}
+
 function startUpdateServer(port: number): void {
   try {
     updateServer = http.createServer((_req, res) => {
       const pkg = require('../package.json')
       const installerName = `Moment-${pkg.version}-setup.exe`
-      const installerPath = path.join(__dirname, '..', '..', 'release', installerName)
+      const installerPath = path.join(UPDATES_DIR, installerName)
       if (fs.existsSync(installerPath)) {
         const stat = fs.statSync(installerPath)
         res.writeHead(200, {
