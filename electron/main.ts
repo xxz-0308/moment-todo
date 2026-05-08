@@ -393,6 +393,10 @@ function createWindow() {
     if (!db) loadDatabase()
   })
 
+  mainWindow.on('focus', () => {
+    mainWindow?.flashFrame(false)
+  })
+
   mainWindow.on('close', (e) => {
     if (teamServer && teamServer.memberCount > 0) {
       e.preventDefault()
@@ -534,6 +538,10 @@ function setupIPC() {
   })
   ipcMain.handle('window:close', () => { saveDatabase(); mainWindow?.close() })
   ipcMain.handle('window:isMaximized', () => mainWindow?.isMaximized())
+  ipcMain.handle('window:flash', () => {
+    mainWindow?.flashFrame(true)
+    return true
+  })
   ipcMain.handle('shell:openExternal', (_e, url: string) => shell.openExternal(url))
   ipcMain.handle('get-app-version', () => app.getVersion())
 
@@ -667,6 +675,7 @@ function setupIPC() {
                 type: 'notify:assigned',
                 payload: notifyPayload,
               })
+              mainWindow?.flashFrame(true)  // Flash taskbar icon
             }
           }
         } else if (msg.type === 'task:delete') {
