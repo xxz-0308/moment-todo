@@ -57,6 +57,7 @@ interface TeamState {
   reconnectSummary: string | null
   _snapshot: { taskIds: Set<string>; completedIds: Set<string> } | null
   appVersion: string
+  selfMemberId: string
   updateAvailable: { serverVersion: string } | null
 
   _handleMessage: (event: TeamEvent) => void
@@ -97,6 +98,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
   reconnectSummary: null,
   _snapshot: null,
   appVersion: '',
+  selfMemberId: '',
   updateAvailable: null,
 
   _handleMessage: (event: TeamEvent) => {
@@ -127,13 +129,51 @@ export const useTeamStore = create<TeamState>((set, get) => ({
           if (s.tasks.find((t) => t.id === p.task.id)) return s
           return { tasks: [p.task, ...s.tasks] }
         })
+        // If this task is assigned to me, write to personal DB
+        const t = p.task
+        const selfId = get().selfMemberId
+        if (selfId && (t as any).assigned_to) {
+          const assignedIds = String((t as any).assigned_to).split(',').map((s: string) => s.trim()).filter(Boolean)
+          if (assignedIds.includes(selfId) && typeof window !== 'undefined') {
+            import('@/db').then((db) => {
+              db.upsertTeamTask({
+                id: t.id, title: t.title, completed: t.completed, priority: t.priority,
+                due_date: t.due_date, list_id: t.list_id, notes: t.notes,
+                pinned: t.pinned, sort_order: t.sort_order, team_task_id: t.id,
+              })
+            }).catch(() => {})
+          }
+        }
         break
       }
       case 'task:updated': {
-        const p = payload as { id: string } & Partial<TeamTask>
+        const p = payload as { id: string; assigned_to?: string } & Partial<TeamTask>
         set((s) => ({
           tasks: s.tasks.map((t) => (t.id === p.id ? { ...t, ...p, updated_at: new Date().toISOString() } : t)),
         }))
+        // Sync to/from personal DB if this task is/was assigned to me
+        const selfId = get().selfMemberId
+        if (selfId) {
+          const t = get().tasks.find((x) => x.id === p.id)
+          const newAssigned = p.assigned_to
+            ? p.assigned_to.split(',').map((s: string) => s.trim()).filter(Boolean)
+            : (t?.assigned_to?.split(',').map((s: string) => s.trim()).filter(Boolean) || [])
+          if (newAssigned.includes(selfId) && t) {
+            // Task is assigned to me — upsert in personal DB
+            import('@/db').then((db) => {
+              db.upsertTeamTask({
+                id: t.id, title: t.title, completed: t.completed, priority: t.priority,
+                due_date: t.due_date, list_id: t.list_id, notes: t.notes,
+                pinned: t.pinned, sort_order: t.sort_order, team_task_id: t.id,
+              })
+            }).catch(() => {})
+          } else if ('assigned_to' in p && !newAssigned.includes(selfId)) {
+            // I was removed from assigned_to — delete from personal DB
+            import('@/db').then((db) => {
+              db.removeTeamTask(p.id as string)
+            }).catch(() => {})
+          }
+        }
         break
       }
       case 'task:deleted': {
@@ -314,6 +354,9 @@ export const useTeamStore = create<TeamState>((set, get) => ({
     a.onTeamEvent((event: TeamEvent) => {
       get()._handleMessage(event)
     })
+    a.teamGetConfig().then((cfg: any) => {
+      if (cfg?.member?.id) set({ selfMemberId: cfg.member.id })
+    })
     if (a.getAppVersion) {
       a.getAppVersion().then((v: string) => set({ appVersion: v }))
     }
@@ -332,6 +375,9 @@ export const useTeamStore = create<TeamState>((set, get) => ({
     if (!a) return
     a.onTeamEvent((event: TeamEvent) => {
       get()._handleMessage(event)
+    })
+    a.teamGetConfig().then((cfg: any) => {
+      if (cfg?.member?.id) set({ selfMemberId: cfg.member.id })
     })
     if (a.getAppVersion) {
       a.getAppVersion().then((v: string) => set({ appVersion: v }))

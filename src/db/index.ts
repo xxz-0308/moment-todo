@@ -233,3 +233,42 @@ export async function backupDatabase(): Promise<void> {
 export async function exportJSON(): Promise<string> {
   return await api.dbExportJSON()
 }
+
+// ── Team task sync ──────────────────────────────────────────
+
+export async function upsertTeamTask(task: {
+  id: string
+  title: string
+  completed: number
+  priority: string
+  due_date: string | null
+  list_id: string
+  notes: string
+  pinned: number
+  sort_order: number
+  team_task_id: string
+}): Promise<void> {
+  const existing = await api.dbGet(
+    'SELECT id FROM tasks WHERE team_task_id = ?',
+    [task.team_task_id]
+  )
+  const row = existing as { id: string } | null
+  if (row) {
+    await api.dbRun(
+      `UPDATE tasks SET title=?, completed=?, priority=?, due_date=?, list_id=?, notes=?, pinned=?, sort_order=? WHERE id=?`,
+      [task.title, task.completed, task.priority, task.due_date, 'default', task.notes, task.pinned, task.sort_order, row.id]
+    )
+  } else {
+    const id = generateId()
+    const now = new Date().toISOString()
+    await api.dbRun(
+      `INSERT INTO tasks (id, title, completed, priority, due_date, list_id, notes, pinned, sort_order, team_task_id, is_team_assigned, scope, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, 'default', ?, ?, ?, ?, 1, 'personal', ?, ?)`,
+      [id, task.title, task.completed, task.priority, task.due_date, task.notes, task.pinned, task.sort_order, task.team_task_id, now, now]
+    )
+  }
+}
+
+export async function removeTeamTask(teamTaskId: string): Promise<void> {
+  await api.dbRun('DELETE FROM tasks WHERE team_task_id = ?', [teamTaskId])
+}
