@@ -65,6 +65,10 @@ export default function App() {
     const api = (window as any).electronAPI
     if (!api?.onTeamEvent) return
     api.onTeamEvent((event: { type: string; payload: unknown }) => {
+      if (event.type === 'data:reloaded') {
+        useStore.getState().loadData()
+        return
+      }
       useTeamStore.getState()._handleMessage(event as any)
     })
     // Request current team state — main process may have sent events before we were ready

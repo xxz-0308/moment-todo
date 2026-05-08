@@ -12,6 +12,7 @@ import {
   Volume1,
   Volume2,
   Info,
+  Upload,
 } from 'lucide-react'
 import { useStore } from '@/store'
 import { GlassConfirm } from '@/components/GlassConfirm'
@@ -322,6 +323,40 @@ export default function Settings() {
                   <div className="text-left">
                     <p className="text-[13px] font-medium text-text-primary">导出 JSON</p>
                     <p className="text-[11px] text-text-tertiary mt-0.5">导出所有任务和列表数据</p>
+                  </div>
+                  <Download size={16} strokeWidth={1.8} className="text-text-tertiary" />
+                </button>
+                <button
+                  onClick={async () => {
+                    const api = (window as any).electronAPI
+                    const ok = await api?.dbRestore()
+                    if (ok) { useStore.getState().loadData(); useStore.getState().addToast('备份恢复成功') }
+                    else { useStore.getState().addToast('恢复失败') }
+                  }}
+                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.04)] hover:border-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.04)] transition-all"
+                >
+                  <div className="text-left">
+                    <p className="text-[13px] font-medium text-text-primary">恢复备份 (.db)</p>
+                    <p className="text-[11px] text-text-tertiary mt-0.5">从备份文件恢复数据库</p>
+                  </div>
+                  <Upload size={16} strokeWidth={1.8} className="text-text-tertiary" />
+                </button>
+                <button
+                  onClick={async () => {
+                    const api = (window as any).electronAPI
+                    const result = await api?.dbImportJSON()
+                    if (result) {
+                      useStore.getState().loadData()
+                      useStore.getState().addToast(`导入完成：${result.taskCount} 个任务`)
+                    } else {
+                      useStore.getState().addToast('导入失败')
+                    }
+                  }}
+                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.04)] hover:border-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.04)] transition-all"
+                >
+                  <div className="text-left">
+                    <p className="text-[13px] font-medium text-text-primary">导入数据 (.json)</p>
+                    <p className="text-[11px] text-text-tertiary mt-0.5">从 JSON 文件导入任务和列表</p>
                   </div>
                   <Download size={16} strokeWidth={1.8} className="text-text-tertiary" />
                 </button>

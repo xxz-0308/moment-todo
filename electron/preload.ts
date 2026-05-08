@@ -7,6 +7,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   dbRun: (sql: string, params?: unknown[]) => ipcRenderer.invoke('db:run', sql, params),
   dbBackup: () => ipcRenderer.invoke('db:backup'),
   dbExportJSON: () => ipcRenderer.invoke('db:export-json'),
+  dbRestore: () => ipcRenderer.invoke('db:restore'),
+  dbImportJSON: () => ipcRenderer.invoke('db:import-json'),
 
   // Notifications
   showNotification: (title: string, body: string) =>

@@ -607,6 +607,66 @@ function setupIPC() {
       exportedAt: new Date().toISOString(),
     }, null, 2)
   })
+  ipcMain.handle('db:restore', async () => {
+    const { dialog } = require('electron')
+    const result = await dialog.showOpenDialog(mainWindow!, {
+      title: '选择备份文件',
+      filters: [{ name: 'Database', extensions: ['db'] }],
+      properties: ['openFile'],
+    })
+    if (result.canceled || result.filePaths.length === 0) return false
+    const srcPath = result.filePaths[0]
+    try {
+      if (db) { db.close(); db = null }
+      fs.copyFileSync(srcPath, DB_PATH)
+      loadDatabase()
+      mainWindow?.webContents.send('team:event', { type: 'data:reloaded', payload: {} })
+      return true
+    } catch (e: any) {
+      console.error('[DB Restore] Failed:', e.message)
+      return false
+    }
+  })
+  ipcMain.handle('db:import-json', async () => {
+    const { dialog } = require('electron')
+    const result = await dialog.showOpenDialog(mainWindow!, {
+      title: '选择 JSON 导出文件',
+      filters: [{ name: 'JSON', extensions: ['json'] }],
+      properties: ['openFile'],
+    })
+    if (result.canceled || result.filePaths.length === 0) return false
+    try {
+      const content = fs.readFileSync(result.filePaths[0], 'utf-8')
+      const data = JSON.parse(content)
+      if (!data.tasks || !Array.isArray(data.tasks)) throw new Error('Invalid JSON format')
+      const now = new Date().toISOString()
+      for (const task of data.tasks) {
+        const existing = queryAll('SELECT id FROM tasks WHERE id = ?', [task.id])
+        if (existing.length > 0) continue
+        db!.run(
+          `INSERT INTO tasks (id, title, completed, priority, due_date, list_id, notes, pinned, sort_order, scope, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'personal', ?, ?)`,
+          [task.id, task.title, task.completed || 0, task.priority || 'medium', task.due_date || null, task.list_id || 'default', task.notes || '', task.pinned || 0, task.sort_order || 0, task.created_at || now, now]
+        )
+      }
+      if (data.lists && Array.isArray(data.lists)) {
+        for (const list of data.lists) {
+          const existing = queryAll('SELECT id FROM lists WHERE id = ?', [list.id])
+          if (existing.length > 0) continue
+          db!.run(
+            'INSERT INTO lists (id, name, color, sort_order) VALUES (?, ?, ?, ?)',
+            [list.id, list.name, list.color || '#6366f1', list.sort_order || 0]
+          )
+        }
+      }
+      saveDatabase()
+      mainWindow?.webContents.send('team:event', { type: 'data:reloaded', payload: {} })
+      return { taskCount: data.tasks.length, listCount: data.lists?.length || 0 }
+    } catch (e: any) {
+      console.error('[DB Import] Failed:', e.message)
+      return false
+    }
+  })
   ipcMain.handle('notification:show', (_e, title: string, body: string) => {
     if (Notification.isSupported()) {
       new Notification({ title, body, silent: false }).show()
