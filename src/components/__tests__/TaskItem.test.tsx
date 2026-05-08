@@ -52,10 +52,10 @@ describe('TaskItem', () => {
     expect(matches.length).toBeGreaterThanOrEqual(1)
   })
 
-  it('shows completed styling when done', () => {
+  it('shows completed styling in completed view', () => {
     const task = makeTask({ id: 't1', completed: 1 })
     useStore.setState({ tasks: [task] })
-    const { container } = render(<TaskItem task={task} isSelected={false} onSelect={() => {}} />)
+    const { container } = render(<TaskItem task={task} isSelected={false} onSelect={() => {}} showCompletedState />)
     const taskEl = container.querySelector('.opacity-40')
     expect(taskEl).toBeTruthy()
   })
