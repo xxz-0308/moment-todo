@@ -229,6 +229,15 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         }
         break
       }
+      case 'update:available': {
+        const p = payload as { serverVersion: string; clientVersion: string; downloadUrl: string }
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('moment:update-available', {
+            detail: { serverVersion: p.serverVersion, downloadUrl: p.downloadUrl, required: false },
+          }))
+        }
+        break
+      }
       case 'protocol:rejected': {
         const p = payload as { serverVersion: number; clientVersion: number; message: string; downloadUrl?: string }
         set({ connectionStatus: 'disconnected' })

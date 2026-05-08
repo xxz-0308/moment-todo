@@ -10,6 +10,7 @@ export class TeamClient {
   private ws: WebSocket | null = null
   private member: TeamMember
   private url: string
+  private appVersion: string
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
   private reconnectDelay = 1000
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null
@@ -17,9 +18,10 @@ export class TeamClient {
   private _status: ClientStatus = 'disconnected'
   private _intentionalClose = false
 
-  constructor(url: string, member: TeamMember, onEvent: ClientEventHandler) {
+  constructor(url: string, member: TeamMember, appVersion: string, onEvent: ClientEventHandler) {
     this.url = url
     this.member = member
+    this.appVersion = appVersion
     this.onEvent = onEvent
   }
 
@@ -42,7 +44,7 @@ export class TeamClient {
         this.reconnectDelay = 1000
         this.onEvent('status', 'connected')
         // Handshake with protocol version
-        this.send({ type: 'member:handshake', payload: { member: this.member, protocolVersion: MIN_PROTOCOL_VERSION } })
+        this.send({ type: 'member:handshake', payload: { member: this.member, protocolVersion: MIN_PROTOCOL_VERSION, appVersion: this.appVersion } })
         // Request full sync
         this.send({ type: 'sync:request', payload: {} })
         // Start heartbeat

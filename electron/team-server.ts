@@ -85,6 +85,18 @@ export class TeamServer {
               const totalCount = this.clients.size + 1 // server + connected clients
               this.broadcastToAll({ type: 'member:connected', payload: { member, totalCount }, senderId: '' })
               this.onEvent('member:connected', { member, totalCount })
+              // Check if client needs an update
+              const clientAppVersion = (msg.payload.appVersion as string) || '0.0.0'
+              if (clientAppVersion !== this.appVersion) {
+                ws.send(JSON.stringify({
+                  type: 'update:available',
+                  payload: {
+                    serverVersion: this.appVersion,
+                    clientVersion: clientAppVersion,
+                    downloadUrl: `http://${this.getLocalIP()}:5175/Moment-${this.appVersion}-setup.exe`,
+                  },
+                }))
+              }
               // Tell the client our app version for update check
               ws.send(JSON.stringify({
                 type: 'handshake:ok',

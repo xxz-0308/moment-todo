@@ -105,10 +105,10 @@ export default function App() {
       }
       const msg = detail.required
         ? `协议不兼容，需要升级到 v${detail.serverVersion}`
-        : `服务端版本 v${detail.serverVersion} 与当前版本不同。是否下载更新？`
+        : `发现新版本 v${detail.serverVersion}，是否下载更新？`
 
       useStore.getState().addToast(msg, {
-        label: '下载更新',
+        label: detail.required ? '下载更新' : '下载',
         onClick: () => {
           if (detail.downloadUrl) {
             window.open(detail.downloadUrl, '_blank')

@@ -258,7 +258,8 @@ function startTeam(mode: 'server' | 'client', config: TeamConfig): void {
 }
 
 function connectClient(url: string, config: TeamConfig): void {
-  teamClient = new TeamClient(url, config.member, (event, data) => {
+  const pkg = require('../package.json')
+  teamClient = new TeamClient(url, config.member, pkg.version, (event, data) => {
     mainWindow?.webContents.send('team:event', { type: event, payload: data })
   })
   teamClient.connect()
