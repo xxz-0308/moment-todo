@@ -102,6 +102,22 @@ function initSchema() {
   // A3: completed_at for tracking when task was completed today
   try { db.run("ALTER TABLE tasks ADD COLUMN completed_at TEXT") } catch {}
 
+  // B: team task sync columns
+  try { db.run("ALTER TABLE tasks ADD COLUMN team_task_id TEXT") } catch {}
+  try { db.run("ALTER TABLE tasks ADD COLUMN is_team_assigned INTEGER DEFAULT 0") } catch {}
+  try { db.run("ALTER TABLE tasks ADD COLUMN completed_at TEXT") } catch {}
+
+  // B: task_assignee_status table — per-assignee completion tracking
+  db.run(`
+    CREATE TABLE IF NOT EXISTS task_assignee_status (
+      id TEXT PRIMARY KEY,
+      task_id TEXT NOT NULL,
+      assignee_id TEXT NOT NULL,
+      completed INTEGER DEFAULT 0,
+      completed_at TEXT
+    )
+  `)
+
   const result = db.exec('SELECT COUNT(*) as count FROM lists')
   const count = result.length > 0 ? (result[0].values[0][0] as number) : 0
   if (count === 0) {
